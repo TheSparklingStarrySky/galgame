@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "format": {
+    "bgm": "ogg, stereo, 48kHz, loop metadata required",
+    "sfx": "ogg, mono or stereo, 48kHz",
+    "voice": "ogg, mono, 48kHz, -18 LUFS target"
+  },
+  "bgm": [],
+  "sfx": [],
+  "voice": [],
+  "plannedCues": [
+    "bgm/awakening_room.ogg",
+    "bgm/assembly_distrust.ogg",
+    "bgm/rule_execution.ogg",
+    "bgm/investigation_pulse.ogg",
+    "bgm/ending_afterlight.ogg",
+    "sfx/pda_open.ogg",
+    "sfx/pda_close.ogg",
+    "sfx/clue_acquired.ogg",
+    "sfx/collar_warning.ogg",
+    "sfx/relay_lock.ogg"
+  ]
+}
