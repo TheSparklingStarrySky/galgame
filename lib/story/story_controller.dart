@@ -16,6 +16,9 @@ class SaveSnapshot {
     required this.cooperation,
     required this.flags,
     required this.foundClues,
+    required this.inventoryItems,
+    required this.investigationActions,
+    required this.investigationClues,
     required this.historyIds,
     this.markedSector,
   });
@@ -29,6 +32,9 @@ class SaveSnapshot {
   final int cooperation;
   final Set<String> flags;
   final Set<String> foundClues;
+  final Set<String> inventoryItems;
+  final Set<String> investigationActions;
+  final Set<String> investigationClues;
   final List<String> historyIds;
   final String? markedSector;
 
@@ -44,6 +50,9 @@ class SaveSnapshot {
     'cooperation': cooperation,
     'flags': flags.toList(),
     'foundClues': foundClues.toList(),
+    'inventoryItems': inventoryItems.toList(),
+    'investigationActions': investigationActions.toList(),
+    'investigationClues': investigationClues.toList(),
     'historyIds': historyIds,
     'markedSector': markedSector,
   };
@@ -62,6 +71,16 @@ class SaveSnapshot {
       cooperation: json['cooperation'] as int? ?? 0,
       flags: (json['flags'] as List<dynamic>? ?? []).cast<String>().toSet(),
       foundClues: (json['foundClues'] as List<dynamic>? ?? [])
+          .cast<String>()
+          .toSet(),
+      inventoryItems: (json['inventoryItems'] as List<dynamic>? ?? [])
+          .cast<String>()
+          .toSet(),
+      investigationActions:
+          (json['investigationActions'] as List<dynamic>? ?? [])
+              .cast<String>()
+              .toSet(),
+      investigationClues: (json['investigationClues'] as List<dynamic>? ?? [])
           .cast<String>()
           .toSet(),
       historyIds: (json['historyIds'] as List<dynamic>? ?? []).cast<String>(),
@@ -101,6 +120,9 @@ class StoryController extends ChangeNotifier {
 
   final Set<String> flags = {};
   final Set<String> foundClues = {};
+  final Set<String> inventoryItems = {};
+  final Set<String> investigationActions = {};
+  final Set<String> investigationClues = {};
   final Set<String> seenNodes = {};
   final Set<String> readNodes = {};
   final Set<String> unlockedCgs = {};
@@ -142,8 +164,14 @@ class StoryController extends ChangeNotifier {
       routeNodes.where((node) => seenNodes.contains(node.id)).length;
 
   String get remainingTime {
-    final minutesElapsed = ((history.length - 1).clamp(0, history.length) * 3)
-        .clamp(0, gameDurationMinutes - 60);
+    var minutesElapsed = (history.length - 1).clamp(0, history.length) * 3;
+    for (var index = history.length - 1; index >= 0; index--) {
+      final anchor = history[index].timelineMinute;
+      if (anchor == null) continue;
+      minutesElapsed = anchor + (history.length - 1 - index) * 3;
+      break;
+    }
+    minutesElapsed = minutesElapsed.clamp(0, gameDurationMinutes - 60);
     final remaining = gameDurationMinutes - minutesElapsed;
     final hours = remaining ~/ 60;
     final minutes = remaining % 60;
@@ -160,6 +188,9 @@ class StoryController extends ChangeNotifier {
     markedSector = null;
     flags.clear();
     foundClues.clear();
+    inventoryItems.clear();
+    investigationActions.clear();
+    investigationClues.clear();
     history.clear();
     autoPlay = false;
     skipMode = false;
@@ -241,6 +272,15 @@ class StoryController extends ChangeNotifier {
     if (effect.flag case final flag?) flags.add(flag);
 
     if (currentId == 'response_choice') {
+      if (choice.next == 'chase_signal' && flags.contains('route_xingyao')) {
+        flags.add('bond_xingyao');
+      }
+      if (choice.next == 'help_sumi' && flags.contains('route_sumi')) {
+        flags.add('bond_sumi');
+      }
+      if (choice.next == 'help_lincheng' && flags.contains('route_lincheng')) {
+        flags.add('bond_lincheng');
+      }
       if (choice.next == 'help_sumi' && markedSector == 'medical') {
         cooperation += 1;
         flags.add('planned_medical_route');
@@ -260,13 +300,31 @@ class StoryController extends ChangeNotifier {
   }
 
   void completeInvestigation(Set<String> clues) {
-    foundClues
-      ..clear()
-      ..addAll(clues);
+    foundClues.addAll(clues);
     logic += clues.length;
     _markCurrentRead();
     currentId = current.next!;
     _enterCurrent();
+  }
+
+  void collectInvestigationItem(String itemId) {
+    if (!inventoryItems.add(itemId)) return;
+    _saveAuto();
+    notifyListeners();
+  }
+
+  void recordInvestigationAction(
+    String actionId, {
+    String? grantsItem,
+    String? verifiesClue,
+    Iterable<String> consumesItems = const [],
+  }) {
+    if (!investigationActions.add(actionId)) return;
+    inventoryItems.removeAll(consumesItems);
+    if (grantsItem != null) inventoryItems.add(grantsItem);
+    if (verifiesClue != null) investigationClues.add(verifiesClue);
+    _saveAuto();
+    notifyListeners();
   }
 
   void completeTuning() {
@@ -282,18 +340,8 @@ class StoryController extends ChangeNotifier {
     if (hypothesis == 'suicide') {
       currentId = 'bad_end';
     } else if (hypothesis == 'repeater' && cooperation >= 2) {
-      if (flags.containsAll({'route_xingyao', 'signal_trace'}) &&
-          xingyaoTrust >= 2) {
-        currentId = 'xingyao_end';
-      } else if (flags.containsAll({'route_sumi', 'medical_record'}) &&
-          sumiTrust >= 2) {
-        currentId = 'sumi_end';
-      } else if (flags.containsAll({'route_lincheng', 'student_witness'}) &&
-          linchengTrust >= 2) {
-        currentId = 'lincheng_end';
-      } else {
-        currentId = 'pact_end';
-      }
+      flags.add('case01_solved');
+      currentId = 'ch2_case_conclusion';
     } else {
       currentId = 'shadow_end';
     }
@@ -379,6 +427,9 @@ class StoryController extends ChangeNotifier {
     cooperation: cooperation,
     flags: Set.of(flags),
     foundClues: Set.of(foundClues),
+    inventoryItems: Set.of(inventoryItems),
+    investigationActions: Set.of(investigationActions),
+    investigationClues: Set.of(investigationClues),
     historyIds: history.map((beat) => beat.id).toList(),
     markedSector: markedSector,
   );
@@ -397,6 +448,15 @@ class StoryController extends ChangeNotifier {
     foundClues
       ..clear()
       ..addAll(snapshot.foundClues);
+    inventoryItems
+      ..clear()
+      ..addAll(snapshot.inventoryItems);
+    investigationActions
+      ..clear()
+      ..addAll(snapshot.investigationActions);
+    investigationClues
+      ..clear()
+      ..addAll(snapshot.investigationClues);
     history
       ..clear()
       ..addAll(

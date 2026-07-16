@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:galgame/main.dart';
@@ -89,9 +90,15 @@ void main() {
     controller.setMarkedSector('medical');
     _advanceUntil(controller, 'clause_choice');
     controller.choose(controller.availableChoices.first);
+    controller.collectInvestigationItem('tool_tray');
+    controller.recordInvestigationAction(
+      'tray_pick',
+      grantsItem: 'insulated_pick',
+    );
     await controller.saveToSlot(2);
 
     controller.setMarkedSector('storage');
+    controller.collectInvestigationItem('wall_box');
     _advanceUntil(controller, 'partner_choice');
     expect(controller.currentId, 'partner_choice');
     controller.choose(controller.availableChoices.last);
@@ -102,6 +109,33 @@ void main() {
     expect(controller.cooperation, 2);
     expect(controller.markedSector, 'medical');
     expect(controller.flags, contains('public_clause'));
+    expect(
+      controller.inventoryItems,
+      containsAll(['tool_tray', 'insulated_pick']),
+    );
+    expect(controller.inventoryItems, isNot(contains('wall_box')));
+    expect(controller.investigationActions, contains('tray_pick'));
+  });
+
+  test('一次性调查物品被消耗后不会随存档复原', () async {
+    final controller = await StoryController.load();
+    controller.startNew();
+    controller.collectInvestigationItem('wall_box');
+    controller.collectInvestigationItem('insulated_pick');
+    controller.recordInvestigationAction(
+      'box_open',
+      consumesItems: const ['insulated_pick'],
+      verifiesClue: 'repeater',
+    );
+    await controller.saveToSlot(3);
+
+    controller.startNew();
+    controller.loadSlot(3);
+
+    expect(controller.inventoryItems, contains('wall_box'));
+    expect(controller.inventoryItems, isNot(contains('insulated_pick')));
+    expect(controller.investigationActions, contains('box_open'));
+    expect(controller.investigationClues, contains('repeater'));
   });
 
   test('线路图跳转恢复节点状态，已读快进状态保留', () async {
@@ -193,7 +227,11 @@ void main() {
         'collar_detonation',
         'investigation_gate',
         'deduction_gate',
-        'pact_end_result',
+        'ch2_chapter_title',
+        'ch2_approach_choice',
+        'ch2_gym_investigation',
+        'ch2_seal_complete',
+        'ch2_end',
       ]),
     );
     expect(routeNodes.every((node) => storyBeats.containsKey(node.id)), isTrue);
@@ -222,6 +260,18 @@ void main() {
     expect(
       storyBeats['wake_senses']!.passages.single.speaker,
       Speaker.narration,
+    );
+    expect(
+      storyBeats['ch1_case_limits']!.passages.every(
+        (passage) => passage.speaker == Speaker.narration,
+      ),
+      isTrue,
+    );
+    expect(
+      storyBeats['ch2_route_together']!.passages.map(
+        (passage) => passage.speaker,
+      ),
+      [Speaker.narration, Speaker.tangYi, Speaker.yeLan, Speaker.narration],
     );
 
     for (final beat in storyBeats.values) {
@@ -256,7 +306,7 @@ void main() {
       expect(File(moodAsset!).existsSync(), isTrue, reason: '$moodAsset 必须存在');
     }
 
-    expect(storyBeats.length, 129);
+    expect(storyBeats.length, greaterThanOrEqualTo(180));
     expect(storyBeats['enter_hall']!.text, contains('只有十一人'));
     expect(storyBeats['participant_twelve']!.text, contains('无记录'));
     expect(storyBeats['participant_twelve']!.speaker, Speaker.narration);
@@ -387,28 +437,28 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  test('三条恋爱支线要求同行与调查选择一致', () async {
+  test('三条恋爱支线通过重复同行选择延续到第二章', () async {
     final routes = [
       (
         partner: 0,
         response: 1,
-        story: 'xingyao_end',
-        result: 'xingyao_end_result',
-        ending: 'ending_xingyao',
+        bond: 'bond_xingyao',
+        guard: 'ch2_stay_xingyao',
+        aftercare: 'ch2_xingyao_aftercare',
       ),
       (
         partner: 1,
         response: 0,
-        story: 'sumi_end',
-        result: 'sumi_end_result',
-        ending: 'ending_sumi',
+        bond: 'bond_sumi',
+        guard: 'ch2_stay_sumi',
+        aftercare: 'ch2_sumi_aftercare',
       ),
       (
         partner: 2,
         response: 2,
-        story: 'lincheng_end',
-        result: 'lincheng_end_result',
-        ending: 'ending_lincheng',
+        bond: 'bond_lincheng',
+        guard: 'ch2_stay_lincheng',
+        aftercare: 'ch2_lincheng_aftercare',
       ),
     ];
 
@@ -429,15 +479,46 @@ void main() {
       _advanceUntil(controller, 'deduction_gate');
       controller.submitDeduction('repeater');
 
-      expect(controller.currentId, route.story);
-      expect(controller.current.text.length, greaterThan(300));
-      expect(controller.unlockedEndings, isNot(contains(route.ending)));
-      _advanceUntil(controller, route.result);
-      expect(controller.unlockedEndings, contains(route.ending));
+      expect(controller.currentId, 'ch2_case_conclusion');
+      expect(controller.flags, contains(route.bond));
+      _advanceUntil(controller, 'ch2_leave_choice');
+      final guardChoice = controller.availableChoices.singleWhere(
+        (choice) => choice.next == route.guard,
+      );
+      controller.choose(guardChoice);
+      _advanceUntil(controller, 'ch2_gym_investigation');
+      expect(
+        controller.foundClues,
+        containsAll({'distance', 'repeater', 'timer'}),
+      );
+      controller.completeInvestigation({
+        'gym_control',
+        'gym_cable',
+        'gym_cradle',
+      });
+      expect(
+        controller.foundClues,
+        containsAll({
+          'distance',
+          'repeater',
+          'timer',
+          'gym_control',
+          'gym_cable',
+          'gym_cradle',
+        }),
+      );
+      _advanceUntil(controller, 'ch2_aftermath_choice');
+      final aftercareChoice = controller.availableChoices.singleWhere(
+        (choice) => choice.next == route.aftercare,
+      );
+      controller.choose(aftercareChoice);
+      expect(controller.currentId, route.aftercare);
+      _advanceUntil(controller, 'ch2_end');
+      expect(controller.current.text, contains('12号第一次拥有了方向'));
     }
   });
 
-  test('规则推演会根据判断与合作度进入不同结局', () async {
+  test('正确规则推演进入第二章，错误结论仍进入坏结局', () async {
     final pact = await StoryController.load();
     pact.startNew();
     _advanceUntil(pact, 'clause_choice');
@@ -451,16 +532,87 @@ void main() {
     _advanceUntil(pact, 'deduction_gate');
     pact.submitDeduction('repeater');
 
-    expect(pact.currentId, 'pact_end');
-    expect(pact.unlockedEndings, isNot(contains('ending_pact')));
-    _advanceUntil(pact, 'pact_end_result');
-    expect(pact.unlockedEndings, contains('ending_pact'));
+    expect(pact.currentId, 'ch2_case_conclusion');
+    expect(pact.flags, contains('case01_solved'));
 
     final failed = await StoryController.load();
     failed.startNew();
     _advanceUntil(failed, 'deduction_gate', allowMechanics: true);
     failed.submitDeduction('suicide');
     expect(failed.currentId, 'bad_end');
+  });
+
+  test('第一章扩写保留群像余震并为陈默案件留下可验证伏笔', () {
+    final expansion = storyBeats.values
+        .where((beat) => beat.id.startsWith('ch1_'))
+        .toList(growable: false);
+    expect(expansion.length, 25);
+    expect(
+      expansion.map((beat) => beat.text.length).fold<int>(0, (a, b) => a + b),
+      greaterThan(3300),
+    );
+    expect(storyBeats['ch1_empty_chair_test']!.text, contains('没有人坐过'));
+    expect(storyBeats['ch1_ledger_stamp']!.text, contains('R-08'));
+    expect(storyBeats['ch1_arrival_order']!.text, contains('迟了约二十秒'));
+    expect(storyBeats['ch1_case_limits']!.text, contains('不是判决'));
+    expect(storyBeats['ch1_medical_search']!.scene, SceneKey.infirmary);
+    expect(storyBeats['ch1_storage_search']!.scene, SceneKey.storageRoom);
+    expect(storyBeats['ch1_archive_search']!.scene, SceneKey.archiveCorridor);
+  });
+
+  test('第二章围绕旧体育馆封锁与12号空身份展开', () {
+    final chapter = storyBeats.values
+        .where((beat) => beat.id.startsWith('ch2_'))
+        .toList(growable: false);
+    expect(chapter.length, 89);
+    expect(
+      chapter.map((beat) => beat.text.length).fold<int>(0, (a, b) => a + b),
+      greaterThan(13000),
+    );
+    expect(
+      chapter.where((beat) => beat.scene == SceneKey.oldGym).length,
+      greaterThan(20),
+    );
+    expect(storyBeats['ch2_gym_entry']!.cgId, 'cg_gym');
+    expect(
+      storyBeats['ch2_gym_investigation']!.phase,
+      StoryPhase.investigation,
+    );
+    expect(storyBeats['ch2_seal_complete']!.timelineMinute, 1440);
+    expect(storyBeats['ch2_end']!.next, isNull);
+    final approach = storyBeats['ch2_approach_choice']!;
+    expect(approach.choices.length, 3);
+    expect(
+      approach.choices.map((choice) => choice.effect.flag),
+      containsAll([
+        'ch2_route_service',
+        'ch2_route_archive',
+        'ch2_route_together',
+      ]),
+    );
+    expect(storyBeats['ch2_fault_hypotheses']!.text, contains('无恶意解释'));
+    expect(storyBeats['ch2_public_audit']!.text, contains('亲眼确认'));
+    for (final path in [
+      'assets/images/scenes/old_gym.png',
+      'assets/images/scenes/infirmary.png',
+      'assets/images/scenes/storage_room.png',
+      'assets/images/scenes/archive_corridor.png',
+      'assets/images/items/gym/shutter_control.png',
+      'assets/images/items/gym/brake_cable.png',
+      'assets/images/items/gym/terminal_cradle.png',
+      'assets/images/items/gym/service_cart.png',
+      'assets/images/items/gym/offline_test_lead.png',
+      'assets/images/items/gym/folding_magnifier.png',
+      'assets/images/items/control_room/tool_tray.png',
+      'assets/images/items/control_room/folding_ruler.png',
+      'assets/images/items/control_room/insulated_pick.png',
+      'assets/images/items/control_room/sealed_signal_box.png',
+      'assets/images/items/control_room/distance_record.png',
+      'assets/images/characters/gao_yuan/injured.png',
+      'assets/images/characters/su_mi/relieved.png',
+    ]) {
+      expect(File(path).existsSync(), isTrue, reason: '$path 必须存在');
+    }
   });
 
   test('六个结局均先播放完整剧情，再进入结局结算页', () {
@@ -574,7 +726,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('现场检查结果使用高对比常驻面板', (tester) async {
+  testWidgets('现场亮点收纳物品后可在背包拖放组合', (tester) async {
     await tester.binding.setSurfaceSize(const Size(844, 390));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
@@ -591,26 +743,306 @@ void main() {
     );
     await tester.pump();
 
+    for (final id in [
+      'terminal_area',
+      'wall_box',
+      'collar_lock',
+      'tool_tray',
+    ]) {
+      expect(find.byKey(ValueKey('investigation-glint-$id')), findsOneWidget);
+    }
+    expect(find.text('墙边黑盒'), findsNothing);
+
+    await tester.tap(
+      find.byKey(const ValueKey('investigation-glint-wall_box')),
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey('investigation-glint-tool_tray')),
+    );
+    await tester.pump();
+
     expect(
-      find.byKey(const ValueKey('investigation-object-信号中继器')),
+      find.byKey(const ValueKey('investigation-glint-wall_box')),
+      findsNothing,
+    );
+    expect(find.byKey(const ValueKey('inventory-item-wall_box')), findsNothing);
+    expect(find.byTooltip('打开背包'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('打开背包'));
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('inventory-item-wall_box')),
       findsOneWidget,
     );
     expect(
-      find.byKey(const ValueKey('investigation-object-距离记录')),
+      find.byKey(const ValueKey('inventory-item-tool_tray')),
       findsOneWidget,
     );
+
+    await tester.tap(find.byKey(const ValueKey('inventory-item-wall_box')));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('inspection-result')), findsOneWidget);
+    expect(find.text('墙边黑盒'), findsWidgets);
     expect(
-      find.byKey(const ValueKey('investigation-object-项圈计时模块')),
+      find.byKey(const ValueKey('inspection-combination-hint-box_open')),
       findsOneWidget,
     );
-    await tester.tap(find.byTooltip('检查信号中继器'));
+    expect(find.textContaining('拖入绝缘拨片'), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('inspection-action-box_heat')));
+    await tester.pump();
+    expect(find.textContaining('仍有明显余温'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('关闭'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('inventory-item-wall_box')));
+    await tester.pump();
+    expect(find.text('有余温的墙边黑盒'), findsWidgets);
+    expect(find.textContaining('屏蔽层仍未打开'), findsOneWidget);
+    await tester.tap(find.byTooltip('关闭'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('inventory-item-tool_tray')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('inspection-action-tray_pick')));
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey('inventory-item-insulated_pick')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byTooltip('关闭'));
+    await tester.pump();
+    await _longPressDrag(
+      tester,
+      find.byKey(const ValueKey('inventory-item-insulated_pick')),
+      find.byKey(const ValueKey('inventory-drop-wall_box')),
+    );
+    await tester.pump();
+
+    expect(controller.investigationActions, contains('box_open'));
+    expect(controller.investigationClues, contains('repeater'));
+    expect(controller.inventoryItems, isNot(contains('insulated_pick')));
+    expect(
+      find.byKey(const ValueKey('inventory-item-insulated_pick')),
+      findsNothing,
+    );
+    expect(find.textContaining('转发伪造的距离握手'), findsOneWidget);
+    await tester.tap(find.byTooltip('关闭'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('inventory-item-wall_box')));
+    await tester.pump();
+    expect(find.text('拆开的信号中继器'), findsWidgets);
+    expect(find.textContaining('屏蔽层已经拆开'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('体育馆调查需要从维修推车取得工具后读取12号', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(844, 390));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = await StoryController.load();
+    controller.startNew();
+    _advanceUntil(controller, 'clause_choice');
+    controller.choose(controller.availableChoices.first);
+    _advanceUntil(controller, 'partner_choice');
+    controller.choose(controller.availableChoices.first);
+    _advanceUntil(controller, 'investigation_gate');
+    controller.completeInvestigation({'distance', 'repeater', 'timer'});
+    _advanceUntil(controller, 'response_choice');
+    controller.choose(controller.availableChoices[1]);
+    _advanceUntil(controller, 'decrypt_gate');
+    controller.completeTuning();
+    _advanceUntil(controller, 'deduction_gate');
+    controller.submitDeduction('repeater');
+    _advanceUntil(controller, 'ch2_leave_choice');
+    controller.choose(
+      controller.availableChoices.singleWhere(
+        (choice) => choice.next == 'ch2_stay_xingyao',
+      ),
+    );
+    _advanceUntil(controller, 'ch2_gym_investigation');
+
+    await tester.pumpWidget(
+      MaterialApp(home: EchoExperience(controller: controller)),
+    );
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 800)),
+    );
+    await tester.pump();
+
+    for (final id in [
+      'control_inner',
+      'north_door_floor',
+      'empty_cradle',
+      'service_cart',
+    ]) {
+      expect(find.byKey(ValueKey('investigation-glint-$id')), findsOneWidget);
+    }
+    await tester.tap(
+      find.byKey(const ValueKey('investigation-glint-empty_cradle')),
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey('investigation-glint-service_cart')),
+    );
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey('inventory-item-empty_cradle')),
+      findsNothing,
+    );
+    await tester.tap(find.byTooltip('打开背包'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('inventory-item-empty_cradle')));
     await tester.pump();
 
     expect(find.byKey(const ValueKey('inspection-result')), findsOneWidget);
-    expect(find.text('信号中继器'), findsWidgets);
-    expect(find.textContaining('外壳却仍有余温'), findsOneWidget);
+    expect(find.textContaining('身份槽12'), findsNothing);
+    expect(
+      find.byKey(const ValueKey('inspection-combination-hint-cradle_read')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('离线测试线'), findsNothing);
+    await tester.tap(
+      find.byKey(const ValueKey('inspection-action-cradle_isolate')),
+    );
+    await tester.pump();
+    expect(find.textContaining('七秒间隔'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('关闭'));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('inventory-item-service_cart')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('inspection-action-cart_lead')));
+    await tester.pump();
+    await tester.tap(find.byTooltip('关闭'));
+    await tester.pump();
+    await _longPressDrag(
+      tester,
+      find.byKey(const ValueKey('inventory-item-offline_test_lead')),
+      find.byKey(const ValueKey('inventory-drop-empty_cradle')),
+    );
+    await tester.pump();
+
+    expect(find.textContaining('身份槽12'), findsOneWidget);
+    expect(controller.investigationClues, contains('gym_cradle'));
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('背包物品栏支持鼠标向左右拖动', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(844, 390));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = await StoryController.load();
+    controller.startNew();
+    _advanceUntil(controller, 'investigation_gate');
+    for (final itemId in [
+      'terminal_area',
+      'wall_box',
+      'collar_lock',
+      'tool_tray',
+      'folding_ruler',
+      'insulated_pick',
+      'distance_record',
+      'control_inner',
+      'north_door_floor',
+      'empty_cradle',
+      'service_cart',
+      'offline_test_lead',
+      'folding_magnifier',
+    ]) {
+      controller.collectInvestigationItem(itemId);
+    }
+
+    await tester.pumpWidget(
+      MaterialApp(home: EchoExperience(controller: controller)),
+    );
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 800)),
+    );
+    await tester.pump();
+    await tester.tap(find.byTooltip('打开背包'));
+    await tester.pump();
+
+    final list = find.byKey(const ValueKey('inventory-scroll-list'));
+    final scrollable = find.descendant(
+      of: list,
+      matching: find.byType(Scrollable),
+    );
+    expect(scrollable, findsOneWidget);
+    final scrollState = tester.state<ScrollableState>(scrollable);
+    expect(scrollState.position.maxScrollExtent, greaterThan(0));
+
+    await tester.drag(
+      list,
+      const Offset(-260, 0),
+      kind: PointerDeviceKind.mouse,
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    final offsetAfterLeftDrag = scrollState.position.pixels;
+    expect(offsetAfterLeftDrag, greaterThan(0));
+
+    await tester.drag(
+      list,
+      const Offset(140, 0),
+      kind: PointerDeviceKind.mouse,
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(scrollState.position.pixels, lessThan(offsetAfterLeftDrag));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('规则推演先闭合三段证据链再开放死因假说', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(844, 390));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = await StoryController.load();
+    controller.startNew();
+    _advanceUntil(controller, 'deduction_gate', allowMechanics: true);
+
+    await tester.pumpWidget(
+      MaterialApp(home: EchoExperience(controller: controller)),
+    );
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 800)),
+    );
+    await tester.pump();
+
+    expect(find.text('现场事实'), findsOneWidget);
+    expect(find.text('规则阈值'), findsOneWidget);
+    expect(find.text('实施媒介'), findsOneWidget);
+    expect(find.text('主动离开终端'), findsNothing);
+
+    await tester.tap(find.text('1.4m / 23m'));
+    await tester.pump();
+    await tester.tap(find.text('180 秒'));
+    await tester.pump();
+    await tester.tap(find.text('中继器'));
+    await tester.pump();
+    await tester.ensureVisible(find.text('检验证据链'));
+    await tester.tap(find.text('检验证据链'));
+    await tester.pump();
+
+    expect(find.textContaining('证据链闭合'), findsOneWidget);
+    await tester.ensureVisible(find.text('主动离开终端'));
+    expect(find.text('主动离开终端'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+}
+
+Future<void> _longPressDrag(
+  WidgetTester tester,
+  Finder source,
+  Finder target,
+) async {
+  final gesture = await tester.startGesture(tester.getCenter(source));
+  await tester.pump(const Duration(milliseconds: 350));
+  await gesture.moveTo(tester.getCenter(target));
+  await tester.pump();
+  await gesture.up();
 }
 
 void _advanceUntil(
@@ -629,7 +1061,11 @@ void _advanceUntil(
           controller.advance();
         }
       case StoryPhase.investigation when allowMechanics:
-        controller.completeInvestigation({'distance', 'repeater', 'timer'});
+        controller.completeInvestigation(
+          controller.currentId == 'ch2_gym_investigation'
+              ? {'gym_control', 'gym_cable', 'gym_cradle'}
+              : {'distance', 'repeater', 'timer'},
+        );
       case StoryPhase.tuning when allowMechanics:
         controller.completeTuning();
       case StoryPhase.deduction when allowMechanics:

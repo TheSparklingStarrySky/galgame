@@ -1,6 +1,17 @@
+part 'story_chapter2.dart';
+
 enum StoryPhase { title, dialogue, investigation, tuning, deduction, ending }
 
-enum SceneKey { dormitory, corridor, assemblyHall, controlRoom }
+enum SceneKey {
+  dormitory,
+  corridor,
+  assemblyHall,
+  controlRoom,
+  oldGym,
+  infirmary,
+  storageRoom,
+  archiveCorridor,
+}
 
 enum Speaker {
   narration,
@@ -64,6 +75,7 @@ class StoryBeat {
     this.choices = const [],
     this.passageSpeakers = const [],
     this.portraitMood = 'neutral',
+    this.timelineMinute,
     this.cgId,
     this.endingId,
   });
@@ -78,6 +90,7 @@ class StoryBeat {
   final List<StoryChoice> choices;
   final List<Speaker> passageSpeakers;
   final String portraitMood;
+  final int? timelineMinute;
   final String? cgId;
   final String? endingId;
 
@@ -144,7 +157,7 @@ class EndingEntry {
   final String nodeId;
 }
 
-const storyBeats = <String, StoryBeat>{
+const _chapterOneStoryBeats = <String, StoryBeat>{
   'game_start': StoryBeat(
     id: 'game_start',
     label: '苏醒',
@@ -306,7 +319,7 @@ const storyBeats = <String, StoryBeat>{
     text:
         '星遥的最后记忆也停在昨夜；她在公司机房查看一次不存在的断线告警，身后的门忽然开了。我们暂时找不到共同点。唯一能确定的是，她看见我的项圈时眼神里的惊讶，不像伪装。',
     passageSpeakers: [Speaker.narration],
-    next: 'corridor_group',
+    next: 'ch1_collar_crosscheck',
   ),
   'corridor_group': StoryBeat(
     id: 'corridor_group',
@@ -351,7 +364,7 @@ const storyBeats = <String, StoryBeat>{
     text:
         '我让大家先检查口袋。结果几乎一样：所有通讯设备、钥匙和身份证都被拿走，工具、纸笔与个人小物却有选择地保留。这不是搜身的疏忽。绑架者故意留给我们可以互相帮助，也可以互相伤害的东西。',
     passageSpeakers: [Speaker.narration],
-    next: 'sumi_caution',
+    next: 'ch1_clock_dispute',
   ),
   'sumi_caution': StoryBeat(
     id: 'sumi_caution',
@@ -516,7 +529,7 @@ const storyBeats = <String, StoryBeat>{
     speaker: Speaker.narration,
     text:
         '叶岚说完后，介绍本该轮到12号，却没有人回应。贴着12的折叠椅没有坐过人的温度，椅背后的宿舍钥匙也仍封在透明袋里。\n我重新数了一遍。集合厅里确实只有十一名佩戴项圈的人，走廊上也没有第十二扇刚刚开启的房门。\n更奇怪的是，所有终端的公共名册都保留着12号的位置，姓名、职业和状态却只有一行灰字：无记录。那不像空位，更像有人刻意把一条已经存在的数据擦掉了。',
-    next: 'abduction_discussion',
+    next: 'ch1_empty_chair_test',
   ),
   'abduction_discussion': StoryBeat(
     id: 'abduction_discussion',
@@ -677,7 +690,7 @@ const storyBeats = <String, StoryBeat>{
     text:
         '苏弥第一个动了。她跪到吴峥身边，手指先探向颈动脉，又拉开他的眼睑检查瞳孔。她做了两次完全相同的检查，仿佛第二次会得到不同结果。\n“没有脉搏。”她终于开口，声音低得几乎听不见，“不是电击昏迷。他已经死了。”',
     passageSpeakers: [Speaker.narration, Speaker.suMi],
-    next: 'denial_after_death',
+    next: 'ch1_body_cover',
   ),
   'denial_after_death': StoryBeat(
     id: 'denial_after_death',
@@ -749,7 +762,7 @@ const storyBeats = <String, StoryBeat>{
       Speaker.administrator,
       Speaker.narration,
     ],
-    next: 'personal_clause',
+    next: 'ch1_rule_implications',
   ),
   'personal_clause': StoryBeat(
     id: 'personal_clause',
@@ -932,7 +945,7 @@ const storyBeats = <String, StoryBeat>{
     speaker: Speaker.narration,
     text:
         '主办方宣布第一次区域封锁将在二十四小时后开始，随后中断了广播。没有人因为它安静而放松。苏弥用白布盖住吴峥的身体，韩骐组织人收起散落的工具，周叙还在尝试用数学证明一百八十秒不可能精确执行。林澄一直没有再看地上的扳手。',
-    next: 'faction_argument',
+    next: 'ch1_first_water',
   ),
   'faction_argument': StoryBeat(
     id: 'faction_argument',
@@ -1147,16 +1160,62 @@ const storyBeats = <String, StoryBeat>{
     text:
         '这里的前身应该是一座九十年代企业研修中心。宿舍门牌、培训课表和食堂消毒记录都被刮去了公司名称，墙内却加装了新型线缆与电控锁。每一扇可能通向室外的窗都被混凝土封死，连卫生间里都没有一块能看见天光的玻璃。对方不是找到了一处监狱，而是亲手把一座普通建筑改成了监狱。',
     passageSpeakers: [Speaker.narration],
+    next: 'ch1_medical_search',
+  ),
+  'ch1_medical_search': StoryBeat(
+    id: 'ch1_medical_search',
+    label: '只够维持七天的医务室',
+    speaker: Speaker.suMi,
+    scene: SceneKey.infirmary,
+    portraitMood: 'concerned',
+    text:
+        '医务室里两张诊疗床都铺着新换的床单，玻璃药柜却只补了止血、退烧、镇静和处理挤压伤的用品。苏弥逐盒核对批号，越看神色越沉。\n“不是常规备药。”她把三支镇静剂单独放到托盘上，“有人预想过惊恐发作、外伤和睡眠不足，却没有准备长期治疗的药。这里不是为了救治我们，只是为了保证七天内还能继续游戏。”\n韩骐问镇静剂能不能锁起来。唐弈靠在门边笑了一声：“锁由谁拿？医生的条款公开了吗？”\n苏弥没有被激怒。她把药柜钥匙、药品数量和封条状态写成三份，分别交给叶岚、韩骐和我。“不靠某个人值得信任。每次取用，三份记录都要对得上。”',
+    passageSpeakers: [
+      Speaker.narration,
+      Speaker.suMi,
+      Speaker.tangYi,
+      Speaker.suMi,
+    ],
+    next: 'ch1_storage_search',
+  ),
+  'ch1_storage_search': StoryBeat(
+    id: 'ch1_storage_search',
+    label: '整齐得不自然的储藏间',
+    speaker: Speaker.hanQi,
+    scene: SceneKey.storageRoom,
+    text:
+        '储藏间的货架按天数分成七列。每列的水、压缩食品和电池都恰好够十二人使用，连空出来的纸箱位置都像用尺量过。韩骐先让所有人站在门外，只由两人进去清点。\n“少一箱水，明天就会有人怀疑今晚值守的人。”他说，“现在把数量、封口和谁碰过它写清楚。”\n高原从最下层抽出一只空箱，箱底压着新鲜搬运轮印。“这批东西不是长期囤在这里。至少水和电池，是设施改造完成后才推入货架。”\n我盯着第十二份食物。12号没有姓名、没有回应，主办方却仍替那张空椅准备了七天口粮。缺席并没有让它少算任何一份。',
+    passageSpeakers: [
+      Speaker.narration,
+      Speaker.hanQi,
+      Speaker.gaoYuan,
+      Speaker.narration,
+    ],
+    next: 'ch1_archive_search',
+  ),
+  'ch1_archive_search': StoryBeat(
+    id: 'ch1_archive_search',
+    label: '档案库E-04',
+    speaker: Speaker.liXingyao,
+    scene: SceneKey.archiveCorridor,
+    text:
+        '档案区比其他走廊窄，移动密集柜一直顶到天花板。E-04门禁显示离线，旁边那只新装网络盒却每七秒闪一下绿灯。\n星遥抬手拦住陈默伸向读卡器的动作。“先别刷。离线门禁还在发握手，说明它等的可能不是普通员工卡。”\n陈默蹲下观察接口，没有碰触外壳。“它接的是另一套线。和大厅终端不在同一个交换机上。”\n门后没有脚步，也没有回应。林澄把E-04画成实线方框，又在旁边留下一个问号。我们第一次看见那套隐藏网络的边缘，却还没有能够打开它的身份。',
+    passageSpeakers: [
+      Speaker.narration,
+      Speaker.liXingyao,
+      Speaker.chenMo,
+      Speaker.narration,
+    ],
     next: 'supply_room',
   ),
   'supply_room': StoryBeat(
     id: 'supply_room',
     label: '恰好足够的物资',
     speaker: Speaker.narration,
-    scene: SceneKey.corridor,
+    scene: SceneKey.storageRoom,
     text:
         '食堂冰柜里有足够十二人生活七天的食物，药品、饮用水和备用电池也都按人数分装好了。没有酒，没有完整刀具，却保留了可以拆成金属杆的拖把和能让人昏睡的处方药。主办方不打算让人因饥饿死去，也没有真正防止参与者伤害彼此。所谓“规则外全部允许”，并不只是一句恐吓。',
-    next: 'first_alarm',
+    next: 'ch1_search_regroup',
   ),
   'first_alarm': StoryBeat(
     id: 'first_alarm',
@@ -1190,7 +1249,7 @@ const storyBeats = <String, StoryBeat>{
     cgId: 'cg_control_room',
     text:
         '周叙倒在监控台与机柜之间，背靠着冰冷的金属柜门。他的项圈外表完整，没有吴峥那样的烧灼痕迹，右手却死死抓着衬衫领口。印有10的终端就在他脚边，距离远不到两米。\n苏弥冲进去跪下时，所有人都不由自主地看向自己的终端。规则刚刚才被验证，现场却第一眼就与规则矛盾。',
-    next: 'investigation_gate',
+    next: 'ch1_scene_control',
   ),
   'investigation_gate': StoryBeat(
     id: 'investigation_gate',
@@ -1218,7 +1277,7 @@ const storyBeats = <String, StoryBeat>{
     text:
         '“所以是主办方的设备出错了？”高原问。\n“或者是有人让它以为周叙离开了终端。”星遥说。\n这句话让所有人同时安静。从第一次警告到周叙死亡，凶手只需要三分钟。三分钟短得足以发生在任何一次去卫生间、拿水或转过走廊拐角的时候。刚才还站在一起搜索的人，开始慢慢从彼此身边退开。',
     passageSpeakers: [Speaker.gaoYuan, Speaker.liXingyao, Speaker.narration],
-    next: 'tang_clause',
+    next: 'ch1_competing_hypotheses',
   ),
   'tang_clause': StoryBeat(
     id: 'tang_clause',
@@ -1371,7 +1430,7 @@ const storyBeats = <String, StoryBeat>{
     scene: SceneKey.controlRoom,
     text:
         '有人要求立即搜查所有人的物品，有人建议将唐弈和韩骐单独关起来，也有人坚持应该把证据交给主办方并要求它任命一名管理者。最后，十个人中只有六人同意一条最有限的原则：在弄清中继器来源之前，任何人不得单独使用通讯设备，也不得屏蔽别人的终端信号。\n这不是同盟，只是十个陌生人在恐惧中提出的第一句共同语言。',
-    next: 'deduction_gate',
+    next: 'ch1_case_limits',
   ),
   'deduction_gate': StoryBeat(
     id: 'deduction_gate',
@@ -1526,6 +1585,280 @@ const storyBeats = <String, StoryBeat>{
   ),
 };
 
+const chapterOneExpansionBeats = <String, StoryBeat>{
+  'ch1_collar_crosscheck': StoryBeat(
+    id: 'ch1_collar_crosscheck',
+    label: '同样的针孔与项圈',
+    speaker: Speaker.liXingyao,
+    scene: SceneKey.corridor,
+    text:
+        '星遥没有因为遇见另一个活人就靠近。她先让我抬起左手，又露出自己腕内侧同样大小的针孔；两枚项圈的锁扣、指示灯位置和皮肤压痕也完全一致。\n“至少绑架流程是统一的。”她用终端黑屏映出颈侧，“但统一不等于我们是同一边。进大厅以前，先约定不碰对方的设备。”\n我答应下来。陌生人之间的第一份合作不是信任，而是把不能做的事说清楚。',
+    passageSpeakers: [Speaker.narration, Speaker.liXingyao, Speaker.narration],
+    next: 'ch1_walk_to_hall',
+  ),
+  'ch1_walk_to_hall': StoryBeat(
+    id: 'ch1_walk_to_hall',
+    label: '门后的呼吸声',
+    speaker: Speaker.shenYan,
+    scene: SceneKey.corridor,
+    text:
+        '通往集合厅的路上，每隔几米就有一扇刚解锁的宿舍门。有的门后传来压抑的咳嗽，有人在反复拧已经打开的把手，还有人隔着门问外面是不是警察。\n我报出自己的名字，却没有催他们出来。连我也无法证明走廊比房间安全。直到远处响起吴峥砸门的金属声，几扇门才先后打开，陌生人的脚步谨慎地汇到一起。',
+    passageSpeakers: [Speaker.narration, Speaker.narration],
+    next: 'corridor_group',
+  ),
+  'ch1_clock_dispute': StoryBeat(
+    id: 'ch1_clock_dispute',
+    label: '无法确认的时间',
+    speaker: Speaker.gaoYuan,
+    scene: SceneKey.assemblyHall,
+    text:
+        '墙钟停在零点十二分，终端尚未开机，每个人对失去意识后的时间只有模糊估计。高原贴着通风口听了一会儿，判断风机刚完成一次定时换挡，却无法由此确认外面是白天还是夜晚。\n“如果他们连时间都替我们保管，”周叙说，“就可能已经过去几天。”\n林澄立刻去数桌上的瓶装水。未拆封的十二份物资至少说明，绑架者预期我们从同一个时刻开始使用这里。',
+    passageSpeakers: [Speaker.narration, Speaker.zhouXu, Speaker.narration],
+    next: 'ch1_exit_consensus',
+  ),
+  'ch1_exit_consensus': StoryBeat(
+    id: 'ch1_exit_consensus',
+    label: '第一次共同决定',
+    speaker: Speaker.hanQi,
+    scene: SceneKey.assemblyHall,
+    text:
+        '“先给我三分钟。”韩骐站到出口侧面，没有把手放上门把，“查铰链、通风和消防按钮。至少弄清这扇门连着哪里，再决定要不要照广播说的做。”\n“等你查完，对方早把下一道门锁了。”吴峥抬起扳手，项圈随着吞咽轻轻顶住喉结，“门就是拿来开的。你们怕，可以退后。”\n唐弈把正要抛起的硬币按回桌面。“我只问一件事：你砸下去，先坏的是门，还是我们脖子上的东西？不知道就动手，不叫胆量，叫替别人下注。”\n吴峥盯了他几秒，最终没有落下扳手。苏弥趁这个空隙让众人检查项圈压痕，高原去听通风机，星遥记录门禁灯变化。十一人没有正式投票，却第一次按照所有人都能看见的步骤行动。',
+    passageSpeakers: [
+      Speaker.hanQi,
+      Speaker.wuZheng,
+      Speaker.tangYi,
+      Speaker.narration,
+    ],
+    next: 'sumi_caution',
+  ),
+  'ch1_empty_chair_test': StoryBeat(
+    id: 'ch1_empty_chair_test',
+    label: '没人坐过的椅子',
+    speaker: Speaker.linCheng,
+    scene: SceneKey.assemblyHall,
+    text:
+        '林澄蹲到12号折叠椅旁，先看椅脚灰尘，再看座面。其余十一把椅子的脚垫都留下了拖动痕迹，只有这一把与地面灰线严丝合缝，座面也没有体温压出的褶皱。\n“不是有人来过又离开。”她谨慎地说，“至少从这间厅开始使用以后，没有人坐过这里。”\n韩骐检查对应宿舍钥匙。塑封完整，边缘甚至没有被指甲撬过。',
+    passageSpeakers: [Speaker.narration, Speaker.linCheng, Speaker.narration],
+    next: 'ch1_missing_pattern',
+  ),
+  'ch1_missing_pattern': StoryBeat(
+    id: 'ch1_missing_pattern',
+    label: '缺席也被准备好了',
+    speaker: Speaker.yeLan,
+    scene: SceneKey.assemblyHall,
+    text:
+        '叶岚没有把空椅称作“失踪者”。她在纸上分别写下：第十二份水和食物存在，第十二把钥匙未拆，第十二间宿舍没有回应，名册只有“无记录”。\n“我们现在只能确认准备者希望这里看起来应该有十二个人。”她说，“至于第十二个人没来、不能来，还是从来不存在，是三个不同判断。”\n这份克制没有减轻不安。恰恰因为缺席被准备得如此完整，12号才不像偶然迟到。',
+    passageSpeakers: [Speaker.narration, Speaker.yeLan, Speaker.narration],
+    next: 'abduction_discussion',
+  ),
+  'ch1_body_cover': StoryBeat(
+    id: 'ch1_body_cover',
+    label: '白布不够长',
+    speaker: Speaker.suMi,
+    scene: SceneKey.assemblyHall,
+    text:
+        '苏弥从急救箱取出一块无菌铺巾盖住吴峥的脸。铺巾只够遮到胸口，露在外面的手还保持着握扳手的姿势。韩骐试着掰开他的手指，第一次没有成功。\n“先别动项圈，也别拔任何碎片。”苏弥的命令很清楚，声音却比刚才轻了一层，“这里现在既是遗体，也是我们唯一知道规则如何伤人的现场。”\n她说“遗体”时，林澄把视线移开，周叙则像没有听见一样继续寻找摄像头里的血包机关。',
+    passageSpeakers: [Speaker.narration, Speaker.suMi, Speaker.narration],
+    next: 'ch1_shock_inventory',
+  ),
+  'ch1_shock_inventory': StoryBeat(
+    id: 'ch1_shock_inventory',
+    label: '每个人不同的逃避',
+    speaker: Speaker.yeLan,
+    scene: SceneKey.assemblyHall,
+    text:
+        '死亡之后的两分钟里，没有人真正安静。陈默在垃圾桶旁干呕，高原反复擦拭沾到手背的灰，星遥把已经记录过的爆炸时间又写了三遍。唐弈不再抛硬币，只用拇指摩挲边缘。\n“听得到我说话的人先举手。”叶岚让自己的声音保持平直，“有耳鸣就举左手，能看见终端就在两米内就举右手。别解释，先做一件能确认的事。”\n一个个手掌迟疑地抬起来。轮到05号时，没有人开口，也没有手再举起。那一格空白第一次让数字与死亡真正连在一起。',
+    passageSpeakers: [Speaker.narration, Speaker.yeLan, Speaker.narration],
+    next: 'denial_after_death',
+  ),
+  'ch1_rule_implications': StoryBeat(
+    id: 'ch1_rule_implications',
+    label: '被允许的伤害',
+    speaker: Speaker.shenYan,
+    scene: SceneKey.assemblyHall,
+    text:
+        '禁止事项只有离开边界和破坏裁定主机。投毒、扣押终端、把别人推进封锁区，甚至故意让终端离开持有者，都没有出现在禁止列表里。\n我要求主办方确认参与者互相伤害是否会被制止。广播回答：“未列明行为不受限制。”\n几个人同时退离桌上的工具。规则没有命令我们互相残杀，却提前保证凶手不会因为“杀人”本身受到处罚。',
+    passageSpeakers: [
+      Speaker.narration,
+      Speaker.administrator,
+      Speaker.narration,
+    ],
+    next: 'ch1_seven_day_reaction',
+  ),
+  'ch1_seven_day_reaction': StoryBeat(
+    id: 'ch1_seven_day_reaction',
+    label: '一百六十八小时',
+    speaker: Speaker.zhouXu,
+    scene: SceneKey.assemblyHall,
+    text:
+        '七天这个数字落下来以后，众人的反应比听见“游戏”时更具体。有人计算饮水，有人想到工作失联，林澄低声说父母会在今晚发现她没有回家。\n周叙抓住这一点，坚称警方一定会在七天内找到设施。“十二个人同时失踪，不可能没有监控、车辆和手机定位。”\n他说得像在说服所有人，目光却停在自己的结婚戒指上。我没有反驳，只把“主办方为何敢给出七天”记进尚无答案的问题。',
+    passageSpeakers: [Speaker.narration, Speaker.zhouXu, Speaker.narration],
+    next: 'personal_clause',
+  ),
+  'ch1_first_water': StoryBeat(
+    id: 'ch1_first_water',
+    label: '第一瓶水',
+    speaker: Speaker.suMi,
+    scene: SceneKey.assemblyHall,
+    text:
+        '条款公开引发的争论持续了十多分钟，直到苏弥拧开一瓶水，当着众人的面先喝了一口，再把同一箱未拆封的瓶子推到桌中央。\n“脱水会让判断更差。”她说，“谁担心下毒，可以自己挑一瓶，检查封口，不必因为不信任别人就拒绝身体需要。”\n最先伸手的是林澄，随后是高原。这个动作没有组成同盟，却让大家暂时停止把每一次沉默都解释成阴谋。',
+    passageSpeakers: [Speaker.narration, Speaker.suMi, Speaker.narration],
+    next: 'ch1_names_not_numbers',
+  ),
+  'ch1_names_not_numbers': StoryBeat(
+    id: 'ch1_names_not_numbers',
+    label: '编号之外的称呼',
+    speaker: Speaker.yeLan,
+    scene: SceneKey.assemblyHall,
+    text:
+        '叶岚提议在公共记录里同时写姓名和编号。唐弈问，既然项圈只识别编号，保留姓名有什么实际收益。\n“因为人会更容易牺牲一个数字。”叶岚把“05”旁边补上“吴峥”，“而我们已经知道，这两个字符后面有家人、有恐惧，也有刚才做错的决定。”\n没人表示赞同，陈默却默默把名册显示改成了双列。系统不允许删除编号，但至少允许名字与它并排存在。',
+    passageSpeakers: [Speaker.narration, Speaker.yeLan, Speaker.narration],
+    next: 'faction_argument',
+  ),
+  'ch1_search_regroup': StoryBeat(
+    id: 'ch1_search_regroup',
+    label: '搜索结果汇总',
+    speaker: Speaker.hanQi,
+    scene: SceneKey.assemblyHall,
+    text:
+        '最后一组回到集合厅时，韩骐把地图压在地板中央。“先报亲眼看见的。别说安全、可疑、像陷阱，这些都不是物品。”\n“医务室有七天内可能用到的药，没有长期治疗药物。”苏弥将三份封存记录摊开，“镇静剂已单独登记，取用需要三方签名。”\n高原把一截发黄线槽放到灯下。“储藏间物资是后搬入的，旧体育馆的卷帘电机刚做过一次测试。建筑旧，控制系统很新。”\n星遥把E-04旁每七秒闪一次的网络盒画到地图边缘。“档案门禁显示离线，却还在另一套网络里发握手。它现在打不开，不代表里面没有设备。”\n不同颜色的路线在纸上只重叠了很短几段，空白却比想象中多。我们搜索了一小时，仍只摸到这座建筑允许我们看见的表面。',
+    passageSpeakers: [
+      Speaker.hanQi,
+      Speaker.suMi,
+      Speaker.gaoYuan,
+      Speaker.liXingyao,
+      Speaker.narration,
+    ],
+    next: 'ch1_fresh_wiring',
+  ),
+  'ch1_fresh_wiring': StoryBeat(
+    id: 'ch1_fresh_wiring',
+    label: '旧墙里的新线路',
+    speaker: Speaker.gaoYuan,
+    scene: SceneKey.assemblyHall,
+    portraitMood: 'inspecting',
+    text:
+        '高原带回一截从设备井边缘剥落的线槽。塑料外壳已经发黄，里面的网线和电源线却是新型号，固定螺丝也没有锈。\n“楼是旧的，控制系统最多装了半年。”他用指甲刮过线缆日期码，“而且施工方刻意沿用旧线槽，不想让改造从外面看出来。”\n这不是偶然找到的废弃设施。有人挑选了一座足够普通的建筑，再把死亡规则藏进它原有的墙里。',
+    passageSpeakers: [Speaker.narration, Speaker.gaoYuan, Speaker.narration],
+    next: 'ch1_ledger_stamp',
+  ),
+  'ch1_ledger_stamp': StoryBeat(
+    id: 'ch1_ledger_stamp',
+    label: 'R-08批次',
+    speaker: Speaker.zhouXu,
+    scene: SceneKey.assemblyHall,
+    text:
+        '周叙从物资箱底找到半张送货单。公司名被黑笔涂掉，页脚却留着“R-08／外包责任归档”的批次栏。他盯着那串编号看了太久，直到我问起才说只是常见的修订标记。\n“会计表里R也可能是责任准备金。”他把纸折回去，语速比平时更快，“但这张单没有金额，没有审签，什么也证明不了。”\n他嘴上否认，指腹却已经把页脚的墨迹蹭花，像那几个字碰到了某段不愿被认出的记忆。',
+    passageSpeakers: [Speaker.narration, Speaker.zhouXu, Speaker.narration],
+    next: 'ch1_chen_reaction',
+  ),
+  'ch1_chen_reaction': StoryBeat(
+    id: 'ch1_chen_reaction',
+    label: '过快的解释',
+    speaker: Speaker.chenMo,
+    scene: SceneKey.assemblyHall,
+    portraitMood: 'discovery',
+    text:
+        '陈默只看了一眼送货单，就说R-08应该是权限模块的第八次修订，与参与者08没有关系。他的解释在技术上成立，却快得像早已准备好。\n星遥没有移开视线：“你在哪里见过这种编号规则？”\n陈默咬住右手拇指边缘，停了半秒才回答：“外包项目都差不多。我做系统集成，见过很多。”\n他主动提出稍后检查监控室的登录记录。周叙没有看他，只把送货单压到自己那叠纸的最下面。',
+    passageSpeakers: [
+      Speaker.narration,
+      Speaker.liXingyao,
+      Speaker.chenMo,
+      Speaker.narration,
+    ],
+    next: 'ch1_yelan_timeline',
+  ),
+  'ch1_yelan_timeline': StoryBeat(
+    id: 'ch1_yelan_timeline',
+    label: '纸面行动表',
+    speaker: Speaker.yeLan,
+    scene: SceneKey.assemblyHall,
+    text:
+        '叶岚在白板上划出四列。“离开集合厅的人写姓名、目的地、同行者和预计返回时间。回来以后，再补实际时间。”\n韩骐皱起眉。“把路线公开给所有人，也等于告诉想抢终端的人去哪里堵。”\n“真想杀人的人只会写假话。”唐弈用硬币敲了敲空白表格，“你得到的只是一墙好看的自我申报。”\n“记录不能保证诚实。”叶岚没有擦掉表格，“它只能让之后的说法有东西可以对照。一个人撒谎，至少要同时骗过时间、同行者和路线。”\n在没人愿意把安全交给记录的时刻，这已经是纸能提供的全部价值。',
+    passageSpeakers: [
+      Speaker.yeLan,
+      Speaker.hanQi,
+      Speaker.tangYi,
+      Speaker.yeLan,
+      Speaker.narration,
+    ],
+    next: 'ch1_last_assignments',
+  ),
+  'ch1_last_assignments': StoryBeat(
+    id: 'ch1_last_assignments',
+    label: '警报前的去向',
+    speaker: Speaker.narration,
+    scene: SceneKey.assemblyHall,
+    text:
+        '周叙在行动表上写下“监控室，核对送货单格式”。“我只看入口处的旧档案柜。两分钟，不碰主机。”\n陈默随后登记“西侧配电柜，检查监控网线”。他看了一眼周叙的路线：“转角会重合，但我不上二楼。”\n“既然重合，就结伴到转角。”叶岚把笔尖点在两条线交叉的位置，“至少互相确认到达。”\n周叙握紧送货单。“两米规则刚公布，你让一个陌生人贴着我走？”陈默也举起工具袋：“我会在公共频道报时，不需要他给我作证。”\n没有人强行阻止。过度靠近同样可能成为威胁，这个理由听起来足够合理。十三分钟后，第一声警报从监控室方向响起。',
+    passageSpeakers: [
+      Speaker.zhouXu,
+      Speaker.chenMo,
+      Speaker.yeLan,
+      Speaker.zhouXu,
+      Speaker.narration,
+    ],
+    next: 'first_alarm',
+  ),
+  'ch1_scene_control': StoryBeat(
+    id: 'ch1_scene_control',
+    label: '先保护矛盾',
+    speaker: Speaker.shenYan,
+    scene: SceneKey.controlRoom,
+    text:
+        '“都停在门外。”我伸手拦住后面的人，“苏弥确认生命体征，高原只切可能漏电的机柜。其他人不要踩进脚印。”\n“他还躺在里面，你先担心脚印？”韩骐的肩膀撞上我的手臂，“让开。救人不是整理证据。”\n苏弥已经跪到周叙身侧。她检查瞳孔和颈侧时，指尖避开了项圈碎片，几秒后抬头对韩骐摇了摇。“没有可逆体征。现在进去的人越多，越难知道什么是他死前留下的。”\n韩骐停在门槛外，呼吸仍很重。地上的终端、半枚鞋印和仍有余温的黑盒第一次不只是东西，而是需要防止幸存者互相改写的现场。',
+    passageSpeakers: [
+      Speaker.shenYan,
+      Speaker.hanQi,
+      Speaker.suMi,
+      Speaker.narration,
+    ],
+    next: 'ch1_arrival_order',
+  ),
+  'ch1_arrival_order': StoryBeat(
+    id: 'ch1_arrival_order',
+    label: '迟到二十秒的人',
+    speaker: Speaker.yeLan,
+    scene: SceneKey.controlRoom,
+    text:
+        '叶岚按抵达顺序点名。韩骐和高原从设备间先到，苏弥随后，其他搜索组从南侧走廊汇入。陈默最后从西楼梯出现，比距离更远的林澄还迟了约二十秒。\n“配电柜的门在警报后自动锁了，我绕了路。”他主动解释，把双手举到众人能看见的位置。指甲边缘有新鲜血迹，袖口却没有灰。\n这个迟到既不能证明作案，也不能当作不存在。叶岚把时间写下，没有替任何人补上结论。',
+    passageSpeakers: [Speaker.narration, Speaker.chenMo, Speaker.narration],
+    next: 'investigation_gate',
+  ),
+  'ch1_competing_hypotheses': StoryBeat(
+    id: 'ch1_competing_hypotheses',
+    label: '三种解释',
+    speaker: Speaker.chenMo,
+    scene: SceneKey.controlRoom,
+    text:
+        '高原把断电插头翻给所有人看。“旧设备有残留缓存。维护距离写回正式日志，不是完全不可能。先别把故障直接叫成杀人。”\n陈默摇头。“主办方控制后台，想写23米不需要这只盒子。也许余温只是电容放电，我们盯着现场装置，反而忽略了它能直接改记录。”\n“电容不会把新屏蔽层装回去。”星遥用绝缘拨片挑起切口，“螺丝有刚拧过的金属屑，模块缓存也落在死亡前三分钟。你可以怀疑后台，但不能让‘后台什么都能做’吞掉现场事实。”\n故障、主办方直改和参与者启动中继器，三种解释都能遮住一部分空白。只有最后一种同时需要真实设备、精确阈值和避开摄像头的路线。陈默没有继续反驳，只盯着那只空工具袋，把咬破的手指慢慢缩进掌心。',
+    passageSpeakers: [
+      Speaker.gaoYuan,
+      Speaker.chenMo,
+      Speaker.liXingyao,
+      Speaker.narration,
+    ],
+    next: 'tang_clause',
+  ),
+  'ch1_case_limits': StoryBeat(
+    id: 'ch1_case_limits',
+    label: '能证明与不能证明',
+    speaker: Speaker.shenYan,
+    scene: SceneKey.controlRoom,
+    text:
+        '现有证据可以证明周叙没有主动违反两米规则，也可以证明中继器在死亡前三分钟被人启动，却不能仅凭迟到、职业或紧张动作指认具体凶手。\n送货单上的R-08、陈默重合的路线、林澄听见的轻脚步都是需要继续验证的嫌疑点，不是判决。\n我把这条界线说给所有人听，也说给自己。死亡游戏最希望我们做的，或许就是在证据只够证明手法时，急着用一个名字填满恐惧留下的空白。',
+    passageSpeakers: [Speaker.narration, Speaker.narration, Speaker.narration],
+    next: 'deduction_gate',
+  ),
+};
+
+final storyBeats = Map<String, StoryBeat>.unmodifiable({
+  ..._chapterOneStoryBeats,
+  ...chapterOneExpansionBeats,
+  ...chapterTwoBeats,
+  ...chapterTwoExpansionBeats,
+});
+
 const _routeNodeSpecs = <({String id, int stage, double lane})>[
   (id: 'game_start', stage: 0, lane: 210),
   (id: 'corridor_encounter', stage: 1, lane: 210),
@@ -1552,10 +1885,13 @@ const _routeNodeSpecs = <({String id, int stage, double lane})>[
   (id: 'deduction_gate', stage: 16, lane: 210),
   (id: 'bad_end_result', stage: 17, lane: 20),
   (id: 'shadow_end_result', stage: 17, lane: 100),
-  (id: 'pact_end_result', stage: 17, lane: 180),
-  (id: 'xingyao_end_result', stage: 17, lane: 260),
-  (id: 'sumi_end_result', stage: 17, lane: 340),
-  (id: 'lincheng_end_result', stage: 17, lane: 420),
+  (id: 'ch2_chapter_title', stage: 17, lane: 300),
+  (id: 'ch2_map_update', stage: 18, lane: 300),
+  (id: 'ch2_approach_choice', stage: 19, lane: 300),
+  (id: 'ch2_leave_choice', stage: 20, lane: 300),
+  (id: 'ch2_gym_investigation', stage: 21, lane: 300),
+  (id: 'ch2_seal_complete', stage: 22, lane: 300),
+  (id: 'ch2_end', stage: 23, lane: 300),
 ];
 
 final routeNodes = List<RouteNode>.unmodifiable(
@@ -1590,11 +1926,14 @@ const routeConnections = <String, List<String>>{
   'deduction_gate': [
     'bad_end_result',
     'shadow_end_result',
-    'pact_end_result',
-    'xingyao_end_result',
-    'sumi_end_result',
-    'lincheng_end_result',
+    'ch2_chapter_title',
   ],
+  'ch2_chapter_title': ['ch2_map_update'],
+  'ch2_map_update': ['ch2_approach_choice'],
+  'ch2_approach_choice': ['ch2_leave_choice'],
+  'ch2_leave_choice': ['ch2_gym_investigation'],
+  'ch2_gym_investigation': ['ch2_seal_complete'],
+  'ch2_seal_complete': ['ch2_end'],
 };
 
 const cgEntries = <CgEntry>[
@@ -1615,6 +1954,12 @@ const cgEntries = <CgEntry>[
     title: '封闭的监控室',
     caption: '第一章 / 第二例死亡',
     asset: 'assets/images/scenes/control_room.png',
+  ),
+  CgEntry(
+    id: 'cg_gym',
+    title: '封锁前的旧体育馆',
+    caption: '第二章 / F-01救援',
+    asset: 'assets/images/scenes/old_gym.png',
   ),
 ];
 
@@ -1681,13 +2026,13 @@ String speakerName(Speaker speaker) => switch (speaker) {
 
 const portraitMoods = <Speaker, Set<String>>{
   Speaker.liXingyao: {'neutral', 'alarm'},
-  Speaker.suMi: {'neutral', 'concerned'},
+  Speaker.suMi: {'neutral', 'concerned', 'relieved'},
   Speaker.hanQi: {'neutral', 'protective'},
   Speaker.wuZheng: {'neutral', 'defiant'},
   Speaker.tangYi: {'neutral', 'shaken'},
   Speaker.linCheng: {'neutral', 'determined'},
   Speaker.chenMo: {'neutral', 'discovery'},
-  Speaker.gaoYuan: {'neutral', 'inspecting'},
+  Speaker.gaoYuan: {'neutral', 'inspecting', 'injured'},
   Speaker.zhouXu: {'neutral', 'defensive'},
   Speaker.yeLan: {'neutral', 'intervening'},
 };

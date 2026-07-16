@@ -20,6 +20,9 @@ class $AssetsImagesGen {
 class $AssetsScenesGen {
   const $AssetsScenesGen();
 
+  final AssetGenImage archiveCorridor = const AssetGenImage(
+    'assets/images/scenes/archive_corridor.png',
+  );
   final AssetGenImage assemblyHall = const AssetGenImage(
     'assets/images/scenes/assembly_hall.png',
   );
@@ -31,6 +34,15 @@ class $AssetsScenesGen {
   );
   final AssetGenImage facilityCorridor = const AssetGenImage(
     'assets/images/scenes/facility_corridor.png',
+  );
+  final AssetGenImage infirmary = const AssetGenImage(
+    'assets/images/scenes/infirmary.png',
+  );
+  final AssetGenImage oldGym = const AssetGenImage(
+    'assets/images/scenes/old_gym.png',
+  );
+  final AssetGenImage storageRoom = const AssetGenImage(
+    'assets/images/scenes/storage_room.png',
   );
 }
 
@@ -68,6 +80,9 @@ class $AssetsSuMiGen {
   );
   final AssetGenImage neutral = const AssetGenImage(
     'assets/images/characters/su_mi/neutral.png',
+  );
+  final AssetGenImage relieved = const AssetGenImage(
+    'assets/images/characters/su_mi/relieved.png',
   );
 }
 
@@ -129,6 +144,9 @@ class $AssetsChenMoGen {
 class $AssetsGaoYuanGen {
   const $AssetsGaoYuanGen();
 
+  final AssetGenImage injured = const AssetGenImage(
+    'assets/images/characters/gao_yuan/injured.png',
+  );
   final AssetGenImage inspecting = const AssetGenImage(
     'assets/images/characters/gao_yuan/inspecting.png',
   );
@@ -163,6 +181,7 @@ class $AssetsItemsGen {
   const $AssetsItemsGen();
 
   final $AssetsControlRoomGen controlRoom = const $AssetsControlRoomGen();
+  final $AssetsGymGen gym = const $AssetsGymGen();
 }
 
 class $AssetsControlRoomGen {
@@ -174,8 +193,46 @@ class $AssetsControlRoomGen {
   final AssetGenImage distanceTerminal = const AssetGenImage(
     'assets/images/items/control_room/distance_terminal.png',
   );
+  final AssetGenImage distanceRecord = const AssetGenImage(
+    'assets/images/items/control_room/distance_record.png',
+  );
+  final AssetGenImage foldingRuler = const AssetGenImage(
+    'assets/images/items/control_room/folding_ruler.png',
+  );
+  final AssetGenImage insulatedPick = const AssetGenImage(
+    'assets/images/items/control_room/insulated_pick.png',
+  );
+  final AssetGenImage sealedSignalBox = const AssetGenImage(
+    'assets/images/items/control_room/sealed_signal_box.png',
+  );
   final AssetGenImage signalRepeater = const AssetGenImage(
     'assets/images/items/control_room/signal_repeater.png',
+  );
+  final AssetGenImage toolTray = const AssetGenImage(
+    'assets/images/items/control_room/tool_tray.png',
+  );
+}
+
+class $AssetsGymGen {
+  const $AssetsGymGen();
+
+  final AssetGenImage brakeCable = const AssetGenImage(
+    'assets/images/items/gym/brake_cable.png',
+  );
+  final AssetGenImage foldingMagnifier = const AssetGenImage(
+    'assets/images/items/gym/folding_magnifier.png',
+  );
+  final AssetGenImage offlineTestLead = const AssetGenImage(
+    'assets/images/items/gym/offline_test_lead.png',
+  );
+  final AssetGenImage serviceCart = const AssetGenImage(
+    'assets/images/items/gym/service_cart.png',
+  );
+  final AssetGenImage shutterControl = const AssetGenImage(
+    'assets/images/items/gym/shutter_control.png',
+  );
+  final AssetGenImage terminalCradle = const AssetGenImage(
+    'assets/images/items/gym/terminal_cradle.png',
   );
 }
 

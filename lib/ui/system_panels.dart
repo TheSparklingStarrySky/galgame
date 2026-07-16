@@ -640,6 +640,8 @@ class _SectorMapTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gymAlert = controller.seenNodes.contains('ch2_map_update');
+    final gymSealed = controller.seenNodes.contains('ch2_seal_complete');
     return LayoutBuilder(
       builder: (context, constraints) {
         final columns = constraints.maxWidth < 620 ? 2 : 3;
@@ -648,12 +650,16 @@ class _SectorMapTab extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: _InfoPanel(
                     icon: Icons.lock_clock_outlined,
                     title: '下一封锁区域',
-                    body: 'F-01 旧体育馆 / 24:00:00 后封闭',
-                    accent: Color(0xFFD9695F),
+                    body: gymSealed
+                        ? 'E-04 档案库 / 23:57:00 后封闭'
+                        : gymAlert
+                        ? 'F-01 旧体育馆 / 零点执行永久封锁'
+                        : 'F-01 旧体育馆 / 24:00:00 后封闭',
+                    accent: const Color(0xFFD9695F),
                   ),
                 ),
                 if (constraints.maxWidth >= 700) ...[
@@ -692,11 +698,14 @@ class _SectorMapTab extends StatelessWidget {
                     sector.$1 == 'storage' ||
                     sector.$1 == 'archive';
                 final selected = controller.markedSector == sector.$1;
+                final online = sector.$1 == 'gym'
+                    ? gymAlert && !gymSealed
+                    : sector.$5;
                 return _SectorTile(
                   id: sector.$3,
                   name: sector.$2,
                   icon: sector.$4,
-                  online: sector.$5,
+                  online: online,
                   selected: selected,
                   onPressed: selectable
                       ? () => controller.setMarkedSector(
@@ -707,8 +716,12 @@ class _SectorMapTab extends StatelessWidget {
               },
             ),
             const SizedBox(height: 16),
-            const Text(
-              '医疗区提高救援合作收益；储物区提高信号追踪收益；档案库会强化林澄的目击记录。',
+            Text(
+              gymSealed
+                  ? 'F-01 已永久封锁；12 号白色信号转移至 E-04，下一轮封锁排序可能仍受伪造身份影响。'
+                  : gymAlert
+                  ? 'F-01 检测到 08、09 与一个无编号白色信号；封锁完成前必须重新确认真人位置。'
+                  : '医疗区提高救援合作收益；储物区提高信号追踪收益；档案库会强化林澄的目击记录。',
               style: TextStyle(color: Color(0xFF9EA9A4), height: 1.5),
             ),
           ],
@@ -755,6 +768,24 @@ class _EvidenceTab extends StatelessWidget {
         '铅笔记录',
         '林澄记录了第二个人在监控室外停留的十八秒。',
         controller.flags.contains('student_witness'),
+      ),
+      (
+        Icons.electrical_services_outlined,
+        '桥接控制箱',
+        'F-01 控制箱在08号操作前已被桥接，权限撤销是预设陷阱。',
+        controller.foundClues.contains('gym_control'),
+      ),
+      (
+        Icons.cable_rounded,
+        '新鲜制动索断口',
+        '卷帘门钢索遭两次工具剪切，破坏发生在第一天。',
+        controller.foundClues.contains('gym_cable'),
+      ),
+      (
+        Icons.phonelink_off_outlined,
+        '12号空底座',
+        '没有终端的底座仍能循环回放12号有效握手与零距离。',
+        controller.foundClues.contains('gym_cradle'),
       ),
     ];
     return ListView.separated(

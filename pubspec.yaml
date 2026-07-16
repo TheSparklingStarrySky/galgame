@@ -72,6 +72,7 @@ flutter:
     - assets/images/characters/zhou_xu/
     - assets/images/characters/ye_lan/
     - assets/images/items/control_room/
+    - assets/images/items/gym/
     - assets/audio/
 
   # To add assets to your application, add an assets section, like this:
