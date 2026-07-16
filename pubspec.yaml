@@ -73,6 +73,7 @@ flutter:
     - assets/images/characters/ye_lan/
     - assets/images/items/control_room/
     - assets/images/items/gym/
+    - assets/images/items/storage/
     - assets/audio/
 
   # To add assets to your application, add an assets section, like this:

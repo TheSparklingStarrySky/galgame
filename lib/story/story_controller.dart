@@ -5,6 +5,103 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'story.dart';
 
+class HighRiskItemRecord {
+  const HighRiskItemRecord({
+    required this.id,
+    required this.state,
+    this.holderId,
+    this.updatedAtMinute,
+  });
+
+  final String id;
+  final HighRiskItemState state;
+  final String? holderId;
+  final int? updatedAtMinute;
+
+  HighRiskItemRecord copyWith({
+    HighRiskItemState? state,
+    String? holderId,
+    bool clearHolder = false,
+    int? updatedAtMinute,
+  }) => HighRiskItemRecord(
+    id: id,
+    state: state ?? this.state,
+    holderId: clearHolder ? null : holderId ?? this.holderId,
+    updatedAtMinute: updatedAtMinute ?? this.updatedAtMinute,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'state': state.name,
+    'holderId': holderId,
+    'updatedAtMinute': updatedAtMinute,
+  };
+
+  static HighRiskItemRecord? fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
+    if (id == null || !highRiskItemDefinitions.any((item) => item.id == id)) {
+      return null;
+    }
+    final stateName = json['state'] as String?;
+    final state = HighRiskItemState.values
+        .where((value) => value.name == stateName)
+        .firstOrNull;
+    return HighRiskItemRecord(
+      id: id,
+      state: state ?? HighRiskItemState.sealed,
+      holderId: json['holderId'] as String?,
+      updatedAtMinute: json['updatedAtMinute'] as int?,
+    );
+  }
+}
+
+class ParticipantDeathRecord {
+  const ParticipantDeathRecord({
+    required this.participantId,
+    required this.cause,
+    required this.timelineMinute,
+    required this.storyNodeId,
+    this.responsibleParticipantIds = const {},
+    this.sourceItemId,
+  });
+
+  final String participantId;
+  final String cause;
+  final int timelineMinute;
+  final String storyNodeId;
+  final Set<String> responsibleParticipantIds;
+  final String? sourceItemId;
+
+  Map<String, dynamic> toJson() => {
+    'participantId': participantId,
+    'cause': cause,
+    'timelineMinute': timelineMinute,
+    'storyNodeId': storyNodeId,
+    'responsibleParticipantIds': responsibleParticipantIds.toList(),
+    'sourceItemId': sourceItemId,
+  };
+
+  static ParticipantDeathRecord? fromJson(Map<String, dynamic> json) {
+    final participantId = json['participantId'] as String?;
+    final cause = json['cause'] as String?;
+    final storyNodeId = json['storyNodeId'] as String?;
+    if (participantId == null || cause == null || storyNodeId == null) {
+      return null;
+    }
+    return ParticipantDeathRecord(
+      participantId: participantId,
+      cause: cause,
+      timelineMinute: json['timelineMinute'] as int? ?? 0,
+      storyNodeId: storyNodeId,
+      responsibleParticipantIds:
+          (json['responsibleParticipantIds'] as List<dynamic>? ?? [])
+              .cast<String>()
+              .toSet(),
+      sourceItemId: json['sourceItemId'] as String?,
+    );
+  }
+}
+
 class SaveSnapshot {
   const SaveSnapshot({
     required this.currentId,
@@ -20,7 +117,14 @@ class SaveSnapshot {
     required this.investigationActions,
     required this.investigationClues,
     required this.historyIds,
+    required this.runMode,
+    required this.highRiskItems,
+    required this.livingParticipantIds,
+    required this.deathRecords,
     this.markedSector,
+    this.delegationPermission,
+    this.delegationTrustee,
+    this.delegationWitness,
   });
 
   final String currentId;
@@ -36,7 +140,14 @@ class SaveSnapshot {
   final Set<String> investigationActions;
   final Set<String> investigationClues;
   final List<String> historyIds;
+  final StoryRunMode runMode;
+  final Map<String, HighRiskItemRecord> highRiskItems;
+  final Set<String> livingParticipantIds;
+  final List<ParticipantDeathRecord> deathRecords;
   final String? markedSector;
+  final String? delegationPermission;
+  final String? delegationTrustee;
+  final String? delegationWitness;
 
   String get nodeLabel => storyBeats[currentId]?.label ?? currentId;
 
@@ -54,12 +165,53 @@ class SaveSnapshot {
     'investigationActions': investigationActions.toList(),
     'investigationClues': investigationClues.toList(),
     'historyIds': historyIds,
+    'runMode': runMode.name,
+    'highRiskItems': highRiskItems.map(
+      (key, value) => MapEntry(key, value.toJson()),
+    ),
+    'livingParticipantIds': livingParticipantIds.toList(),
+    'deathRecords': deathRecords.map((record) => record.toJson()).toList(),
     'markedSector': markedSector,
+    'delegationPermission': delegationPermission,
+    'delegationTrustee': delegationTrustee,
+    'delegationWitness': delegationWitness,
   };
 
   static SaveSnapshot? fromJson(Map<String, dynamic> json) {
     final id = json['currentId'] as String?;
     if (id == null || !storyBeats.containsKey(id)) return null;
+    final historyIds = (json['historyIds'] as List<dynamic>? ?? [])
+        .cast<String>();
+    final livingParticipantIds = json['livingParticipantIds'] == null
+        ? Set<String>.of(initialLivingParticipantIds)
+        : (json['livingParticipantIds'] as List<dynamic>)
+              .cast<String>()
+              .toSet();
+    if (json['livingParticipantIds'] == null) {
+      if (historyIds.contains('death_confirmed')) {
+        livingParticipantIds.remove('05');
+      }
+      if (historyIds.contains('first_alarm')) livingParticipantIds.remove('10');
+    }
+    final highRiskItems = <String, HighRiskItemRecord>{
+      for (final item in highRiskItemDefinitions)
+        item.id: HighRiskItemRecord(
+          id: item.id,
+          state: HighRiskItemState.sealed,
+        ),
+    };
+    final highRiskJson = json['highRiskItems'];
+    if (highRiskJson is Map<String, dynamic>) {
+      for (final value in highRiskJson.values) {
+        if (value is! Map<String, dynamic>) continue;
+        final record = HighRiskItemRecord.fromJson(value);
+        if (record != null) highRiskItems[record.id] = record;
+      }
+    }
+    final runModeName = json['runMode'] as String?;
+    final runMode = StoryRunMode.values
+        .where((value) => value.name == runModeName)
+        .firstOrNull;
     return SaveSnapshot(
       currentId: id,
       savedAt:
@@ -83,8 +235,19 @@ class SaveSnapshot {
       investigationClues: (json['investigationClues'] as List<dynamic>? ?? [])
           .cast<String>()
           .toSet(),
-      historyIds: (json['historyIds'] as List<dynamic>? ?? []).cast<String>(),
+      historyIds: historyIds,
+      runMode: runMode ?? StoryRunMode.standard,
+      highRiskItems: highRiskItems,
+      livingParticipantIds: livingParticipantIds,
+      deathRecords: (json['deathRecords'] as List<dynamic>? ?? [])
+          .whereType<Map<String, dynamic>>()
+          .map(ParticipantDeathRecord.fromJson)
+          .whereType<ParticipantDeathRecord>()
+          .toList(),
       markedSector: json['markedSector'] as String?,
+      delegationPermission: json['delegationPermission'] as String?,
+      delegationTrustee: json['delegationTrustee'] as String?,
+      delegationWitness: json['delegationWitness'] as String?,
     );
   }
 }
@@ -116,7 +279,12 @@ class StoryController extends ChangeNotifier {
   bool autoPlay = false;
   bool skipMode = false;
   bool hasAutoSave = false;
+  bool auditModeUnlocked = false;
+  StoryRunMode runMode = StoryRunMode.standard;
   String? markedSector;
+  String? delegationPermission;
+  String? delegationTrustee;
+  String? delegationWitness;
 
   final Set<String> flags = {};
   final Set<String> foundClues = {};
@@ -127,6 +295,12 @@ class StoryController extends ChangeNotifier {
   final Set<String> readNodes = {};
   final Set<String> unlockedCgs = {};
   final Set<String> unlockedEndings = {};
+  final Set<String> livingParticipantIds = Set.of(initialLivingParticipantIds);
+  final Map<String, HighRiskItemRecord> highRiskItems = {
+    for (final item in highRiskItemDefinitions)
+      item.id: HighRiskItemRecord(id: item.id, state: HighRiskItemState.sealed),
+  };
+  final List<ParticipantDeathRecord> deathRecords = [];
   final List<StoryBeat> history = [];
   final Map<String, SaveSnapshot> checkpoints = {};
   final List<SaveSnapshot?> saveSlots = List.filled(slotCount, null);
@@ -163,6 +337,9 @@ class StoryController extends ChangeNotifier {
   int get seenRouteNodeCount =>
       routeNodes.where((node) => seenNodes.contains(node.id)).length;
 
+  Iterable<HighRiskItemRecord> get visibleHighRiskItems => highRiskItems.values
+      .where((record) => record.state != HighRiskItemState.sealed);
+
   String get remainingTime {
     var minutesElapsed = (history.length - 1).clamp(0, history.length) * 3;
     for (var index = history.length - 1; index >= 0; index--) {
@@ -178,7 +355,10 @@ class StoryController extends ChangeNotifier {
     return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:00';
   }
 
-  void startNew() {
+  void startNew({StoryRunMode mode = StoryRunMode.standard}) {
+    runMode = mode == StoryRunMode.audit && auditModeUnlocked
+        ? StoryRunMode.audit
+        : StoryRunMode.standard;
     currentId = 'game_start';
     xingyaoTrust = 0;
     sumiTrust = 0;
@@ -186,11 +366,19 @@ class StoryController extends ChangeNotifier {
     logic = 0;
     cooperation = 0;
     markedSector = null;
+    delegationPermission = null;
+    delegationTrustee = null;
+    delegationWitness = null;
     flags.clear();
     foundClues.clear();
     inventoryItems.clear();
     investigationActions.clear();
     investigationClues.clear();
+    livingParticipantIds
+      ..clear()
+      ..addAll(initialLivingParticipantIds);
+    deathRecords.clear();
+    _resetHighRiskItems();
     history.clear();
     autoPlay = false;
     skipMode = false;
@@ -253,7 +441,7 @@ class StoryController extends ChangeNotifier {
 
   void advance() {
     if (phase != StoryPhase.dialogue || current.choices.isNotEmpty) return;
-    final next = current.next;
+    final next = _resolvedNext(current);
     if (next == null) return;
     _markCurrentRead();
     currentId = next;
@@ -307,10 +495,89 @@ class StoryController extends ChangeNotifier {
     _enterCurrent();
   }
 
+  void completeDelegation({
+    required String permission,
+    required String trustee,
+    required String witness,
+  }) {
+    if (phase != StoryPhase.delegation) return;
+    const permissions = {'read', 'door', 'clause', 'full'};
+    const trustees = {'hanqi', 'tangyi', 'chenmo'};
+    const witnesses = {'xingyao', 'sumi', 'yelan'};
+    if (!permissions.contains(permission) ||
+        !trustees.contains(trustee) ||
+        !witnesses.contains(witness)) {
+      return;
+    }
+
+    delegationPermission = permission;
+    delegationTrustee = trustee;
+    delegationWitness = witness;
+    flags
+      ..add('ch3_permission_$permission')
+      ..add('ch3_trustee_$trustee')
+      ..add('ch3_witness_$witness');
+    if (permission == 'read') cooperation += 1;
+    if (permission == 'door') logic += 1;
+    if (permission == 'full') {
+      logic += 1;
+      cooperation -= 1;
+    }
+
+    _markCurrentRead();
+    currentId = switch (trustee) {
+      'hanqi' => 'ch3_delegate_hanqi',
+      'tangyi' => 'ch3_delegate_tangyi',
+      _ => 'ch3_delegate_chenmo',
+    };
+    _enterCurrent();
+  }
+
   void collectInvestigationItem(String itemId) {
     if (!inventoryItems.add(itemId)) return;
     _saveAuto();
     notifyListeners();
+  }
+
+  void recordPuzzleProgress(
+    String progressFlag, {
+    String? grantsItem,
+    Iterable<String> consumesItems = const [],
+  }) {
+    if (phase != StoryPhase.puzzle || !flags.add(progressFlag)) return;
+    inventoryItems.removeAll(consumesItems);
+    if (grantsItem != null) inventoryItems.add(grantsItem);
+    _saveAuto();
+    notifyListeners();
+  }
+
+  void completePuzzle(String solution) {
+    if (phase != StoryPhase.puzzle) return;
+    final valid = switch (currentId) {
+      'ch3_transfer_access_puzzle' =>
+        solution == 'access_0916' &&
+            flags.contains('ch3_access_card_swiped') &&
+            inventoryItems.contains('shift_note'),
+      'ch3_balance_puzzle' => solution == 'triangle_cross_ring_dot_square',
+      'ch3_slide_puzzle' => solution == 'circuit_complete',
+      'ch3_audit_manifest_puzzle' =>
+        solution == 'slot_lease_interval' &&
+            runMode == StoryRunMode.audit &&
+            flags.containsAll({
+              'audit_index_fragment',
+              'case01_solved',
+              'case02_solved',
+              'puzzle_ch3_slide_puzzle_solved',
+            }),
+      _ => false,
+    };
+    if (!valid || current.next == null) return;
+
+    flags.add('puzzle_${current.id}_solved');
+    logic += 1;
+    _markCurrentRead();
+    currentId = current.next!;
+    _enterCurrent();
   }
 
   void recordInvestigationAction(
@@ -337,6 +604,19 @@ class StoryController extends ChangeNotifier {
 
   void submitDeduction(String hypothesis) {
     _markCurrentRead();
+    if (currentId == 'ch3_case02_deduction') {
+      if (hypothesis == 'lease_replay') {
+        flags.add('case02_solved');
+        logic += 2;
+        currentId = 'ch3_case02_resolved';
+      } else if (hypothesis == 'owner_action') {
+        currentId = 'ch3_case02_owner_error';
+      } else {
+        currentId = 'ch3_case02_trustee_error';
+      }
+      _enterCurrent();
+      return;
+    }
     if (hypothesis == 'suicide') {
       currentId = 'bad_end';
     } else if (hypothesis == 'repeater' && cooperation >= 2) {
@@ -391,11 +671,120 @@ class StoryController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void completeFullRunEnding(String endingId) {
+    if (!fullRunEndingIds.contains(endingId)) return;
+    unlockedEndings.add(endingId);
+    auditModeUnlocked = true;
+    _saveCollections();
+    notifyListeners();
+  }
+
+  bool takeHighRiskItem(String id, String holderId) {
+    final record = highRiskItems[id];
+    if (record == null ||
+        (record.state != HighRiskItemState.indexed &&
+            record.state != HighRiskItemState.missing)) {
+      return false;
+    }
+    highRiskItems[id] = record.copyWith(
+      state: HighRiskItemState.held,
+      holderId: holderId,
+      updatedAtMinute: _elapsedMinutes,
+    );
+    _saveAuto();
+    notifyListeners();
+    return true;
+  }
+
+  bool markHighRiskItemMissing(String id) {
+    final record = highRiskItems[id];
+    if (record == null || record.state == HighRiskItemState.used) return false;
+    highRiskItems[id] = record.copyWith(
+      state: HighRiskItemState.missing,
+      clearHolder: true,
+      updatedAtMinute: _elapsedMinutes,
+    );
+    _saveAuto();
+    notifyListeners();
+    return true;
+  }
+
+  bool resealHighRiskItem(String id) {
+    final record = highRiskItems[id];
+    if (record == null || record.state != HighRiskItemState.held) return false;
+    highRiskItems[id] = record.copyWith(
+      state: HighRiskItemState.indexed,
+      clearHolder: true,
+      updatedAtMinute: _elapsedMinutes,
+    );
+    _saveAuto();
+    notifyListeners();
+    return true;
+  }
+
+  bool useHighRiskItem(String id) {
+    final record = highRiskItems[id];
+    if (record == null || record.state != HighRiskItemState.held) return false;
+    highRiskItems[id] = record.copyWith(
+      state: HighRiskItemState.used,
+      clearHolder: true,
+      updatedAtMinute: _elapsedMinutes,
+    );
+    _saveAuto();
+    notifyListeners();
+    return true;
+  }
+
+  bool recordParticipantDeath({
+    required String participantId,
+    required String cause,
+    Iterable<String> responsibleParticipantIds = const [],
+    String? sourceItemId,
+    int? timelineMinute,
+    String? storyNodeId,
+  }) {
+    if (deathRecords.any((record) => record.participantId == participantId)) {
+      return false;
+    }
+    livingParticipantIds.remove(participantId);
+    deathRecords.add(
+      ParticipantDeathRecord(
+        participantId: participantId,
+        cause: cause,
+        timelineMinute: timelineMinute ?? _elapsedMinutes,
+        storyNodeId: storyNodeId ?? currentId,
+        responsibleParticipantIds: responsibleParticipantIds.toSet(),
+        sourceItemId: sourceItemId,
+      ),
+    );
+    if (sourceItemId != null) {
+      final record = highRiskItems[sourceItemId];
+      if (record != null && record.state != HighRiskItemState.used) {
+        highRiskItems[sourceItemId] = record.copyWith(
+          state: HighRiskItemState.used,
+          clearHolder: true,
+          updatedAtMinute: timelineMinute ?? _elapsedMinutes,
+        );
+      }
+    }
+    _saveAuto();
+    notifyListeners();
+    return true;
+  }
+
   void _enterCurrent() {
     phase = current.phase;
     seenNodes.add(currentId);
+    flags.addAll(current.flagsOnEnter);
+    _indexHighRiskItems(current.highRiskItemsOnEnter);
+    for (final event in current.deathEvents) {
+      _recordDeathEvent(event);
+    }
     if (current.cgId case final cg?) unlockedCgs.add(cg);
-    if (current.endingId case final ending?) unlockedEndings.add(ending);
+    if (current.endingId case final ending?) {
+      unlockedEndings.add(ending);
+      if (fullRunEndingIds.contains(ending)) auditModeUnlocked = true;
+    }
     _recordCurrent();
     final snapshot = _createSnapshot();
     checkpoints[currentId] = snapshot;
@@ -403,6 +792,67 @@ class StoryController extends ChangeNotifier {
     _savePersistentProgress();
     _saveAuto();
     notifyListeners();
+  }
+
+  String? _resolvedNext(StoryBeat beat) {
+    final auditNext = beat.auditNext;
+    if (runMode == StoryRunMode.audit &&
+        auditNext != null &&
+        flags.containsAll(beat.auditRequiredFlags)) {
+      return auditNext;
+    }
+    return beat.next;
+  }
+
+  int get _elapsedMinutes {
+    for (var index = history.length - 1; index >= 0; index--) {
+      final anchor = history[index].timelineMinute;
+      if (anchor != null) return anchor + (history.length - 1 - index) * 3;
+    }
+    return (history.length - 1).clamp(0, history.length) * 3;
+  }
+
+  void _resetHighRiskItems() {
+    highRiskItems
+      ..clear()
+      ..addEntries(
+        highRiskItemDefinitions.map(
+          (item) => MapEntry(
+            item.id,
+            HighRiskItemRecord(id: item.id, state: HighRiskItemState.sealed),
+          ),
+        ),
+      );
+  }
+
+  void _indexHighRiskItems(Iterable<String> ids) {
+    for (final id in ids) {
+      final record = highRiskItems[id];
+      if (record == null || record.state != HighRiskItemState.sealed) continue;
+      highRiskItems[id] = record.copyWith(
+        state: HighRiskItemState.indexed,
+        updatedAtMinute: _elapsedMinutes,
+      );
+    }
+  }
+
+  void _recordDeathEvent(StoryDeathEvent event) {
+    if (deathRecords.any(
+      (record) => record.participantId == event.participantId,
+    )) {
+      return;
+    }
+    livingParticipantIds.remove(event.participantId);
+    deathRecords.add(
+      ParticipantDeathRecord(
+        participantId: event.participantId,
+        cause: event.cause,
+        timelineMinute: event.timelineMinute,
+        storyNodeId: currentId,
+        responsibleParticipantIds: event.responsibleParticipantIds.toSet(),
+        sourceItemId: event.sourceItemId,
+      ),
+    );
   }
 
   void _markCurrentRead() {
@@ -431,17 +881,28 @@ class StoryController extends ChangeNotifier {
     investigationActions: Set.of(investigationActions),
     investigationClues: Set.of(investigationClues),
     historyIds: history.map((beat) => beat.id).toList(),
+    runMode: runMode,
+    highRiskItems: Map.of(highRiskItems),
+    livingParticipantIds: Set.of(livingParticipantIds),
+    deathRecords: List.of(deathRecords),
     markedSector: markedSector,
+    delegationPermission: delegationPermission,
+    delegationTrustee: delegationTrustee,
+    delegationWitness: delegationWitness,
   );
 
   void _restoreSnapshot(SaveSnapshot snapshot) {
     currentId = snapshot.currentId;
+    runMode = snapshot.runMode;
     xingyaoTrust = snapshot.xingyaoTrust;
     sumiTrust = snapshot.sumiTrust;
     linchengTrust = snapshot.linchengTrust;
     logic = snapshot.logic;
     cooperation = snapshot.cooperation;
     markedSector = snapshot.markedSector;
+    delegationPermission = snapshot.delegationPermission;
+    delegationTrustee = snapshot.delegationTrustee;
+    delegationWitness = snapshot.delegationWitness;
     flags
       ..clear()
       ..addAll(snapshot.flags);
@@ -457,6 +918,15 @@ class StoryController extends ChangeNotifier {
     investigationClues
       ..clear()
       ..addAll(snapshot.investigationClues);
+    highRiskItems
+      ..clear()
+      ..addAll(snapshot.highRiskItems);
+    livingParticipantIds
+      ..clear()
+      ..addAll(snapshot.livingParticipantIds);
+    deathRecords
+      ..clear()
+      ..addAll(snapshot.deathRecords);
     history
       ..clear()
       ..addAll(
@@ -505,6 +975,9 @@ class StoryController extends ChangeNotifier {
         unlockedEndings.addAll(
           (data['unlockedEndings'] as List<dynamic>? ?? []).cast<String>(),
         );
+        auditModeUnlocked =
+            data['auditModeUnlocked'] as bool? ??
+            fullRunEndingIds.any(unlockedEndings.contains);
       } on FormatException {
         _preferences.remove(_collectionKey);
       }
@@ -560,6 +1033,7 @@ class StoryController extends ChangeNotifier {
         'readNodes': readNodes.toList(),
         'unlockedCgs': unlockedCgs.toList(),
         'unlockedEndings': unlockedEndings.toList(),
+        'auditModeUnlocked': auditModeUnlocked,
       }),
     );
   }

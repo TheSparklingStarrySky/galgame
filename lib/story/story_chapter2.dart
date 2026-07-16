@@ -48,11 +48,10 @@ const chapterTwoBeats = <String, StoryBeat>{
   ),
   'ch2_chapter_title': StoryBeat(
     id: 'ch2_chapter_title',
-    label: '第二章·封锁顺序',
+    label: '封锁顺序',
     speaker: Speaker.narration,
     scene: SceneKey.assemblyHall,
-    text:
-        '第二章　封锁顺序\n距离第一次永久封锁还有两个半小时。屏幕上的倒计时不再只是一个遥远的七日时限，而开始精确切割我们能够站立、藏匿和逃跑的每一块地面。',
+    text: '距离第一次永久封锁还有两个半小时。屏幕上的倒计时不再只是一个遥远的七日时限，而开始精确切割我们能够站立、藏匿和逃跑的每一块地面。',
     next: 'ch2_meal_silence',
   ),
   'ch2_meal_silence': StoryBeat(
@@ -641,13 +640,27 @@ const chapterTwoBeats = <String, StoryBeat>{
   ),
   'ch2_end': StoryBeat(
     id: 'ch2_end',
-    label: '第二章·封锁顺序 完',
+    label: '12号第一次拥有方向',
     speaker: Speaker.shenYan,
     scene: SceneKey.assemblyHall,
     text:
-        '屏幕上的12号光点停在档案库深处，正好覆盖林澄曾经画出的那条备用通道。下一次封锁还有二十三小时五十七分。\n我们救出了体育馆里真实存在的人，也证明了主办方能够让不存在的人决定门落在哪里。第一天结束时，死亡游戏不再只是要求我们满足各自的条款；它开始主动安排我们必须怀疑谁、放弃谁。\n我在新的地图上圈住E-04。第二章结束，而12号第一次拥有了方向。',
+        '屏幕上的12号光点停在档案库深处，正好覆盖林澄曾经画出的那条备用通道。下一次封锁还有二十三小时五十七分。\n我们救出了体育馆里真实存在的人，也证明了主办方能够让不存在的人决定门落在哪里。第一天结束时，死亡游戏不再只是要求我们满足各自的条款；它开始主动安排我们必须怀疑谁、放弃谁。\n我在新的地图上圈住E-04。隔着已经封死的体育馆，12号第一次拥有了方向。',
     passageSpeakers: [Speaker.narration, Speaker.narration, Speaker.narration],
-    next: null,
+    next: 'ch3_chapter_title',
+    auditNext: 'ch2_audit_index',
+    auditRequiredFlags: {'case01_solved'},
+  ),
+  'ch2_audit_index': StoryBeat(
+    id: 'ch2_audit_index',
+    label: '被普通界面折叠的灰色索引',
+    speaker: Speaker.liXingyao,
+    scene: SceneKey.assemblyHall,
+    portraitMood: 'alarm',
+    text:
+        '地图刷新前，审计周目保留的离线层突然多出一行灰字。它不属于12号的位置记录，而像一张被主界面藏起来的目录：F-01空身份、B-03撤销会话、E-04高危物资校验，共用同一组审计表头。\n星遥把PDA断网后，那行字仍在。“一周目我们只看见系统愿意解释的结果。”她压低声音，“这次它把删去内容的页码也留下了。”\n目录没有给出物资名称，只留下三种字段：身份槽、会话尾码、重放间隔。我将它复制进离线证据区。只有同时复原两起案件，才可能在后面的转运缓存里还原对应记录。',
+    passageSpeakers: [Speaker.narration, Speaker.liXingyao, Speaker.narration],
+    flagsOnEnter: {'audit_index_fragment'},
+    next: 'ch3_chapter_title',
   ),
 };
 

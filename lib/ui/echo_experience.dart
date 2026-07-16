@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flame/game.dart';
 import 'package:flutter/gestures.dart';
@@ -78,11 +79,227 @@ class _EchoExperienceState extends State<EchoExperience> {
       key: ValueKey(controller.currentId),
       controller: controller,
     ),
+    StoryPhase.delegation => _DelegationLayer(controller: controller),
     StoryPhase.investigation => _InvestigationLayer(controller: controller),
+    StoryPhase.puzzle => _PuzzleLayer(
+      key: ValueKey(controller.currentId),
+      controller: controller,
+    ),
     StoryPhase.tuning => _TuningLayer(controller: controller, game: _game),
     StoryPhase.deduction => _DeductionLayer(controller: controller),
     StoryPhase.ending => _EndingLayer(controller: controller),
   };
+}
+
+class _DelegationLayer extends StatefulWidget {
+  const _DelegationLayer({required this.controller});
+
+  final StoryController controller;
+
+  @override
+  State<_DelegationLayer> createState() => _DelegationLayerState();
+}
+
+class _DelegationLayerState extends State<_DelegationLayer> {
+  String? _permission;
+  String? _trustee;
+  String? _witness;
+
+  static const _permissions = [
+    (id: 'read', label: '只读', icon: Icons.visibility_outlined),
+    (id: 'door', label: '门禁', icon: Icons.door_front_door_outlined),
+    (id: 'clause', label: '条款', icon: Icons.article_outlined),
+    (id: 'full', label: '完整', icon: Icons.admin_panel_settings_outlined),
+  ];
+  static const _trustees = [
+    (id: 'hanqi', label: '韩骐 / 04', icon: Icons.shield_outlined),
+    (id: 'tangyi', label: '唐弈 / 06', icon: Icons.swap_horiz_rounded),
+    (id: 'chenmo', label: '陈默 / 08', icon: Icons.terminal_rounded),
+  ];
+  static const _witnesses = [
+    (id: 'xingyao', label: '黎星遥 / 02', icon: Icons.graphic_eq_rounded),
+    (id: 'sumi', label: '苏弥 / 03', icon: Icons.monitor_heart_outlined),
+    (id: 'yelan', label: '叶岚 / 11', icon: Icons.fact_check_outlined),
+  ];
+
+  bool get _ready =>
+      _permission != null && _trustee != null && _witness != null;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: const Color(0xE8080B0C),
+      child: Stack(
+        children: [
+          _TopBar(controller: widget.controller, title: '临时托管 / PDA'),
+          SafeArea(
+            minimum: const EdgeInsets.fromLTRB(16, 56, 82, 10),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 760),
+                child: Material(
+                  color: const Color(0xF20C1213),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                    side: const BorderSide(color: Color(0xFF52605B)),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.phonelink_lock_outlined,
+                              size: 19,
+                              color: Color(0xFFD8A24A),
+                            ),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                '01号终端 · 20分钟审计授权',
+                                style: TextStyle(
+                                  color: Color(0xFFF2F3EE),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '等待三方签名',
+                              style: TextStyle(
+                                color: Color(0xFF8FC7B8),
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        _DelegationRow(
+                          title: '权限范围',
+                          options: _permissions,
+                          selected: _permission,
+                          onSelected: (value) =>
+                              setState(() => _permission = value),
+                        ),
+                        const SizedBox(height: 7),
+                        _DelegationRow(
+                          title: '受托人',
+                          options: _trustees,
+                          selected: _trustee,
+                          onSelected: (value) =>
+                              setState(() => _trustee = value),
+                        ),
+                        const SizedBox(height: 7),
+                        _DelegationRow(
+                          title: '见证人',
+                          options: _witnesses,
+                          selected: _witness,
+                          onSelected: (value) =>
+                              setState(() => _witness = value),
+                        ),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 36,
+                          child: FilledButton.icon(
+                            key: const ValueKey('confirm-delegation'),
+                            onPressed: _ready
+                                ? () => widget.controller.completeDelegation(
+                                    permission: _permission!,
+                                    trustee: _trustee!,
+                                    witness: _witness!,
+                                  )
+                                : null,
+                            icon: const Icon(Icons.verified_user_outlined),
+                            label: const Text('生成三方托管记录'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          _RightControlRail(
+            controller: widget.controller,
+            playbackEnabled: false,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DelegationRow extends StatelessWidget {
+  const _DelegationRow({
+    required this.title,
+    required this.options,
+    required this.selected,
+    required this.onSelected,
+  });
+
+  final String title;
+  final List<({IconData icon, String id, String label})> options;
+  final String? selected;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 58,
+          child: Text(
+            title,
+            style: const TextStyle(
+              color: Color(0xFFAAB3AF),
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Row(
+            children: [
+              for (final option in options) ...[
+                Expanded(
+                  child: SizedBox(
+                    height: 36,
+                    child: OutlinedButton.icon(
+                      key: ValueKey('delegation-${option.id}'),
+                      onPressed: () => onSelected(option.id),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        backgroundColor: selected == option.id
+                            ? const Color(0xFF284B43)
+                            : const Color(0xFF111819),
+                        side: BorderSide(
+                          color: selected == option.id
+                              ? const Color(0xFF8FC7B8)
+                              : const Color(0xFF35433F),
+                        ),
+                      ),
+                      icon: Icon(option.icon, size: 15),
+                      label: Text(
+                        option.label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 10),
+                      ),
+                    ),
+                  ),
+                ),
+                if (option != options.last) const SizedBox(width: 6),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _SceneLoadErrorBanner extends StatelessWidget {
@@ -239,9 +456,19 @@ class _TitleLayer extends StatelessWidget {
                               _CommandButton(
                                 icon: Icons.play_arrow_rounded,
                                 label: '开始游戏',
-                                onPressed: controller.startNew,
+                                onPressed: () => controller.startNew(),
                                 primary: true,
                               ),
+                              if (controller.auditModeUnlocked) ...[
+                                const SizedBox(height: 9),
+                                _CommandButton(
+                                  icon: Icons.manage_search_rounded,
+                                  label: '审计周目',
+                                  onPressed: () => controller.startNew(
+                                    mode: StoryRunMode.audit,
+                                  ),
+                                ),
+                              ],
                               const SizedBox(height: 9),
                               _CommandButton(
                                 icon: Icons.update_rounded,
@@ -262,7 +489,7 @@ class _TitleLayer extends StatelessWidget {
                               ),
                               SizedBox(height: short ? 14 : 26),
                               const Text(
-                                '第一至二章 · 已开放',
+                                'DAY 1–2 · 已开放',
                                 style: TextStyle(
                                   color: Color(0xFF8D9994),
                                   fontSize: 12,
@@ -892,6 +1119,933 @@ class _ChoiceButton extends StatelessWidget {
   }
 }
 
+class _PuzzleLayer extends StatefulWidget {
+  const _PuzzleLayer({super.key, required this.controller});
+
+  final StoryController controller;
+
+  @override
+  State<_PuzzleLayer> createState() => _PuzzleLayerState();
+}
+
+class _PuzzleLayerState extends State<_PuzzleLayer> {
+  static const _weightNames = <String, String>{
+    'ring': '环',
+    'triangle': '三角',
+    'square': '方框',
+    'cross': '十字',
+    'dot': '圆点',
+  };
+  static const _weightValues = <String, int>{
+    'triangle': 1,
+    'cross': 2,
+    'ring': 3,
+    'dot': 4,
+    'square': 5,
+  };
+  static const _initialTiles = <int>[1, 4, 2, 3, 0, 8, 6, 7, 5];
+
+  String _accessLocation = 'transfer';
+  String _accessCode = '';
+  String? _feedback;
+  String? _balanceLeft;
+  String? _balanceRight;
+  final List<String?> _balanceOrder = List<String?>.filled(5, null);
+  late List<int> _tiles = List<int>.of(_initialTiles);
+  int _slideMoves = 0;
+  final List<String> _auditOrder = [];
+
+  static const _auditFields = <String, String>{
+    'slot': '身份槽 / 12',
+    'owner': '界面署名 / 01',
+    'lease': '撤销会话 / R-08',
+    'area': '区域代码 / E-04',
+    'interval': '重放间隔 / 07s',
+  };
+
+  bool get _hasCard =>
+      widget.controller.inventoryItems.contains('maintenance_card');
+  bool get _hasNote => widget.controller.inventoryItems.contains('shift_note');
+  bool get _cardSwiped =>
+      widget.controller.flags.contains('ch3_access_card_swiped');
+
+  void _collectAccessItem(String id) {
+    if (id == 'maintenance_card' && !_hasCard) {
+      widget.controller.recordPuzzleProgress(
+        'ch3_access_card_found',
+        grantsItem: 'maintenance_card',
+      );
+      setState(() => _feedback = '柜门夹层里压着一张磨损严重的维护门禁卡。');
+      return;
+    }
+    if (id == 'shift_note' && !_hasNote) {
+      widget.controller.recordPuzzleProgress(
+        'ch3_shift_note_found',
+        grantsItem: 'shift_note',
+      );
+      setState(() {
+        _feedback = '倒班记录只保留两次交接：09时和16时。页脚注明旧控制器按先后顺序连写时间。';
+      });
+      return;
+    }
+    setState(() => _feedback = '这里已经没有新的可取物。');
+  }
+
+  void _swipeAccessCard() {
+    if (_cardSwiped) {
+      setState(() => _feedback = '读卡器保持绿色，数字键盘已经接通。');
+      return;
+    }
+    if (!_hasCard) {
+      setState(() => _feedback = '读卡器短促鸣叫，没有识别到可用凭证。');
+      return;
+    }
+    widget.controller.recordPuzzleProgress(
+      'ch3_access_card_swiped',
+      consumesItems: const ['maintenance_card'],
+    );
+    setState(() => _feedback = '卡片被读卡器吞入回收槽，门锁转为等待四位输入。');
+  }
+
+  void _enterDigit(String digit) {
+    if (!_cardSwiped || _accessCode.length >= 4) return;
+    setState(() {
+      _accessCode += digit;
+      _feedback = null;
+    });
+  }
+
+  void _submitAccessCode() {
+    if (!_cardSwiped) {
+      setState(() => _feedback = '键盘没有亮起。门上的读卡器仍在等待响应。');
+      return;
+    }
+    if (_accessCode == '0916') {
+      widget.controller.completePuzzle('access_0916');
+      return;
+    }
+    setState(() {
+      _accessCode = '';
+      _feedback = '锁舌没有动作，四个按键同时熄灭。';
+    });
+  }
+
+  void _selectWeight(String id) {
+    setState(() {
+      _feedback = null;
+      if (_balanceLeft == null || _balanceRight != null) {
+        _balanceLeft = id;
+        _balanceRight = null;
+      } else if (_balanceLeft != id) {
+        _balanceRight = id;
+      }
+    });
+  }
+
+  void _weigh() {
+    final left = _balanceLeft;
+    final right = _balanceRight;
+    if (left == null || right == null) return;
+    final comparison = _weightValues[left]!.compareTo(_weightValues[right]!);
+    setState(() {
+      _feedback = comparison == 0
+          ? '天平保持水平。'
+          : comparison < 0
+          ? '${_weightNames[left]}一侧升起，${_weightNames[right]}一侧下沉。'
+          : '${_weightNames[left]}一侧下沉，${_weightNames[right]}一侧升起。';
+    });
+  }
+
+  void _setOrder(int index, String id) {
+    setState(() {
+      for (var slot = 0; slot < _balanceOrder.length; slot++) {
+        if (_balanceOrder[slot] == id) _balanceOrder[slot] = null;
+      }
+      _balanceOrder[index] = id;
+      _feedback = null;
+    });
+  }
+
+  void _submitBalanceOrder() {
+    const expected = ['triangle', 'cross', 'ring', 'dot', 'square'];
+    if (_balanceOrder.any((id) => id == null)) {
+      setState(() => _feedback = '五个承重槽仍有空位。');
+      return;
+    }
+    if (List.generate(
+      5,
+      (index) => _balanceOrder[index] == expected[index],
+    ).every((correct) => correct)) {
+      widget.controller.completePuzzle('triangle_cross_ring_dot_square');
+      return;
+    }
+    setState(() => _feedback = '机关没有响应。某些相邻砝码的轻重关系仍然相反。');
+  }
+
+  void _moveTile(int index) {
+    final blank = _tiles.indexOf(8);
+    final sameRow = index ~/ 3 == blank ~/ 3;
+    final adjacent =
+        (sameRow && (index - blank).abs() == 1) || (index - blank).abs() == 3;
+    if (!adjacent) {
+      setState(() => _feedback = '这块石板没有与空格相邻。');
+      return;
+    }
+    setState(() {
+      final tile = _tiles[index];
+      _tiles[index] = 8;
+      _tiles[blank] = tile;
+      _slideMoves += 1;
+      _feedback = null;
+    });
+    if (List.generate(
+      9,
+      (index) => _tiles[index] == index,
+    ).every((correct) => correct)) {
+      widget.controller.completePuzzle('circuit_complete');
+    }
+  }
+
+  void _selectAuditField(String id) {
+    setState(() {
+      _feedback = null;
+      if (_auditOrder.remove(id)) return;
+      if (_auditOrder.length == 3) _auditOrder.removeAt(0);
+      _auditOrder.add(id);
+    });
+  }
+
+  void _submitAuditOrder() {
+    if (_auditOrder.length < 3) {
+      setState(() => _feedback = '校验输入仍有空列。');
+      return;
+    }
+    if (_auditOrder.join('_') == 'slot_lease_interval') {
+      widget.controller.completePuzzle('slot_lease_interval');
+      return;
+    }
+    setState(() => _feedback = '三组短码能够成列，但校验值没有闭合。');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: const Color(0xD9080B0C),
+      child: Stack(
+        children: [
+          _TopBar(controller: widget.controller, title: _puzzleTitle),
+          SafeArea(
+            minimum: const EdgeInsets.fromLTRB(18, 68, 82, 14),
+            child: LayoutBuilder(
+              builder: (context, constraints) =>
+                  switch (widget.controller.currentId) {
+                    'ch3_transfer_access_puzzle' => _buildAccessPuzzle(
+                      constraints,
+                    ),
+                    'ch3_balance_puzzle' => _buildBalancePuzzle(constraints),
+                    'ch3_audit_manifest_puzzle' => _buildAuditPuzzle(),
+                    _ => _buildSlidePuzzle(constraints),
+                  },
+            ),
+          ),
+          _RightControlRail(
+            controller: widget.controller,
+            playbackEnabled: false,
+          ),
+        ],
+      ),
+    );
+  }
+
+  String get _puzzleTitle => switch (widget.controller.currentId) {
+    'ch3_transfer_access_puzzle' => '隔离转运间 / 门禁联锁',
+    'ch3_balance_puzzle' => '承重机关 / 无刻度天平',
+    'ch3_audit_manifest_puzzle' => '离线审计 / 灰色校验表',
+    _ => '图案机关 / 八块石板',
+  };
+
+  Widget _buildAuditPuzzle() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _Eyebrow(text: 'RECOVERED CHECKSUMS'),
+              const SizedBox(height: 8),
+              const Text(
+                '三份日志共用一组被删去的校验列。表头已经消失，只能根据两起案件中稳定存在、且不受界面署名影响的字段重建顺序。',
+                style: TextStyle(
+                  color: Color(0xFFDDE2DF),
+                  fontSize: 11,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...const [
+                ('F-01', 'SLOT 12  /  REPLAY +07s'),
+                ('B-03', 'LEASE R-08  /  OWNER 01'),
+                ('E-04', 'SLOT 12  /  AREA E-04'),
+              ].map(
+                (row) => Padding(
+                  padding: const EdgeInsets.only(bottom: 7),
+                  child: Container(
+                    height: 38,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF111817),
+                      border: Border.all(color: const Color(0xFF35433F)),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 46,
+                          child: Text(
+                            row.$1,
+                            style: const TextStyle(
+                              color: Color(0xFFD8A24A),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            row.$2,
+                            style: const TextStyle(
+                              color: Color(0xFFAAB5B0),
+                              fontSize: 10.5,
+                              fontFeatures: [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const VerticalDivider(width: 28, color: Color(0xFF35433F)),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _Eyebrow(text: 'COLUMN ORDER'),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 7,
+                runSpacing: 7,
+                children: _auditFields.entries
+                    .map((entry) {
+                      final order = _auditOrder.indexOf(entry.key);
+                      return FilterChip(
+                        key: ValueKey('audit-field-${entry.key}'),
+                        selected: order >= 0,
+                        showCheckmark: false,
+                        avatar: order < 0
+                            ? null
+                            : CircleAvatar(child: Text('${order + 1}')),
+                        label: Text(entry.value),
+                        onSelected: (_) => _selectAuditField(entry.key),
+                      );
+                    })
+                    .toList(growable: false),
+              ),
+              const Spacer(),
+              if (_feedback != null)
+                Text(
+                  _feedback!,
+                  style: const TextStyle(
+                    color: Color(0xFFF0D08F),
+                    fontSize: 11,
+                  ),
+                ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton.icon(
+                  key: const ValueKey('submit-audit-order'),
+                  onPressed: _submitAuditOrder,
+                  icon: const Icon(Icons.rule_folder_outlined),
+                  label: const Text('执行离线校验'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAccessPuzzle(BoxConstraints constraints) {
+    final panelHeight = math.max(210.0, constraints.maxHeight - 48);
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SegmentedButton<String>(
+            showSelectedIcon: false,
+            segments: const [
+              ButtonSegment(
+                value: 'assembly',
+                icon: Icon(Icons.meeting_room_outlined),
+                label: Text('集合厅'),
+              ),
+              ButtonSegment(
+                value: 'archive',
+                icon: Icon(Icons.inventory_2_outlined),
+                label: Text('档案走廊'),
+              ),
+              ButtonSegment(
+                value: 'transfer',
+                icon: Icon(Icons.door_sliding_outlined),
+                label: Text('转运间'),
+              ),
+            ],
+            selected: {_accessLocation},
+            onSelectionChanged: (value) => setState(() {
+              _accessLocation = value.single;
+              _feedback = null;
+            }),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: panelHeight,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: const Color(0xEE101516),
+                border: Border.all(color: const Color(0xFF45524E)),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: _accessLocation == 'transfer'
+                    ? _buildTransferLock()
+                    : _buildSearchLocation(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchLocation() {
+    final assembly = _accessLocation == 'assembly';
+    final collected = assembly ? _hasCard : _hasNote;
+    final asset = assembly
+        ? 'assets/images/items/storage/maintenance_card.png'
+        : 'assets/images/items/storage/shift_note.png';
+    return Row(
+      children: [
+        SizedBox(width: 150, child: Image.asset(asset, fit: BoxFit.contain)),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _Eyebrow(text: assembly ? 'DUTY CABINET' : 'SHIFT ARCHIVE'),
+              const SizedBox(height: 7),
+              Text(
+                assembly
+                    ? '值班柜没有上锁，里面是停电预案、过期巡检牌和一层松动的金属底板。'
+                    : '旧倒班夹按日期排列。多数页面被撕走，只剩转运设备启用当天的一张复写纸。',
+                style: const TextStyle(
+                  color: Color(0xFFE5E8E3),
+                  fontSize: 12,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                key: ValueKey(
+                  assembly ? 'access-search-card' : 'access-search-note',
+                ),
+                onPressed: collected
+                    ? null
+                    : () => _collectAccessItem(
+                        assembly ? 'maintenance_card' : 'shift_note',
+                      ),
+                icon: Icon(
+                  collected ? Icons.check_rounded : Icons.search_rounded,
+                ),
+                label: Text(collected ? '已经取走' : '检查夹层'),
+              ),
+              if (_feedback != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _feedback!,
+                  style: const TextStyle(
+                    color: Color(0xFFF0D08F),
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTransferLock() {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _Eyebrow(text: 'MECHANICAL INTERLOCK'),
+              const SizedBox(height: 7),
+              const Text(
+                '门上没有联网标识。读卡器、四位键盘和机械锁舌构成三段串联，失败不会显示缺少了哪一步。',
+                style: TextStyle(
+                  color: Color(0xFFE5E8E3),
+                  fontSize: 12,
+                  height: 1.4,
+                ),
+              ),
+              const Spacer(),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  OutlinedButton.icon(
+                    key: const ValueKey('access-swipe-card'),
+                    onPressed: _swipeAccessCard,
+                    icon: Icon(
+                      _cardSwiped
+                          ? Icons.credit_score_rounded
+                          : Icons.contactless_outlined,
+                    ),
+                    label: Text(_cardSwiped ? '读卡完成' : '尝试读卡'),
+                  ),
+                  if (_hasNote)
+                    OutlinedButton.icon(
+                      onPressed: () => setState(() {
+                        _feedback = '复写纸保留09时与16时两次交接；旧控制器的页脚要求按发生顺序连写。';
+                      }),
+                      icon: const Icon(Icons.description_outlined),
+                      label: const Text('查看倒班记录'),
+                    ),
+                ],
+              ),
+              if (_feedback != null) ...[
+                const SizedBox(height: 7),
+                Text(
+                  _feedback!,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFF0D08F),
+                    fontSize: 10.5,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        const VerticalDivider(width: 24, color: Color(0xFF35433F)),
+        SizedBox(
+          width: 222,
+          child: Column(
+            children: [
+              Container(
+                key: const ValueKey('access-code-display'),
+                height: 34,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF080B0C),
+                  border: Border.all(color: const Color(0xFF52605B)),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  _accessCode.padRight(4, '—').split('').join('  '),
+                  style: const TextStyle(
+                    color: Color(0xFF8FC7B8),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 7),
+              Expanded(
+                child: GridView.count(
+                  padding: EdgeInsets.zero,
+                  crossAxisCount: 4,
+                  mainAxisSpacing: 5,
+                  crossAxisSpacing: 5,
+                  childAspectRatio: 1.45,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    for (final digit in '1234567890'.split(''))
+                      OutlinedButton(
+                        key: ValueKey('access-digit-$digit'),
+                        onPressed: _cardSwiped
+                            ? () => _enterDigit(digit)
+                            : null,
+                        child: Text(digit),
+                      ),
+                    IconButton.outlined(
+                      tooltip: '退格',
+                      onPressed: _accessCode.isEmpty
+                          ? null
+                          : () => setState(() {
+                              _accessCode = _accessCode.substring(
+                                0,
+                                _accessCode.length - 1,
+                              );
+                            }),
+                      icon: const Icon(Icons.backspace_outlined, size: 18),
+                    ),
+                    IconButton.filled(
+                      key: const ValueKey('access-submit-code'),
+                      tooltip: '确认输入',
+                      onPressed: _accessCode.length == 4
+                          ? _submitAccessCode
+                          : null,
+                      icon: const Icon(Icons.login_rounded, size: 18),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBalancePuzzle(BoxConstraints constraints) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _Eyebrow(text: 'COMPARE'),
+                const SizedBox(height: 7),
+                const Text(
+                  '五块砝码外形相同、重量各异。任选两块放上无刻度天平，记录哪一侧下沉。',
+                  style: TextStyle(color: Color(0xFFDDE2DF), fontSize: 11),
+                ),
+                const SizedBox(height: 9),
+                Wrap(
+                  spacing: 7,
+                  runSpacing: 7,
+                  children: _weightNames.entries
+                      .map(
+                        (entry) => ChoiceChip(
+                          key: ValueKey('weight-${entry.key}'),
+                          label: Text(entry.value),
+                          avatar: const Icon(Icons.hexagon_outlined, size: 16),
+                          selected:
+                              _balanceLeft == entry.key ||
+                              _balanceRight == entry.key,
+                          onSelected: (_) => _selectWeight(entry.key),
+                        ),
+                      )
+                      .toList(growable: false),
+                ),
+                const Spacer(),
+                Row(
+                  children: [
+                    _BalancePan(
+                      label: _balanceLeft == null
+                          ? '左盘'
+                          : _weightNames[_balanceLeft!]!,
+                    ),
+                    const Expanded(
+                      child: Icon(
+                        Icons.balance_rounded,
+                        color: Color(0xFFD8A24A),
+                        size: 34,
+                      ),
+                    ),
+                    _BalancePan(
+                      label: _balanceRight == null
+                          ? '右盘'
+                          : _weightNames[_balanceRight!]!,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                FilledButton.icon(
+                  key: const ValueKey('weigh-selected'),
+                  onPressed: _balanceLeft != null && _balanceRight != null
+                      ? _weigh
+                      : null,
+                  icon: const Icon(Icons.scale_outlined),
+                  label: const Text('称量'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const VerticalDivider(color: Color(0xFF35433F)),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _Eyebrow(text: 'LIGHT TO HEAVY'),
+                const SizedBox(height: 7),
+                const Text(
+                  '将五块砝码按从轻到重放入承重槽。每种图案只能使用一次。',
+                  style: TextStyle(color: Color(0xFFDDE2DF), fontSize: 11),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    for (var index = 0; index < 5; index++) ...[
+                      Expanded(
+                        child: PopupMenuButton<String>(
+                          key: ValueKey('weight-slot-$index'),
+                          tooltip: '选择第${index + 1}块砝码',
+                          onSelected: (id) => _setOrder(index, id),
+                          itemBuilder: (context) => _weightNames.entries
+                              .map(
+                                (entry) => PopupMenuItem(
+                                  value: entry.key,
+                                  child: Text(entry.value),
+                                ),
+                              )
+                              .toList(growable: false),
+                          child: Container(
+                            height: 54,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF171E1D),
+                              border: Border.all(
+                                color: const Color(0xFF52605B),
+                              ),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              _balanceOrder[index] == null
+                                  ? '${index + 1}'
+                                  : _weightNames[_balanceOrder[index]!]!,
+                              style: const TextStyle(
+                                color: Color(0xFFF0EEE7),
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (index < 4)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 3),
+                          child: Icon(
+                            Icons.chevron_right_rounded,
+                            color: Color(0xFF8C9994),
+                            size: 16,
+                          ),
+                        ),
+                    ],
+                  ],
+                ),
+                const Spacer(),
+                if (_feedback != null)
+                  Text(
+                    _feedback!,
+                    style: const TextStyle(
+                      color: Color(0xFFF0D08F),
+                      fontSize: 11,
+                      height: 1.35,
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: FilledButton.icon(
+                    key: const ValueKey('submit-weight-order'),
+                    onPressed: _submitBalanceOrder,
+                    icon: const Icon(Icons.power_settings_new_rounded),
+                    label: const Text('启动承重机关'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSlidePuzzle(BoxConstraints constraints) {
+    final boardSize = math.min(232.0, constraints.maxHeight);
+    return Row(
+      children: [
+        SizedBox.square(
+          dimension: boardSize,
+          child: GridView.builder(
+            key: const ValueKey('circuit-slide-board'),
+            padding: EdgeInsets.zero,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 4,
+              crossAxisSpacing: 4,
+            ),
+            itemCount: 9,
+            itemBuilder: (context, index) {
+              final tile = _tiles[index];
+              if (tile == 8) {
+                return DecoratedBox(
+                  key: const ValueKey('circuit-empty'),
+                  decoration: BoxDecoration(
+                    color: const Color(0x55080B0C),
+                    border: Border.all(color: const Color(0xFF35433F)),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                );
+              }
+              return Material(
+                key: ValueKey('circuit-tile-$tile'),
+                color: const Color(0xFF171E1D),
+                shape: RoundedRectangleBorder(
+                  side: const BorderSide(color: Color(0xFF52605B)),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: InkWell(
+                  onTap: () => _moveTile(index),
+                  child: CustomPaint(painter: _CircuitTilePainter(tile)),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(width: 24),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _Eyebrow(text: 'PATTERN LOCK'),
+              const SizedBox(height: 8),
+              const Text(
+                '机关盘有九个位置，只有八块石板。点击与空格相邻的石板移动它；当边缘线路和中心环纹完整闭合，最后一道轨道才会通电。',
+                style: TextStyle(
+                  color: Color(0xFFE5E8E3),
+                  fontSize: 12,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Text(
+                    '移动 $_slideMoves 次',
+                    style: const TextStyle(
+                      color: Color(0xFFF0D08F),
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  IconButton.outlined(
+                    tooltip: '重置石板',
+                    onPressed: () => setState(() {
+                      _tiles = List<int>.of(_initialTiles);
+                      _slideMoves = 0;
+                      _feedback = null;
+                    }),
+                    icon: const Icon(Icons.restart_alt_rounded),
+                  ),
+                ],
+              ),
+              if (_feedback != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _feedback!,
+                  style: const TextStyle(
+                    color: Color(0xFFF0D08F),
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BalancePan extends StatelessWidget {
+  const _BalancePan({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 74,
+      height: 38,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Color(0xFF8FC7B8), width: 2)),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(color: Color(0xFFE5E8E3), fontSize: 11),
+      ),
+    );
+  }
+}
+
+class _CircuitTilePainter extends CustomPainter {
+  const _CircuitTilePainter(this.tile);
+
+  final int tile;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final row = tile ~/ 3;
+    final column = tile % 3;
+    final center = Offset(size.width / 2, size.height / 2);
+    final line = Paint()
+      ..color = const Color(0xFFD8A24A)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.6, size.shortestSide * 0.035);
+    final glow = Paint()
+      ..color = const Color(0x558FC7B8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = line.strokeWidth * 3;
+
+    void segment(Offset end) {
+      canvas.drawLine(center, end, glow);
+      canvas.drawLine(center, end, line);
+    }
+
+    if (row > 0) segment(Offset(center.dx, 0));
+    if (row < 2) segment(Offset(center.dx, size.height));
+    if (column > 0) segment(Offset(0, center.dy));
+    if (column < 2) segment(Offset(size.width, center.dy));
+
+    final radius = size.shortestSide * (tile == 4 ? 0.19 : 0.13);
+    canvas.drawCircle(center, radius, glow);
+    canvas.drawCircle(center, radius, line);
+    if (tile == 4) {
+      canvas.drawCircle(center, radius * 0.48, line);
+    } else if (tile.isEven) {
+      canvas.drawCircle(center, radius * 0.22, Paint()..color = line.color);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CircuitTilePainter oldDelegate) =>
+      oldDelegate.tile != tile;
+}
+
 class _InvestigationLayer extends StatefulWidget {
   const _InvestigationLayer({required this.controller});
 
@@ -982,6 +2136,7 @@ class _InvestigationSpec {
 
 class _InvestigationLayerState extends State<_InvestigationLayer> {
   String? _activeItemId;
+  String? _combineItemId;
   _InspectionAction? _lastAction;
   String? _feedback;
   bool _backpackOpen = false;
@@ -1162,6 +2317,109 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
       name: '折叠放大镜',
       asset: 'assets/images/items/gym/folding_magnifier.png',
       description: '小型检验放大镜，能分辨钢索断口上的微小压痕。',
+    ),
+    'sealed_crate': _InvestigationItem(
+      id: 'sealed_crate',
+      name: '重新封好的水箱',
+      asset: 'assets/images/items/storage/sealed_crate.png',
+      description: '纸箱封条平整贴合，表面没有普通撕开的破口。仅凭外观无法确认它是否被动过。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['crate_seam'],
+          name: '胶层异常的水箱',
+          description: '封条边缘纤维完整，胶层中央却有连续的平滑带，像整片受热后脱离。需要用不会破坏胶层的方式确认。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['crate_seam', 'crate_uv'],
+          name: '二次热压封条',
+          description: '紫外照射显出两层不同方向的胶纹与连续热痕。箱体确实被打开过，随后又把原封条压回原位。',
+        ),
+      ],
+    ),
+    'locked_audit_pda': _InvestigationItem(
+      id: 'locked_audit_pda',
+      name: '锁定的审计PDA',
+      asset: 'assets/images/items/storage/locked_audit_pda.png',
+      description: '墙面审计终端只显示“所有者01已确认”，详细字段被锁定在离线缓存中。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['pda_clock'],
+          name: '时钟异常的审计PDA',
+          description: '本地时钟比公共频道慢0.2秒，远不足以解释四十二秒差值；机身侧面还有一个封闭维护接口。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['pda_clock', 'pda_log'],
+          name: '恢复会话记录的审计PDA',
+          description: '离线缓存显示：操作来自早晨已经撤销的托管会话，控制器在撤销后仍保留了四十二秒的可用窗口。',
+        ),
+      ],
+    ),
+    'supply_shelf': _InvestigationItem(
+      id: 'supply_shelf',
+      name: '出现空位的货架',
+      asset: 'assets/images/items/storage/supply_shelf.png',
+      description: '水、止痛剂和滤芯各少了一部分，货架没有倾倒，地面也没有明显拖痕。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['shelf_dust'],
+          name: '带撞针印的货架',
+          description: '底部承重弹簧旁夹着一张压纸，机械撞针留下时间痕迹，但刻度需要独立校准。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['shelf_dust', 'shelf_weight'],
+          name: '先于签名减重的货架',
+          description: '校准后确认货架在09:16:03减轻26.4kg，比01电子签名早四十五秒。物资先离开，授权记录后出现。',
+        ),
+      ],
+    ),
+    'audit_case': _InvestigationItem(
+      id: 'audit_case',
+      name: '墙角审计工具箱',
+      asset: 'assets/images/items/storage/audit_case.png',
+      description: '铅封已经由叶岚记录，内部格位放着几件不会直接联网的审计工具。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['case_uv', 'case_scale', 'case_reader'],
+          name: '取空的审计工具箱',
+          description: '紫外检验灯、弹簧测力计和离线读取器都已收入背包。空格位没有夹层或身份痕迹。',
+        ),
+      ],
+    ),
+    'uv_lamp': _InvestigationItem(
+      id: 'uv_lamp',
+      name: '紫外检验灯',
+      asset: 'assets/images/items/storage/uv_lamp.png',
+      description: '手持冷光检验灯，可显出胶层受热、叠压和重新粘合后的纹理差异。',
+    ),
+    'spring_scale': _InvestigationItem(
+      id: 'spring_scale',
+      name: '弹簧测力计',
+      asset: 'assets/images/items/storage/spring_scale.png',
+      description: '带机械刻度的校准测力计，不依赖设施供电，可复核货架承重弹簧的偏移量。',
+    ),
+    'offline_reader': _InvestigationItem(
+      id: 'offline_reader',
+      name: '离线读取器',
+      asset: 'assets/images/items/storage/offline_reader.png',
+      description: '只读取本地存储、不向主机发送握手的审计设备，适合检查被界面隐藏的缓存字段。',
+    ),
+    'handover_receipt': _InvestigationItem(
+      id: 'handover_receipt',
+      name: '托管会话交接凭条',
+      asset: 'assets/images/items/storage/handover_receipt.png',
+      description: '从审计缓存恢复的实体凭条：撤销标记、旧会话编号和控制器确认时间被印在同一张记录上。',
+    ),
+    'maintenance_card': _InvestigationItem(
+      id: 'maintenance_card',
+      name: '旧维护门禁卡',
+      asset: 'assets/images/items/storage/maintenance_card.png',
+      description: '从集合厅值班柜夹层取出的旧卡，边缘磨损严重，芯片仍可被离线读卡器识别。',
+    ),
+    'shift_note': _InvestigationItem(
+      id: 'shift_note',
+      name: '转运设备倒班记录',
+      asset: 'assets/images/items/storage/shift_note.png',
+      description: '复写纸只保留09时与16时两次交接，页脚注明旧控制器按发生顺序连写时间。',
     ),
   };
 
@@ -1375,10 +2633,120 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
     ],
   );
 
-  _InvestigationSpec get _spec =>
-      widget.controller.currentId == 'ch2_gym_investigation'
-      ? _gym
-      : _controlRoom;
+  static const _storage = _InvestigationSpec(
+    title: '物资调查 / B-03',
+    targets: [
+      _InvestigationTarget(
+        id: 'sealed_crate',
+        initialLabel: '封好的水箱',
+        clueTitle: '二次热压封条',
+        asset: 'assets/images/items/storage/sealed_crate.png',
+        prompt: '封条看起来完整，但纸纤维与胶层留下的痕迹并不一致。先确认异常发生在哪一层。',
+        actions: [
+          _InspectionAction(
+            id: 'crate_seam',
+            label: '沿封条检查纤维',
+            icon: Icons.manage_search_rounded,
+            result: '封条边缘没有普通撕裂产生的毛边，胶层中间却出现连续平滑带。有人可能整片取下过它。',
+          ),
+          _InspectionAction(
+            id: 'crate_uv',
+            label: '检查胶层热痕',
+            icon: Icons.flashlight_on_outlined,
+            requiresItems: ['uv_lamp'],
+            requiresActions: ['crate_seam'],
+            result: '紫外光下出现两层相反方向的胶纹和连续热痕。封条被低温取下，箱体打开后又被二次压回。',
+            verifiesClue: 'seal_reclosed',
+          ),
+        ],
+      ),
+      _InvestigationTarget(
+        id: 'locked_audit_pda',
+        initialLabel: '墙面审计PDA',
+        clueTitle: '撤销后的旧会话',
+        asset: 'assets/images/items/storage/locked_audit_pda.png',
+        prompt: '界面只显示01已确认。先判断时钟差是否足以解释操作时间，再考虑读取被折叠的字段。',
+        actions: [
+          _InspectionAction(
+            id: 'pda_clock',
+            label: '与公共频道校时',
+            icon: Icons.more_time_rounded,
+            result: '审计PDA只慢0.2秒，无法把09:16:03改写成09:16:48。侧面维护口仍保存本地缓存。',
+          ),
+          _InspectionAction(
+            id: 'pda_log',
+            label: '读取离线缓存',
+            icon: Icons.memory_rounded,
+            requiresItems: ['offline_reader'],
+            requiresActions: ['pda_clock'],
+            result: '缓存来源是早晨已经撤销的托管会话。控制器在撤销后四十二秒内仍接受它，并把持有者身份沿用为01。',
+            grantsItem: 'handover_receipt',
+            verifiesClue: 'delegation_gap',
+          ),
+        ],
+      ),
+      _InvestigationTarget(
+        id: 'supply_shelf',
+        initialLabel: '空位货架',
+        clueTitle: '先减重后签名',
+        asset: 'assets/images/items/storage/supply_shelf.png',
+        prompt: '货架底部仍有机械承重结构。电子清单会被改写，机械位移却可能保存另一条时间线。',
+        actions: [
+          _InspectionAction(
+            id: 'shelf_dust',
+            label: '清理承重弹簧',
+            icon: Icons.cleaning_services_outlined,
+            result: '积灰下露出机械撞针和压纸，撞针在承重突变时会留下时间痕迹，但刻度尚未校准。',
+          ),
+          _InspectionAction(
+            id: 'shelf_weight',
+            label: '复核承重偏移',
+            icon: Icons.scale_outlined,
+            requiresItems: ['spring_scale'],
+            requiresActions: ['shelf_dust'],
+            result: '货架在09:16:03减轻26.4kg，01签名到09:16:48才生成。物资移动比电子确认早四十五秒。',
+            verifiesClue: 'weight_mismatch',
+          ),
+        ],
+      ),
+      _InvestigationTarget(
+        id: 'audit_case',
+        initialLabel: '墙角工具箱',
+        clueTitle: '离线审计工具',
+        asset: 'assets/images/items/storage/audit_case.png',
+        prompt: '箱内工具本身不能证明失窃者是谁，但能让不同物件留下的时间与材料痕迹互相校验。',
+        actions: [
+          _InspectionAction(
+            id: 'case_uv',
+            label: '取出紫外检验灯',
+            icon: Icons.flashlight_on_outlined,
+            result: '紫外检验灯电量充足，冷光不会进一步加热或破坏封条胶层。',
+            grantsItem: 'uv_lamp',
+          ),
+          _InspectionAction(
+            id: 'case_scale',
+            label: '取出弹簧测力计',
+            icon: Icons.scale_outlined,
+            result: '机械测力计的零点封签完整，可以独立复核货架承重弹簧。',
+            grantsItem: 'spring_scale',
+          ),
+          _InspectionAction(
+            id: 'case_reader',
+            label: '取出离线读取器',
+            icon: Icons.usb_rounded,
+            result: '读取器不会发送网络握手，只能复制本地字段，适合检查锁定的审计PDA。',
+            grantsItem: 'offline_reader',
+          ),
+        ],
+      ),
+    ],
+  );
+
+  _InvestigationSpec get _spec => switch (widget.controller.currentId) {
+    'ch2_gym_investigation' => _gym,
+    'ch3_storage_investigation' => _storage,
+    _ => _controlRoom,
+  };
 
   Set<String> get _inventory => widget.controller.inventoryItems;
   Set<String> get _completedActions => widget.controller.investigationActions;
@@ -1391,7 +2759,7 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
       widget.controller.investigationClues.intersection(_currentClueIds);
 
   _InvestigationTarget? _targetFor(String id) {
-    for (final spec in [_controlRoom, _gym]) {
+    for (final spec in [_controlRoom, _gym, _storage]) {
       for (final target in spec.targets) {
         if (target.id == id) return target;
       }
@@ -1422,7 +2790,10 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
   void _toggleBackpack() {
     setState(() {
       _backpackOpen = !_backpackOpen;
-      if (!_backpackOpen) _activeItemId = null;
+      if (!_backpackOpen) {
+        _activeItemId = null;
+        _combineItemId = null;
+      }
       _lastAction = null;
     });
   }
@@ -1435,6 +2806,12 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
   }
 
   void _openItem(String id) {
+    final sourceId = _combineItemId;
+    if (sourceId != null && sourceId != id) {
+      final combined = _combine(sourceId, id);
+      if (combined) setState(() => _combineItemId = null);
+      return;
+    }
     setState(() {
       _activeItemId = id;
       _lastAction = null;
@@ -1474,15 +2851,18 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
     if (_activeItemId != null && !_inventory.contains(_activeItemId)) {
       setState(() => _activeItemId = null);
     }
+    if (_combineItemId != null && !_inventory.contains(_combineItemId)) {
+      setState(() => _combineItemId = null);
+    }
   }
 
-  void _combine(String draggedId, String targetId) {
-    if (draggedId == targetId) return;
+  bool _combine(String draggedId, String targetId) {
+    if (draggedId == targetId) return false;
     final target = _targetFor(targetId);
     final dragged = _items[draggedId];
     if (target == null || dragged == null) {
       setState(() => _feedback = '这两件物品无法组合。');
-      return;
+      return false;
     }
     final candidates = target.actions
         .where((action) => action.requiresItems.contains(draggedId))
@@ -1492,7 +2872,7 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
         () => _feedback =
             '「${_resolvedItem(draggedId).name}」用在「${_resolvedItem(targetId).name}」上没有反应。',
       );
-      return;
+      return false;
     }
     final action = candidates.firstWhere(
       (candidate) => !_completedActions.contains(candidate.id),
@@ -1503,6 +2883,7 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
       _lastAction = null;
     });
     _runAction(action);
+    return _completedActions.contains(action.id);
   }
 
   @override
@@ -1559,6 +2940,13 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
                   completedActions: _completedActions,
                   lastAction: _lastAction,
                   onAction: _runAction,
+                  selectedForCombine: _combineItemId == _activeItemId,
+                  onSelectForCombine: () => setState(() {
+                    _combineItemId = _activeItemId;
+                    _activeItemId = null;
+                    _feedback =
+                        '已选中「${_resolvedItem(_combineItemId!).name}」。滚动背包并点击另一件物品尝试组合。';
+                  }),
                   onClose: () => setState(() => _activeItemId = null),
                 ),
               ),
@@ -1585,15 +2973,15 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(
+                            Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.backpack_outlined,
                                   color: Color(0xFF8FC7B8),
                                   size: 15,
                                 ),
-                                SizedBox(width: 5),
-                                Text(
+                                const SizedBox(width: 5),
+                                const Text(
                                   '背包',
                                   style: TextStyle(
                                     color: Color(0xFFF0EEE7),
@@ -1601,14 +2989,41 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                                SizedBox(width: 8),
-                                Text(
-                                  '点击查看 · 拖动组合',
-                                  style: TextStyle(
-                                    color: Color(0xFF8C9994),
-                                    fontSize: 9,
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    _combineItemId == null
+                                        ? '点击查看 · 拖动或选中后跨页组合'
+                                        : '组合中：${_resolvedItem(_combineItemId!).name}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Color(0xFF8C9994),
+                                      fontSize: 9,
+                                    ),
                                   ),
                                 ),
+                                if (_combineItemId != null)
+                                  IconButton(
+                                    key: const ValueKey(
+                                      'inventory-cancel-combine',
+                                    ),
+                                    tooltip: '取消组合',
+                                    visualDensity: VisualDensity.compact,
+                                    constraints: const BoxConstraints.tightFor(
+                                      width: 26,
+                                      height: 22,
+                                    ),
+                                    padding: EdgeInsets.zero,
+                                    onPressed: () => setState(() {
+                                      _combineItemId = null;
+                                      _feedback = null;
+                                    }),
+                                    icon: const Icon(
+                                      Icons.link_off_rounded,
+                                      size: 15,
+                                    ),
+                                  ),
                               ],
                             ),
                             const SizedBox(height: 4),
@@ -1672,6 +3087,8 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
                                           return _InventoryItemCard(
                                             item: item,
                                             verified: verified,
+                                            selectedForCombine:
+                                                _combineItemId == item.id,
                                             onTap: () => _openItem(item.id),
                                             onCombine: (draggedId) =>
                                                 _combine(draggedId, item.id),
@@ -1780,6 +3197,8 @@ class _InventoryDetailPanel extends StatelessWidget {
     required this.completedActions,
     required this.lastAction,
     required this.onAction,
+    required this.selectedForCombine,
+    required this.onSelectForCombine,
     required this.onClose,
   });
 
@@ -1788,6 +3207,8 @@ class _InventoryDetailPanel extends StatelessWidget {
   final Set<String> completedActions;
   final _InspectionAction? lastAction;
   final ValueChanged<_InspectionAction> onAction;
+  final bool selectedForCombine;
+  final VoidCallback onSelectForCombine;
   final VoidCallback onClose;
 
   @override
@@ -1858,6 +3279,18 @@ class _InventoryDetailPanel extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                key: ValueKey('inventory-select-combine-${item.id}'),
+                onPressed: selectedForCombine ? null : onSelectForCombine,
+                icon: Icon(
+                  selectedForCombine
+                      ? Icons.check_rounded
+                      : Icons.add_link_rounded,
+                  size: 17,
+                ),
+                label: Text(selectedForCombine ? '已选作组合物' : '选作组合物'),
               ),
               if (target != null) ...[
                 const SizedBox(height: 9),
@@ -2027,12 +3460,14 @@ class _InventoryItemCard extends StatelessWidget {
   const _InventoryItemCard({
     required this.item,
     required this.verified,
+    required this.selectedForCombine,
     required this.onTap,
     required this.onCombine,
   });
 
   final _InvestigationItem item;
   final bool verified;
+  final bool selectedForCombine;
   final VoidCallback onTap;
   final ValueChanged<String> onCombine;
 
@@ -2045,11 +3480,11 @@ class _InventoryItemCard extends StatelessWidget {
         width: 68,
         padding: const EdgeInsets.fromLTRB(4, 3, 4, 2),
         decoration: BoxDecoration(
-          color: highlighted
+          color: highlighted || selectedForCombine
               ? const Color(0xFF263A35)
               : const Color(0xFF171E1D),
           border: Border.all(
-            color: highlighted
+            color: highlighted || selectedForCombine
                 ? const Color(0xFFF0D08F)
                 : verified
                 ? const Color(0xFF69A89D)
@@ -2291,84 +3726,153 @@ class _DeductionLayerState extends State<_DeductionLayer> {
   bool _chainVerified = false;
   String? _chainFeedback;
 
-  static const _roles = [
-    (id: 'fact', title: '现场事实', prompt: '找出肉眼与系统记录无法同时成立的事实'),
-    (id: 'threshold', title: '规则阈值', prompt: '说明项圈为何会把异常当作合法处决条件'),
-    (id: 'mechanism', title: '实施媒介', prompt: '指出什么装置能把伪造数据送进裁定链'),
-  ];
+  bool get _isCase02 => widget.controller.currentId == 'ch3_case02_deduction';
 
-  static const _evidence = [
-    (
-      id: 'distance',
-      icon: Icons.social_distance_rounded,
-      title: '1.4m / 23m',
-      body: '现实距离与回传距离冲突',
-    ),
-    (
-      id: 'timer',
-      icon: Icons.timer_outlined,
-      title: '180 秒',
-      body: '项圈按规则阈值精确执行',
-    ),
-    (
-      id: 'repeater',
-      icon: Icons.settings_input_antenna_rounded,
-      title: '中继器',
-      body: '断电设备在案发时工作',
-    ),
-    (
-      id: 'log',
-      icon: Icons.data_object_rounded,
-      title: '181 秒日志',
-      body: '异常持续超过阈值一秒，但日志本身不说明来源',
-    ),
-    (
-      id: 'lock',
-      icon: Icons.lock_outline_rounded,
-      title: '完整锁舌',
-      body: '排除强拆，却不能单独证明项圈为何执行',
-    ),
-    (
-      id: 'camera',
-      icon: Icons.videocam_off_outlined,
-      title: '监控空白',
-      body: '只能说明画面缺失，不能替代现场物证',
-    ),
-  ];
+  List<({String id, String title, String prompt})> get _roles => _isCase02
+      ? const [
+          (id: 'fact', title: '现场动作', prompt: '确认物资是否真实移动，以及动作发生的先后'),
+          (id: 'threshold', title: '授权窗口', prompt: '找出撤销为何没有立刻终止门禁会话'),
+          (id: 'mechanism', title: '责任归属', prompt: '解释最终署名为何晚于现场动作出现'),
+        ]
+      : const [
+          (id: 'fact', title: '现场事实', prompt: '找出肉眼与系统记录无法同时成立的事实'),
+          (id: 'threshold', title: '规则阈值', prompt: '说明项圈为何会把异常当作合法处决条件'),
+          (id: 'mechanism', title: '实施媒介', prompt: '指出什么装置能把伪造数据送进裁定链'),
+        ];
 
-  static const _hypotheses = [
-    ('suicide', '主动离开终端', '10 号为了满足自己的条件而自杀。'),
-    ('swap', '终端被交换', '凶手把另一台终端放在死者身边制造假距离。'),
-    ('repeater', '中继器伪造定位', '凶手转发了距离握手，让项圈在规则内执行死刑。'),
-  ];
+  List<({String id, IconData icon, String title, String body})> get _evidence =>
+      _isCase02
+      ? const [
+          (
+            id: 'seal_reclosed',
+            icon: Icons.inventory_2_outlined,
+            title: '二次热压封条',
+            body: '证明物资箱确实被人打开并重新封好',
+          ),
+          (
+            id: 'delegation_gap',
+            icon: Icons.timer_outlined,
+            title: '撤销后 42 秒',
+            body: '旧托管会话仍被门禁控制器接受',
+          ),
+          (
+            id: 'weight_mismatch',
+            icon: Icons.scale_outlined,
+            title: '先减重后签名',
+            body: '物资移动比01电子确认早45秒',
+          ),
+          (
+            id: 'owner_signature',
+            icon: Icons.draw_outlined,
+            title: '01真实签名',
+            body: '库存清单保留完整的01加密签名，生成于09:16:48',
+          ),
+          (
+            id: 'trustee_skill',
+            icon: Icons.terminal_rounded,
+            title: '受托人懂接口',
+            body: '早晨的受托人读过接口说明，并完成过一次公开操作',
+          ),
+          (
+            id: 'missing_supplies',
+            icon: Icons.water_drop_outlined,
+            title: '物资出现缺口',
+            body: '十二份水、六支止痛剂与两组滤芯不在原货位',
+          ),
+        ]
+      : const [
+          (
+            id: 'distance',
+            icon: Icons.social_distance_rounded,
+            title: '1.4m / 23m',
+            body: '现实距离与回传距离冲突',
+          ),
+          (
+            id: 'timer',
+            icon: Icons.timer_outlined,
+            title: '180 秒',
+            body: '项圈按规则阈值精确执行',
+          ),
+          (
+            id: 'repeater',
+            icon: Icons.settings_input_antenna_rounded,
+            title: '中继器',
+            body: '断电设备在案发时工作',
+          ),
+          (
+            id: 'log',
+            icon: Icons.data_object_rounded,
+            title: '181 秒日志',
+            body: '定位频道连续181秒返回超出两米的距离数据',
+          ),
+          (
+            id: 'lock',
+            icon: Icons.lock_outline_rounded,
+            title: '完整锁舌',
+            body: '项圈锁舌没有撬压变形，爆裂前仍处于闭合状态',
+          ),
+          (
+            id: 'camera',
+            icon: Icons.videocam_off_outlined,
+            title: '监控空白',
+            body: 'A-02监控在案发前三分钟失去画面，音轨仍连续',
+          ),
+        ];
+
+  List<(String, String, String)> get _hypotheses => _isCase02
+      ? const [
+          ('owner_action', '01本人自愿转移', '最终电子签名真实，因此物资一定由01本人授权移走。'),
+          ('trustee_action', '受托人亲自窃取', '拥有过01权限的人利用技术能力完成了全部操作。'),
+          ('lease_replay', '重放已撤销会话', '未知设备重放旧授权，让控制器把操作继续归到01名下。'),
+        ]
+      : const [
+          ('suicide', '主动离开终端', '10 号为了满足自己的条件而自杀。'),
+          ('swap', '终端被交换', '凶手把另一台终端放在死者身边制造假距离。'),
+          ('repeater', '中继器伪造定位', '凶手转发了距离握手，让项圈在规则内执行死刑。'),
+        ];
 
   void _assignEvidence(String evidenceId) {
     setState(() {
+      String? assignedRole;
       for (final role in _chain.keys) {
-        if (_chain[role] == evidenceId) _chain[role] = null;
+        if (_chain[role] == evidenceId) assignedRole = role;
+      }
+      _chainVerified = false;
+      _selected = null;
+      _chainFeedback = null;
+      if (assignedRole != null) {
+        _chain[assignedRole] = null;
+        _activeRole = assignedRole;
+        return;
       }
       _chain[_activeRole] = evidenceId;
-      _chainVerified = false;
-      _chainFeedback = null;
       final emptyRoles = _chain.entries.where((entry) => entry.value == null);
       if (emptyRoles.isNotEmpty) _activeRole = emptyRoles.first.key;
     });
   }
 
   void _verifyChain() {
-    const correct = {
-      'fact': 'distance',
-      'threshold': 'timer',
-      'mechanism': 'repeater',
-    };
+    final correct = _isCase02
+        ? const {
+            'fact': 'seal_reclosed',
+            'threshold': 'delegation_gap',
+            'mechanism': 'weight_mismatch',
+          }
+        : const {
+            'fact': 'distance',
+            'threshold': 'timer',
+            'mechanism': 'repeater',
+          };
     final verified = correct.entries.every(
       (entry) => _chain[entry.key] == entry.value,
     );
     setState(() {
       _chainVerified = verified;
       _chainFeedback = verified
-          ? '证据链闭合：现实距离被伪造，异常跨过规则阈值，并由中继器送入裁定频道。'
-          : '这组证据还不能从现场事实一路推到处决机制。检查是否把辅助记录当成了原因，或让一项证据承担了它无法证明的结论。';
+          ? _isCase02
+                ? '证据链闭合：物资真实移动，旧会话在撤销后仍可用，系统随后把签名归到01名下。'
+                : '证据链闭合：现实距离被伪造，异常跨过规则阈值，并由中继器送入裁定频道。'
+          : '三项记录彼此真实，但目前的排列没有形成连续的时间与因果关系。换一个位置，再检查每一步究竟发生在前还是后。';
       if (!verified) _selected = null;
     });
   }
@@ -2379,7 +3883,10 @@ class _DeductionLayerState extends State<_DeductionLayer> {
       color: const Color(0xED080B0C),
       child: Stack(
         children: [
-          _TopBar(controller: widget.controller, title: '规则推演 / CASE 01'),
+          _TopBar(
+            controller: widget.controller,
+            title: _isCase02 ? '权限推演 / CASE 02' : '规则推演 / CASE 01',
+          ),
           SafeArea(
             minimum: const EdgeInsets.fromLTRB(18, 76, 82, 18),
             child: Center(
@@ -2430,6 +3937,7 @@ class _DeductionLayerState extends State<_DeductionLayer> {
                                 }
                               }
                               return _EvidenceCard(
+                                key: ValueKey('deduction-evidence-${item.id}'),
                                 icon: item.icon,
                                 title: item.title,
                                 body: item.body,
@@ -2446,7 +3954,7 @@ class _DeductionLayerState extends State<_DeductionLayer> {
                           Expanded(
                             child: Text(
                               _chainFeedback ??
-                                  '选择上方论证位置，再从证据板放入一项证据。辅助证据不一定适合作为因果链主干。',
+                                  '选择上方论证位置，再从证据板放入一项记录。每项都是真实信息，但在因果链中承担的作用可能不同。',
                               style: TextStyle(
                                 color: _chainFeedback == null
                                     ? const Color(0xFF9EA9A4)
@@ -2471,17 +3979,25 @@ class _DeductionLayerState extends State<_DeductionLayer> {
                       ),
                       if (_chainVerified) ...[
                         const SizedBox(height: 22),
-                        const _Eyebrow(text: 'CAUSE OF EXECUTION'),
+                        _Eyebrow(
+                          text: _isCase02
+                              ? 'OPERATION OWNERSHIP'
+                              : 'CAUSE OF EXECUTION',
+                        ),
                         const SizedBox(height: 9),
                         ..._hypotheses.map(
                           (item) => Padding(
                             padding: const EdgeInsets.only(bottom: 8),
                             child: _HypothesisTile(
+                              key: ValueKey('deduction-hypothesis-${item.$1}'),
                               title: item.$2,
                               body: item.$3,
                               selected: _selected == item.$1,
-                              onPressed: () =>
-                                  setState(() => _selected = item.$1),
+                              onPressed: () => setState(
+                                () => _selected = _selected == item.$1
+                                    ? null
+                                    : item.$1,
+                              ),
                             ),
                           ),
                         ),
@@ -2495,7 +4011,7 @@ class _DeductionLayerState extends State<_DeductionLayer> {
                                     _selected!,
                                   ),
                             icon: const Icon(Icons.gavel_outlined),
-                            label: const Text('提交死因推演'),
+                            label: Text(_isCase02 ? '提交操作归属' : '提交死因推演'),
                           ),
                         ),
                       ],
@@ -2594,6 +4110,7 @@ class _ChainSlot extends StatelessWidget {
 
 class _EvidenceCard extends StatelessWidget {
   const _EvidenceCard({
+    super.key,
     required this.icon,
     required this.title,
     required this.body,
@@ -2670,6 +4187,7 @@ class _EvidenceCard extends StatelessWidget {
 
 class _HypothesisTile extends StatelessWidget {
   const _HypothesisTile({
+    super.key,
     required this.title,
     required this.body,
     required this.selected,
@@ -2807,7 +4325,7 @@ class _EndingLayer extends StatelessWidget {
                           ),
                           _CommandButton(
                             icon: Icons.replay_rounded,
-                            label: '从序章重新开始',
+                            label: '从最初的苏醒重新开始',
                             onPressed: controller.startNew,
                             width: short ? 200 : 260,
                             height: short ? 40 : 46,

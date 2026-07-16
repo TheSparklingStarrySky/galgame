@@ -44,6 +44,9 @@ class $AssetsScenesGen {
   final AssetGenImage storageRoom = const AssetGenImage(
     'assets/images/scenes/storage_room.png',
   );
+  final AssetGenImage transferRoom = const AssetGenImage(
+    'assets/images/scenes/transfer_room.png',
+  );
 }
 
 class $AssetsCharactersGen {
@@ -70,6 +73,9 @@ class $AssetsLiXingyaoGen {
   final AssetGenImage neutral = const AssetGenImage(
     'assets/images/characters/li_xingyao/neutral.png',
   );
+  final AssetGenImage relaxed = const AssetGenImage(
+    'assets/images/characters/li_xingyao/relaxed.png',
+  );
 }
 
 class $AssetsSuMiGen {
@@ -89,6 +95,9 @@ class $AssetsSuMiGen {
 class $AssetsHanQiGen {
   const $AssetsHanQiGen();
 
+  final AssetGenImage conflicted = const AssetGenImage(
+    'assets/images/characters/han_qi/conflicted.png',
+  );
   final AssetGenImage neutral = const AssetGenImage(
     'assets/images/characters/han_qi/neutral.png',
   );
@@ -122,6 +131,9 @@ class $AssetsTangYiGen {
 class $AssetsLinChengGen {
   const $AssetsLinChengGen();
 
+  final AssetGenImage anxious = const AssetGenImage(
+    'assets/images/characters/lin_cheng/anxious.png',
+  );
   final AssetGenImage determined = const AssetGenImage(
     'assets/images/characters/lin_cheng/determined.png',
   );
@@ -133,6 +145,9 @@ class $AssetsLinChengGen {
 class $AssetsChenMoGen {
   const $AssetsChenMoGen();
 
+  final AssetGenImage guarded = const AssetGenImage(
+    'assets/images/characters/chen_mo/guarded.png',
+  );
   final AssetGenImage discovery = const AssetGenImage(
     'assets/images/characters/chen_mo/discovery.png',
   );
@@ -182,6 +197,7 @@ class $AssetsItemsGen {
 
   final $AssetsControlRoomGen controlRoom = const $AssetsControlRoomGen();
   final $AssetsGymGen gym = const $AssetsGymGen();
+  final $AssetsStorageGen storage = const $AssetsStorageGen();
 }
 
 class $AssetsControlRoomGen {
@@ -233,6 +249,41 @@ class $AssetsGymGen {
   );
   final AssetGenImage terminalCradle = const AssetGenImage(
     'assets/images/items/gym/terminal_cradle.png',
+  );
+}
+
+class $AssetsStorageGen {
+  const $AssetsStorageGen();
+
+  final AssetGenImage auditCase = const AssetGenImage(
+    'assets/images/items/storage/audit_case.png',
+  );
+  final AssetGenImage handoverReceipt = const AssetGenImage(
+    'assets/images/items/storage/handover_receipt.png',
+  );
+  final AssetGenImage lockedAuditPda = const AssetGenImage(
+    'assets/images/items/storage/locked_audit_pda.png',
+  );
+  final AssetGenImage maintenanceCard = const AssetGenImage(
+    'assets/images/items/storage/maintenance_card.png',
+  );
+  final AssetGenImage offlineReader = const AssetGenImage(
+    'assets/images/items/storage/offline_reader.png',
+  );
+  final AssetGenImage sealedCrate = const AssetGenImage(
+    'assets/images/items/storage/sealed_crate.png',
+  );
+  final AssetGenImage springScale = const AssetGenImage(
+    'assets/images/items/storage/spring_scale.png',
+  );
+  final AssetGenImage supplyShelf = const AssetGenImage(
+    'assets/images/items/storage/supply_shelf.png',
+  );
+  final AssetGenImage shiftNote = const AssetGenImage(
+    'assets/images/items/storage/shift_note.png',
+  );
+  final AssetGenImage uvLamp = const AssetGenImage(
+    'assets/images/items/storage/uv_lamp.png',
   );
 }
 

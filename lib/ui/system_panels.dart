@@ -341,7 +341,7 @@ class _PdaScreen extends StatelessWidget {
                             fit: StackFit.expand,
                             children: [
                               DefaultTabController(
-                                length: 5,
+                                length: 6,
                                 child: Column(
                                   children: [
                                     _SystemHeader(
@@ -382,6 +382,10 @@ class _PdaScreen extends StatelessWidget {
                                           text: '证据',
                                         ),
                                         Tab(
+                                          icon: Icon(Icons.manage_search),
+                                          text: '审计',
+                                        ),
+                                        Tab(
                                           icon: Icon(Icons.apps_rounded),
                                           text: '系统',
                                         ),
@@ -400,6 +404,7 @@ class _PdaScreen extends StatelessWidget {
                                             _EvidenceTab(
                                               controller: controller,
                                             ),
+                                            _AuditTab(controller: controller),
                                             _PdaSystemTab(
                                               controller: controller,
                                               hostContext: hostContext,
@@ -595,9 +600,8 @@ class _RosterTab extends StatelessWidget {
                 person.$1 == '10' ||
             controller.seenNodes.contains('yelan_intro') && person.$1 == '11';
         final dead =
-            person.$1 == '05' &&
-                controller.seenNodes.contains('collar_detonation') ||
-            person.$1 == '10' && controller.seenNodes.contains('first_alarm');
+            person.$1 != '12' &&
+            !controller.livingParticipantIds.contains(person.$1);
         return ListTile(
           leading: CircleAvatar(
             backgroundColor: dead
@@ -802,6 +806,139 @@ class _EvidenceTab extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+class _AuditTab extends StatelessWidget {
+  const _AuditTab({required this.controller});
+
+  final StoryController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final visibleItems = controller.visibleHighRiskItems.toList(
+      growable: false,
+    );
+    return ListView(
+      padding: const EdgeInsets.all(18),
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _InfoPanel(
+                icon: controller.runMode == StoryRunMode.audit
+                    ? Icons.manage_search_rounded
+                    : Icons.shield_outlined,
+                title: controller.runMode == StoryRunMode.audit
+                    ? '审计周目'
+                    : '标准周目',
+                body: controller.flags.contains('audit_index_fragment')
+                    ? '灰色索引：已取得'
+                    : '灰色索引：无记录',
+                accent: controller.runMode == StoryRunMode.audit
+                    ? const Color(0xFFD8A24A)
+                    : const Color(0xFF69A89D),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _InfoPanel(
+                icon: Icons.groups_2_outlined,
+                title: '存活 ${controller.livingParticipantIds.length}',
+                body: '死亡记录 ${controller.deathRecords.length} 条',
+                accent: const Color(0xFF69A89D),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 18),
+        const _SectionLabel(text: 'HIGH-RISK MANIFEST'),
+        const SizedBox(height: 8),
+        if (visibleItems.isEmpty)
+          const _InfoPanel(
+            icon: Icons.lock_outline_rounded,
+            title: '目录未恢复',
+            body: '当前离线记录中没有可验证的封存条目。',
+            accent: Color(0xFF59635F),
+          )
+        else
+          ...visibleItems.map((record) {
+            final definition = highRiskItemDefinitions.firstWhere(
+              (item) => item.id == record.id,
+            );
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _InfoPanel(
+                icon: _highRiskIcon(record.state),
+                title: definition.name,
+                body:
+                    '${definition.area} / ${definition.category} / ${_highRiskStateLabel(record)}',
+                accent: _highRiskColor(record.state),
+              ),
+            );
+          }),
+        const SizedBox(height: 14),
+        const _SectionLabel(text: 'CASUALTY LOG'),
+        const SizedBox(height: 8),
+        if (controller.deathRecords.isEmpty)
+          const _InfoPanel(
+            icon: Icons.monitor_heart_outlined,
+            title: '暂无死亡记录',
+            body: '当前存活名单尚未发生变更。',
+            accent: Color(0xFF69A89D),
+          )
+        else
+          ...controller.deathRecords.reversed.map(
+            (record) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _InfoPanel(
+                icon: Icons.person_off_outlined,
+                title: '${record.participantId} 号 / ${record.cause}',
+                body: _deathRecordBody(record),
+                accent: const Color(0xFFD9695F),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  static String _highRiskStateLabel(HighRiskItemRecord record) =>
+      switch (record.state) {
+        HighRiskItemState.sealed => '未取得',
+        HighRiskItemState.indexed => '封存',
+        HighRiskItemState.held => '持有人 ${record.holderId ?? '不明'}',
+        HighRiskItemState.used => '已使用',
+        HighRiskItemState.missing => '去向不明',
+      };
+
+  static IconData _highRiskIcon(HighRiskItemState state) => switch (state) {
+    HighRiskItemState.sealed => Icons.lock_outline_rounded,
+    HighRiskItemState.indexed => Icons.inventory_2_outlined,
+    HighRiskItemState.held => Icons.pan_tool_alt_outlined,
+    HighRiskItemState.used => Icons.warning_amber_rounded,
+    HighRiskItemState.missing => Icons.help_outline_rounded,
+  };
+
+  static Color _highRiskColor(HighRiskItemState state) => switch (state) {
+    HighRiskItemState.indexed => const Color(0xFF69A89D),
+    HighRiskItemState.held => const Color(0xFFD8A24A),
+    HighRiskItemState.used => const Color(0xFFD9695F),
+    HighRiskItemState.missing => const Color(0xFFE08A58),
+    HighRiskItemState.sealed => const Color(0xFF59635F),
+  };
+
+  static String _deathRecordBody(ParticipantDeathRecord record) {
+    final day = record.timelineMinute ~/ (24 * 60) + 1;
+    final minuteOfDay = record.timelineMinute % (24 * 60);
+    final hour = minuteOfDay ~/ 60;
+    final minute = minuteOfDay % 60;
+    final time =
+        'DAY $day / ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+    final responsibility = record.responsibleParticipantIds.isEmpty
+        ? '责任未确认'
+        : '责任记录 ${record.responsibleParticipantIds.join(' / ')}';
+    return '$time / $responsibility';
   }
 }
 

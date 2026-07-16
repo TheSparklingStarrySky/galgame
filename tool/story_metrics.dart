@@ -25,6 +25,9 @@ List<String> _outgoing(StoryBeat beat) {
   if (beat.id == 'deduction_gate') {
     return const ['bad_end', 'shadow_end', 'ch2_case_conclusion'];
   }
+  if (beat.id == 'ch3_delegation_gate') {
+    return const ['ch3_delegate_hanqi'];
+  }
   if (beat.choices.isNotEmpty) {
     return beat.choices.map((choice) => choice.next).toSet().toList();
   }
@@ -56,10 +59,16 @@ void _printGroup(String name, Iterable<StoryBeat> source) {
 
 void main() {
   final chapterOne = storyBeats.values.where(
-    (beat) => !beat.id.startsWith('ch2_') && !_draftEndingIds.contains(beat.id),
+    (beat) =>
+        !beat.id.startsWith('ch2_') &&
+        !beat.id.startsWith('ch3_') &&
+        !_draftEndingIds.contains(beat.id),
   );
   final chapterTwo = storyBeats.values.where(
     (beat) => beat.id.startsWith('ch2_'),
+  );
+  final chapterThree = storyBeats.values.where(
+    (beat) => beat.id.startsWith('ch3_'),
   );
   final draftEndings = storyBeats.values.where(
     (beat) => _draftEndingIds.contains(beat.id),
@@ -67,32 +76,52 @@ void main() {
 
   _printGroup('chapter1', chapterOne);
   _printGroup('chapter2', chapterTwo);
+  _printGroup('chapter3', chapterThree);
   _printGroup('draftEndings', draftEndings);
   _printGroup('allStoryData', storyBeats.values);
 
-  final paths = <List<String>>[];
-  void walk(String id, List<String> prefix) {
-    final path = [...prefix, id];
-    final next = _outgoing(storyBeats[id]!);
-    if (next.isEmpty) {
-      paths.add(path);
-      return;
+  List<List<String>> collectPaths(String start, {String? stopAt}) {
+    final paths = <List<String>>[];
+    void walk(String id, List<String> prefix) {
+      if (paths.length >= 20000) return;
+      final path = [...prefix, id];
+      if (prefix.contains(id)) {
+        paths.add(path);
+        return;
+      }
+      if (id == stopAt) {
+        paths.add(path);
+        return;
+      }
+      final next = _outgoing(storyBeats[id]!);
+      if (next.isEmpty) {
+        paths.add(path);
+        return;
+      }
+      for (final target in next) {
+        walk(target, path);
+      }
     }
-    for (final target in next) {
-      walk(target, path);
-    }
+
+    walk(start, const []);
+    return paths;
   }
 
-  walk('game_start', const []);
-  final chapterTwoPaths =
-      paths
-          .map(_pathMetrics)
-          .where((path) => path.ids.contains('ch2_end'))
-          .toList()
-        ..sort((a, b) => a.visible.compareTo(b.visible));
+  final chapterTwoPaths = collectPaths(
+    'ch2_chapter_title',
+    stopAt: 'ch2_end',
+  ).map(_pathMetrics).toList()..sort((a, b) => a.visible.compareTo(b.visible));
   print(
     'chapter2Playthrough: paths=${chapterTwoPaths.length}, '
     'visible=${chapterTwoPaths.first.visible}-${chapterTwoPaths.last.visible}, '
     'nodes=${chapterTwoPaths.first.nodes}-${chapterTwoPaths.last.nodes}',
+  );
+  final chapterThreePaths = collectPaths(
+    'ch3_chapter_title',
+  ).map(_pathMetrics).toList()..sort((a, b) => a.visible.compareTo(b.visible));
+  print(
+    'chapter3Playthrough: paths=${chapterThreePaths.length}, '
+    'visible=${chapterThreePaths.first.visible}-${chapterThreePaths.last.visible}, '
+    'nodes=${chapterThreePaths.first.nodes}-${chapterThreePaths.last.nodes}',
   );
 }

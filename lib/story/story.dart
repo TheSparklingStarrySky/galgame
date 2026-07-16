@@ -1,6 +1,50 @@
 part 'story_chapter2.dart';
+part 'story_chapter3.dart';
 
-enum StoryPhase { title, dialogue, investigation, tuning, deduction, ending }
+enum StoryPhase {
+  title,
+  dialogue,
+  delegation,
+  investigation,
+  puzzle,
+  tuning,
+  deduction,
+  ending,
+}
+
+enum StoryRunMode { standard, audit }
+
+enum HighRiskItemState { sealed, indexed, held, used, missing }
+
+class HighRiskItemDefinition {
+  const HighRiskItemDefinition({
+    required this.id,
+    required this.name,
+    required this.category,
+    required this.area,
+  });
+
+  final String id;
+  final String name;
+  final String category;
+  final String area;
+}
+
+class StoryDeathEvent {
+  const StoryDeathEvent({
+    required this.participantId,
+    required this.cause,
+    required this.timelineMinute,
+    this.responsibleParticipantIds = const [],
+    this.sourceItemId,
+  });
+
+  final String participantId;
+  final String cause;
+  final int timelineMinute;
+  final List<String> responsibleParticipantIds;
+  final String? sourceItemId;
+}
 
 enum SceneKey {
   dormitory,
@@ -10,6 +54,7 @@ enum SceneKey {
   oldGym,
   infirmary,
   storageRoom,
+  transferRoom,
   archiveCorridor,
 }
 
@@ -78,6 +123,11 @@ class StoryBeat {
     this.timelineMinute,
     this.cgId,
     this.endingId,
+    this.auditNext,
+    this.auditRequiredFlags = const {},
+    this.flagsOnEnter = const {},
+    this.highRiskItemsOnEnter = const {},
+    this.deathEvents = const [],
   });
 
   final String id;
@@ -93,6 +143,11 @@ class StoryBeat {
   final int? timelineMinute;
   final String? cgId;
   final String? endingId;
+  final String? auditNext;
+  final Set<String> auditRequiredFlags;
+  final Set<String> flagsOnEnter;
+  final Set<String> highRiskItemsOnEnter;
+  final List<StoryDeathEvent> deathEvents;
 
   List<StoryPassage> get passages {
     if (passageSpeakers.isEmpty) {
@@ -111,6 +166,65 @@ class StoryBeat {
     ];
   }
 }
+
+const initialLivingParticipantIds = <String>{
+  '01',
+  '02',
+  '03',
+  '04',
+  '05',
+  '06',
+  '07',
+  '08',
+  '09',
+  '10',
+  '11',
+};
+
+const fullRunEndingIds = <String>{
+  'ending_four_seats',
+  'ending_custodian',
+  'ending_no_witness',
+};
+
+const highRiskItemDefinitions = <HighRiskItemDefinition>[
+  HighRiskItemDefinition(
+    id: 'sedative_case',
+    name: '封存镇静剂箱',
+    category: '药剂',
+    area: 'C-02 医疗区',
+  ),
+  HighRiskItemDefinition(
+    id: 'rescue_axe',
+    name: '消防破拆斧',
+    category: '破拆工具',
+    area: 'D-01 设备间',
+  ),
+  HighRiskItemDefinition(
+    id: 'stun_controller',
+    name: '高压控制棒',
+    category: '安保器材',
+    area: 'A-03 安保室',
+  ),
+  HighRiskItemDefinition(
+    id: 'industrial_driver',
+    name: '工业紧固器',
+    category: '动力工具',
+    area: 'F-02 维修间',
+  ),
+  HighRiskItemDefinition(
+    id: 'corrosive_cleaner',
+    name: '强腐蚀清洗剂',
+    category: '化学品',
+    area: 'B-01 清洁库',
+  ),
+  HighRiskItemDefinition(
+    id: 'door_override',
+    name: '门禁强制控制器',
+    category: '控制设备',
+    area: 'E-04 档案库',
+  ),
+];
 
 class StoryPassage {
   const StoryPassage({required this.speaker, required this.text});
@@ -690,6 +804,13 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     text:
         '苏弥第一个动了。她跪到吴峥身边，手指先探向颈动脉，又拉开他的眼睑检查瞳孔。她做了两次完全相同的检查，仿佛第二次会得到不同结果。\n“没有脉搏。”她终于开口，声音低得几乎听不见，“不是电击昏迷。他已经死了。”',
     passageSpeakers: [Speaker.narration, Speaker.suMi],
+    deathEvents: [
+      StoryDeathEvent(
+        participantId: '05',
+        cause: '破坏项圈触发裁定处决',
+        timelineMinute: 42,
+      ),
+    ],
     next: 'ch1_body_cover',
   ),
   'denial_after_death': StoryBeat(
@@ -728,8 +849,13 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     label: '终端规则',
     speaker: Speaker.administrator,
     text:
-        '“规则一：个人终端必须保持在初始持有者两米内。超出距离后开始累计计时；达到一百八十秒，项圈将执行处决。终端可以被他人查看与操作，但个人生还条款仅对初始持有者生效。”\n几乎每个人都下意识把黑色终端拿近了一些。',
-    passageSpeakers: [Speaker.administrator, Speaker.narration],
+        '“规则一：个人终端必须保持在初始持有者两米内。超出距离后开始累计计时；达到一百八十秒，项圈将执行处决。终端可以被他人查看与操作，但个人生还条款仅对初始持有者生效。”\n几乎每个人都下意识把黑色终端拿近了一些。\n“每项生还条款由公开主条件与加密校验字段组成。校验字段将在指定日期或触发条件满足后解锁；游戏结束时，以完整字段进行判定。”\n我的屏幕右下角果然有一枚灰色锁标，下面只写着“校验字段：未解锁”。这意味着我们现在看到的条件都是真的，却未必是全部。',
+    passageSpeakers: [
+      Speaker.administrator,
+      Speaker.narration,
+      Speaker.administrator,
+      Speaker.narration,
+    ],
     next: 'distance_demo',
   ),
   'distance_demo': StoryBeat(
@@ -769,8 +895,13 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     label: '01 号条款',
     speaker: Speaker.shenYan,
     text:
-        '所有终端同时震动。我的屏幕在指纹按上去后亮起，数秒前还无法启动的设备此刻只显示两行字：\n【生还条款】游戏结束前，使四名存活参与者同时提交相同的“主办者代号”。\n它不要求我找到出口，而是要求我说服别人。这意味着从第一分钟起，我就不可能只为自己活着。',
-    passageSpeakers: [Speaker.narration, Speaker.narration, Speaker.narration],
+        '所有终端同时震动。我的屏幕在指纹按上去后亮起，数秒前还无法启动的设备此刻显示三行字：\n【公开主条件】游戏结束前，使四名存活参与者同时提交相同的“主办者代号”。\n【校验字段】加密。\n公开部分不要求我找到出口，而是要求我说服别人；灰色锁标却提醒我，最终被系统承认的四个人或许还有尚未公布的资格。这意味着从第一分钟起，我就不可能只为自己活着，也不能把“凑够四人”误当成全部答案。',
+    passageSpeakers: [
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.narration,
+    ],
     next: 'clause_silence',
   ),
   'clause_silence': StoryBeat(
@@ -786,7 +917,7 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     label: '星遥的条件',
     speaker: Speaker.liXingyao,
     text:
-        '星遥先看了我一眼，才把屏幕转向众人。\n“我的条件是：01号存活，并且设施的中央信标到结束时仍然在线。”\n“你为什么帮他？”陈默问。\n“不是帮。”星遥的回答依旧冷静，“是利益一致。我不知道为什么被绑定到01，但我愿意先公开可以互相验证的部分。”',
+        '星遥先看了我一眼，才把屏幕转向众人。\n“我的公开主条件是：01号存活，并且设施的中央信标到结束时仍然在线。”\n“你为什么帮他？”陈默问。\n“不是帮。”星遥的回答依旧冷静，“是利益一致。我不知道为什么被绑定到01，也不知道校验字段还会要求什么，但我愿意先公开可以互相验证的部分。”',
     passageSpeakers: [
       Speaker.narration,
       Speaker.liXingyao,
@@ -800,7 +931,7 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     label: '苏弥的底线',
     speaker: Speaker.suMi,
     text:
-        '苏弥的拇指在屏幕边缘停了很久。\n“我的条件是游戏结束时，至少六人存活。”\n“那你不用挑阵营。”唐弈说。\n“不。”苏弥望向吴峥的尸体，“它专门把这个数字给了我，说明也会把相反的数字给别人。”\n她说话时没有看唐弈，而唐弈手中的硬币恰好在此刻停了一下。',
+        '苏弥的拇指在屏幕边缘停了很久。\n“我的公开主条件是游戏结束时，至少六人存活。校验字段没有解锁。”\n“那你不用挑阵营。”唐弈说。\n“不。”苏弥望向吴峥的尸体，“它专门把这个数字给了我，说明也会把相反的数字给别人。还故意不告诉我，12号这种身份究竟算不算人。”\n她说话时没有看唐弈，而唐弈手中的硬币恰好在此刻停了一下。',
     passageSpeakers: [
       Speaker.narration,
       Speaker.suMi,
@@ -815,7 +946,7 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     label: '信赖对象',
     speaker: Speaker.linCheng,
     text:
-        '林澄是第三个公开屏幕的人，但她用了近一分钟才把手举起来。\n“我的条件需要一名参与者自愿把07号登记为‘信赖对象’，而且我们必须一起活到第七天。”\n她立即又补充。\n“我不是要现在逼谁答应。我连你们是什么人都不知道。只是如果我不说，以后说什么都会像在利用别人。”',
+        '林澄是第三个公开屏幕的人，但她用了近一分钟才把手举起来。\n“我的公开主条件需要一名参与者自愿把07号登记为‘信赖对象’，而且我们必须一起活到第七天。后面还有一段加密字段。”\n她立即又补充。\n“我不是要现在逼谁答应。我连你们是什么人都不知道。只是如果我不说，以后说什么都会像在利用别人。”',
     passageSpeakers: [
       Speaker.narration,
       Speaker.linCheng,
@@ -829,7 +960,7 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     label: '夺取',
     speaker: Speaker.hanQi,
     text:
-        '“自愿这个词，到第六天还会剩下多少意义？”韩骐终于把自己的屏幕亮出来，“我的条件是游戏结束时持有01号终端。”\n他的目光落到我手上，又移向地上的两米标线。\n“把它交给我。你只要留在两米内，项圈就不会启动。我不需要杀你，你也可以监督我。”\n这不是虚张声势。他已经开始用规则计算如何存活。',
+        '“自愿这个词，到第六天还会剩下多少意义？”韩骐终于把自己的屏幕亮出来，“我的公开主条件是游戏结束时持有01号终端。校验字段还锁着，但这部分已经足够让我行动。”\n他的目光落到我手上，又移向地上的两米标线。\n“把它交给我。你只要留在两米内，项圈就不会启动。我不需要杀你，你也可以监督我。”\n这不是虚张声势。他已经开始用规则计算如何存活。',
     passageSpeakers: [
       Speaker.hanQi,
       Speaker.narration,
@@ -857,8 +988,8 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     next: null,
     choices: [
       StoryChoice(
-        label: '完整公开 01 号生还条款',
-        caption: '用可验证的共同目标建立联盟',
+        label: '公开 01 号当前可见条款',
+        caption: '公开主条件与加密状态，建立可复查的联盟',
         next: 'public_pact',
         effect: ChoiceEffect(
           xingyao: 1,
@@ -1229,6 +1360,13 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
       Speaker.administrator,
       Speaker.narration,
     ],
+    deathEvents: [
+      StoryDeathEvent(
+        participantId: '10',
+        cause: '伪造距离信号触发项圈处决',
+        timelineMinute: 780,
+      ),
+    ],
     next: 'alarm_run',
   ),
   'alarm_run': StoryBeat(
@@ -1285,7 +1423,7 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     speaker: Speaker.tangYi,
     scene: SceneKey.controlRoom,
     text:
-        '唐弈在此时笑了。他没有笑得很大声，反而只是像看见某个预期中的数字那样扬起嘴角。他将终端屏幕转向众人。\n“我的生还条款是，游戏结束时必须恰好剩下四个人。现在你们知道了。如果不敢怀疑真正的凶手，就先怀疑我。这样至少会显得自己正在做事。”',
+        '唐弈在此时笑了。他没有笑得很大声，反而只是像看见某个预期中的数字那样扬起嘴角。他将终端屏幕转向众人。\n“我的公开主条件是，游戏结束时必须恰好剩下四名有效参与者。校验字段还没告诉我12号算不算，也没告诉我自己是否必须在那四个人里。现在你们知道了。如果不敢怀疑真正的凶手，就先怀疑我。这样至少会显得自己正在做事。”',
     passageSpeakers: [Speaker.narration, Speaker.tangYi],
     next: 'tang_reaction',
   ),
@@ -1358,7 +1496,7 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     id: 'chase_signal',
     label: '空工具袋',
     speaker: Speaker.liXingyao,
-    scene: SceneKey.controlRoom,
+    scene: SceneKey.storageRoom,
     text:
         '星遥将耳机插进终端，一边跑一边报出信号强度。移动源没有走最短路线，而是有意绕过两个摄像头。我们追到储物区时，最里面的防火门正好合上。门后只有空空的走廊，没有人影。\n“对方知道监控盲区，也知道我在用什么方法追。”星遥停下脚步，“要么他能听见我们的频道，要么他本来就在集合厅听过我说话。”',
     passageSpeakers: [Speaker.narration, Speaker.liXingyao],
@@ -1368,7 +1506,7 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     id: 'storage_trace',
     label: '空工具袋',
     speaker: Speaker.liXingyao,
-    scene: SceneKey.controlRoom,
+    scene: SceneKey.storageRoom,
     text:
         '储物架后藏着一只空工具袋，里面留有天线接头和刚被拆下的屏蔽层。星遥把那台中继器拆成两部分，将一端连上自己的终端，屏幕上的实时距离立即变成了十八米。\n“它不需要拿走终端。”她抬头看向我，“只需要让项圈信错的信号。周叙从头到尾都没有违反两米规则。是有人替他伪造了违规。”',
     passageSpeakers: [Speaker.narration, Speaker.liXingyao],
@@ -1857,6 +1995,7 @@ final storyBeats = Map<String, StoryBeat>.unmodifiable({
   ...chapterOneExpansionBeats,
   ...chapterTwoBeats,
   ...chapterTwoExpansionBeats,
+  ...chapterThreeBeats,
 });
 
 const _routeNodeSpecs = <({String id, int stage, double lane})>[
@@ -1892,6 +2031,20 @@ const _routeNodeSpecs = <({String id, int stage, double lane})>[
   (id: 'ch2_gym_investigation', stage: 21, lane: 300),
   (id: 'ch2_seal_complete', stage: 22, lane: 300),
   (id: 'ch2_end', stage: 23, lane: 300),
+  (id: 'ch2_audit_index', stage: 24, lane: 100),
+  (id: 'ch3_chapter_title', stage: 24, lane: 300),
+  (id: 'ch3_delegation_announce', stage: 25, lane: 300),
+  (id: 'ch3_hanqi_clause_reveal', stage: 26, lane: 300),
+  (id: 'ch3_delegation_gate', stage: 27, lane: 300),
+  (id: 'ch3_b03_alarm', stage: 28, lane: 300),
+  (id: 'ch3_storage_investigation', stage: 29, lane: 300),
+  (id: 'ch3_case02_deduction', stage: 30, lane: 300),
+  (id: 'ch3_transfer_access_puzzle', stage: 31, lane: 300),
+  (id: 'ch3_second_seal_notice', stage: 32, lane: 300),
+  (id: 'ch3_slide_puzzle', stage: 33, lane: 300),
+  (id: 'ch3_audit_manifest_puzzle', stage: 34, lane: 100),
+  (id: 'ch3_protocol_choice', stage: 34, lane: 300),
+  (id: 'ch3_end', stage: 35, lane: 300),
 ];
 
 final routeNodes = List<RouteNode>.unmodifiable(
@@ -1934,32 +2087,58 @@ const routeConnections = <String, List<String>>{
   'ch2_leave_choice': ['ch2_gym_investigation'],
   'ch2_gym_investigation': ['ch2_seal_complete'],
   'ch2_seal_complete': ['ch2_end'],
+  'ch2_end': ['ch2_audit_index', 'ch3_chapter_title'],
+  'ch2_audit_index': ['ch3_chapter_title'],
+  'ch3_chapter_title': ['ch3_delegation_announce'],
+  'ch3_delegation_announce': ['ch3_hanqi_clause_reveal'],
+  'ch3_hanqi_clause_reveal': ['ch3_delegation_gate'],
+  'ch3_delegation_gate': ['ch3_b03_alarm'],
+  'ch3_b03_alarm': ['ch3_storage_investigation'],
+  'ch3_storage_investigation': ['ch3_case02_deduction'],
+  'ch3_case02_deduction': ['ch3_transfer_access_puzzle'],
+  'ch3_transfer_access_puzzle': ['ch3_second_seal_notice'],
+  'ch3_second_seal_notice': ['ch3_slide_puzzle'],
+  'ch3_slide_puzzle': ['ch3_audit_manifest_puzzle', 'ch3_protocol_choice'],
+  'ch3_audit_manifest_puzzle': ['ch3_protocol_choice'],
+  'ch3_protocol_choice': ['ch3_end'],
 };
 
 const cgEntries = <CgEntry>[
   CgEntry(
     id: 'cg_dormitory',
     title: '没有窗的房间',
-    caption: '序章 / 苏醒',
+    caption: 'DAY 1 / 苏醒',
     asset: 'assets/images/scenes/dormitory_room.png',
   ),
   CgEntry(
     id: 'cg_assembly',
     title: '十二把折叠椅',
-    caption: '序章 / 初次集合',
+    caption: 'DAY 1 / 初次集合',
     asset: 'assets/images/scenes/assembly_hall.png',
   ),
   CgEntry(
     id: 'cg_control_room',
     title: '封闭的监控室',
-    caption: '第一章 / 第二例死亡',
+    caption: 'DAY 1 / 第二例死亡',
     asset: 'assets/images/scenes/control_room.png',
   ),
   CgEntry(
     id: 'cg_gym',
     title: '封锁前的旧体育馆',
-    caption: '第二章 / F-01救援',
+    caption: 'DAY 1 / F-01救援',
     asset: 'assets/images/scenes/old_gym.png',
+  ),
+  CgEntry(
+    id: 'cg_storage',
+    title: '被重新封好的物资箱',
+    caption: 'DAY 2 / B-03调查',
+    asset: 'assets/images/scenes/storage_room.png',
+  ),
+  CgEntry(
+    id: 'cg_storage_seal',
+    title: '第二次永久封锁',
+    caption: 'DAY 2 / B-03封锁',
+    asset: 'assets/images/scenes/transfer_room.png',
   ),
 ];
 
@@ -2025,13 +2204,13 @@ String speakerName(Speaker speaker) => switch (speaker) {
 };
 
 const portraitMoods = <Speaker, Set<String>>{
-  Speaker.liXingyao: {'neutral', 'alarm'},
+  Speaker.liXingyao: {'neutral', 'alarm', 'relaxed'},
   Speaker.suMi: {'neutral', 'concerned', 'relieved'},
-  Speaker.hanQi: {'neutral', 'protective'},
+  Speaker.hanQi: {'neutral', 'protective', 'conflicted'},
   Speaker.wuZheng: {'neutral', 'defiant'},
   Speaker.tangYi: {'neutral', 'shaken'},
-  Speaker.linCheng: {'neutral', 'determined'},
-  Speaker.chenMo: {'neutral', 'discovery'},
+  Speaker.linCheng: {'neutral', 'determined', 'anxious'},
+  Speaker.chenMo: {'neutral', 'discovery', 'guarded'},
   Speaker.gaoYuan: {'neutral', 'inspecting', 'injured'},
   Speaker.zhouXu: {'neutral', 'defensive'},
   Speaker.yeLan: {'neutral', 'intervening'},

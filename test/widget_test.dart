@@ -39,6 +39,7 @@ void main() {
     expect(find.text('名册'), findsOneWidget);
     expect(find.text('区域地图'), findsOneWidget);
     expect(find.text('证据'), findsOneWidget);
+    expect(find.text('审计'), findsOneWidget);
     expect(find.text('系统'), findsOneWidget);
     expect(find.byKey(const ValueKey('pda-device')), findsOneWidget);
     expect(find.text('ZP-PDA 01 / SECURE TERMINAL'), findsOneWidget);
@@ -217,7 +218,7 @@ void main() {
 
   test('线路图只保留关键节点，正文仍保留足够场景细节', () {
     expect(storyBeats.length, greaterThanOrEqualTo(110));
-    expect(routeNodes.length, lessThan(35));
+    expect(routeNodes.length, lessThan(50));
     expect(routeNodes.length, lessThan(storyBeats.length ~/ 3));
     expect(
       routeNodes.map((node) => node.id),
@@ -558,13 +559,16 @@ void main() {
     expect(storyBeats['ch1_medical_search']!.scene, SceneKey.infirmary);
     expect(storyBeats['ch1_storage_search']!.scene, SceneKey.storageRoom);
     expect(storyBeats['ch1_archive_search']!.scene, SceneKey.archiveCorridor);
+    expect(storyBeats['rule_one']!.text, contains('加密校验字段'));
+    expect(storyBeats['personal_clause']!.text, contains('【校验字段】加密'));
+    expect(storyBeats['hanqi_threat']!.text, contains('公开主条件'));
   });
 
   test('第二章围绕旧体育馆封锁与12号空身份展开', () {
     final chapter = storyBeats.values
         .where((beat) => beat.id.startsWith('ch2_'))
         .toList(growable: false);
-    expect(chapter.length, 89);
+    expect(chapter.length, 90);
     expect(
       chapter.map((beat) => beat.text.length).fold<int>(0, (a, b) => a + b),
       greaterThan(13000),
@@ -579,7 +583,8 @@ void main() {
       StoryPhase.investigation,
     );
     expect(storyBeats['ch2_seal_complete']!.timelineMinute, 1440);
-    expect(storyBeats['ch2_end']!.next, isNull);
+    expect(storyBeats['ch2_end']!.next, 'ch3_chapter_title');
+    expect(storyBeats['ch2_end']!.auditNext, 'ch2_audit_index');
     final approach = storyBeats['ch2_approach_choice']!;
     expect(approach.choices.length, 3);
     expect(
@@ -613,6 +618,296 @@ void main() {
     ]) {
       expect(File(path).existsSync(), isTrue, reason: '$path 必须存在');
     }
+  });
+
+  test('第三章以托管权限、B-03调查和CASE 02组成完整第二日', () {
+    final chapter = storyBeats.values
+        .where((beat) => beat.id.startsWith('ch3_'))
+        .toList(growable: false);
+    expect(chapter.length, greaterThanOrEqualTo(110));
+    expect(
+      chapter.map((beat) => beat.text.length).fold<int>(0, (a, b) => a + b),
+      greaterThan(12000),
+    );
+    for (final beat in chapter) {
+      expect(
+        beat.passages.length,
+        beat.text.isEmpty ? 1 : greaterThanOrEqualTo(1),
+        reason: beat.id,
+      );
+    }
+    expect(storyBeats['ch3_delegation_gate']!.phase, StoryPhase.delegation);
+    expect(
+      storyBeats['ch3_storage_investigation']!.phase,
+      StoryPhase.investigation,
+    );
+    expect(storyBeats['ch3_case02_deduction']!.phase, StoryPhase.deduction);
+    expect(storyBeats['ch3_transfer_access_puzzle']!.phase, StoryPhase.puzzle);
+    expect(storyBeats['ch3_balance_puzzle']!.phase, StoryPhase.puzzle);
+    expect(storyBeats['ch3_slide_puzzle']!.phase, StoryPhase.puzzle);
+    expect(storyBeats['ch3_second_seal_notice']!.timelineMinute, 2820);
+    expect(storyBeats['ch3_end']!.next, isNull);
+    expect(storyBeats['ch3_end']!.text, contains('镇静剂'));
+    expect(
+      routeNodes
+          .where((node) => node.id.startsWith('ch3_'))
+          .map((node) => node.id),
+      containsAll([
+        'ch3_chapter_title',
+        'ch3_delegation_gate',
+        'ch3_storage_investigation',
+        'ch3_case02_deduction',
+        'ch3_transfer_access_puzzle',
+        'ch3_slide_puzzle',
+        'ch3_protocol_choice',
+        'ch3_end',
+      ]),
+    );
+    expect(
+      routeNodes.where((node) => node.id.startsWith('ch3_')).length,
+      lessThan(chapter.length ~/ 8),
+    );
+    for (final path in [
+      'assets/images/items/storage/sealed_crate.png',
+      'assets/images/items/storage/locked_audit_pda.png',
+      'assets/images/items/storage/supply_shelf.png',
+      'assets/images/items/storage/audit_case.png',
+      'assets/images/items/storage/uv_lamp.png',
+      'assets/images/items/storage/spring_scale.png',
+      'assets/images/items/storage/offline_reader.png',
+      'assets/images/items/storage/handover_receipt.png',
+      'assets/images/items/storage/maintenance_card.png',
+      'assets/images/items/storage/shift_note.png',
+      'assets/images/characters/han_qi/conflicted.png',
+      'assets/images/characters/li_xingyao/relaxed.png',
+      'assets/images/characters/lin_cheng/anxious.png',
+      'assets/images/characters/chen_mo/guarded.png',
+      'assets/images/scenes/transfer_room.png',
+    ]) {
+      expect(File(path).existsSync(), isTrue, reason: '$path 必须存在');
+    }
+  });
+
+  test('游戏正文和鉴赏文案不显示制作章节字样', () {
+    final chapterPattern = RegExp(r'第[一二三四五六七八九十0-9]+章|序章|章节(?:结束)?');
+    for (final beat in storyBeats.values) {
+      expect(chapterPattern.hasMatch(beat.label), isFalse, reason: beat.id);
+      expect(chapterPattern.hasMatch(beat.text), isFalse, reason: beat.id);
+    }
+    for (final cg in cgEntries) {
+      expect(chapterPattern.hasMatch(cg.caption), isFalse, reason: cg.id);
+    }
+  });
+
+  test('转运间三种机关分散到调查与封锁危机', () async {
+    final controller = await StoryController.load();
+    controller.startNew();
+    _advanceUntil(
+      controller,
+      'ch3_transfer_access_puzzle',
+      allowMechanics: true,
+    );
+
+    controller.completePuzzle('access_0916');
+    expect(controller.currentId, 'ch3_transfer_access_puzzle');
+    controller.recordPuzzleProgress(
+      'ch3_access_card_found',
+      grantsItem: 'maintenance_card',
+    );
+    controller.recordPuzzleProgress(
+      'ch3_shift_note_found',
+      grantsItem: 'shift_note',
+    );
+    controller.recordPuzzleProgress(
+      'ch3_access_card_swiped',
+      consumesItems: const ['maintenance_card'],
+    );
+    expect(controller.inventoryItems, isNot(contains('maintenance_card')));
+    controller.completePuzzle('access_0916');
+    expect(controller.currentId, 'ch3_transfer_entry');
+
+    _advanceUntil(controller, 'ch3_balance_puzzle', allowMechanics: true);
+    controller.completePuzzle('ring_triangle_square_cross_dot');
+    expect(controller.currentId, 'ch3_balance_puzzle');
+    controller.completePuzzle('triangle_cross_ring_dot_square');
+    expect(controller.currentId, 'ch3_balance_unlocked');
+    expect(storyBeats['ch3_balance_unlocked']!.next, 'ch3_supplies_found');
+    expect(
+      storyBeats['ch3_return_for_audit']!.next,
+      'ch3_evacuation_track_jam',
+    );
+    expect(storyBeats['ch3_evacuation_track_jam']!.next, 'ch3_slide_puzzle');
+
+    _advanceUntil(controller, 'ch3_slide_puzzle', allowMechanics: true);
+    controller.completePuzzle('circuit_complete');
+    expect(controller.currentId, 'ch3_pattern_unlocked');
+    expect(storyBeats['ch3_pattern_unlocked']!.next, 'ch3_shutter_split');
+    expect(
+      storyBeats['ch3_aftershock']!.auditNext,
+      'ch3_audit_manifest_puzzle',
+    );
+    expect(
+      controller.flags,
+      containsAll([
+        'puzzle_ch3_transfer_access_puzzle_solved',
+        'puzzle_ch3_balance_puzzle_solved',
+        'puzzle_ch3_slide_puzzle_solved',
+      ]),
+    );
+  });
+
+  test('完整一周目解锁审计模式并跨控制器持久化', () async {
+    final controller = await StoryController.load();
+    controller.startNew(mode: StoryRunMode.audit);
+    expect(controller.runMode, StoryRunMode.standard);
+
+    controller.completeFullRunEnding('ending_four');
+    expect(controller.auditModeUnlocked, isFalse);
+    controller.completeFullRunEnding('ending_four_seats');
+    expect(controller.auditModeUnlocked, isTrue);
+
+    final restored = await StoryController.load();
+    expect(restored.auditModeUnlocked, isTrue);
+    restored.startNew(mode: StoryRunMode.audit);
+    expect(restored.runMode, StoryRunMode.audit);
+  });
+
+  test('审计周目串联灰色索引、隐藏解密与高危物资状态', () async {
+    final controller = await StoryController.load();
+    controller.completeFullRunEnding('ending_four_seats');
+    controller.startNew(mode: StoryRunMode.audit);
+
+    _advanceUntil(controller, 'ch2_end', allowMechanics: true);
+    controller.advance();
+    expect(controller.currentId, 'ch2_audit_index');
+    expect(controller.flags, contains('audit_index_fragment'));
+
+    controller.advance();
+    _advanceUntil(
+      controller,
+      'ch3_audit_manifest_puzzle',
+      allowMechanics: true,
+    );
+    expect(controller.visibleHighRiskItems, isEmpty);
+
+    controller.completePuzzle('owner_area_slot');
+    expect(controller.currentId, 'ch3_audit_manifest_puzzle');
+    controller.completePuzzle('slot_lease_interval');
+    expect(controller.currentId, 'ch3_audit_manifest_recovered');
+    expect(controller.flags, contains('audit_weapon_manifest_found'));
+    expect(
+      controller.visibleHighRiskItems.map((record) => record.id),
+      containsAll(highRiskItemDefinitions.map((item) => item.id)),
+    );
+    expect(
+      controller.visibleHighRiskItems.every(
+        (record) => record.state == HighRiskItemState.indexed,
+      ),
+      isTrue,
+    );
+
+    expect(controller.takeHighRiskItem('rescue_axe', '04'), isTrue);
+    expect(
+      controller.recordParticipantDeath(
+        participantId: '08',
+        cause: '高危物资导致的死亡',
+        responsibleParticipantIds: const ['04'],
+        sourceItemId: 'rescue_axe',
+      ),
+      isTrue,
+    );
+    expect(controller.livingParticipantIds, isNot(contains('08')));
+    expect(
+      controller.highRiskItems['rescue_axe']!.state,
+      HighRiskItemState.used,
+    );
+
+    await controller.saveToSlot(6);
+    controller.startNew();
+    controller.loadSlot(6);
+    expect(controller.runMode, StoryRunMode.audit);
+    expect(controller.livingParticipantIds, isNot(contains('08')));
+    expect(controller.deathRecords.last.responsibleParticipantIds, {'04'});
+    expect(
+      controller.highRiskItems['rescue_axe']!.state,
+      HighRiskItemState.used,
+    );
+  });
+
+  test('标准周目不会进入审计专属节点', () async {
+    final controller = await StoryController.load();
+    controller.startNew();
+    _advanceUntil(controller, 'ch2_end', allowMechanics: true);
+    controller.advance();
+
+    expect(controller.currentId, 'ch3_chapter_title');
+    expect(controller.flags, isNot(contains('audit_index_fragment')));
+  });
+
+  testWidgets('审计解密与解锁后的标题页适配手机横屏', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(844, 390));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = await StoryController.load();
+    controller.completeFullRunEnding('ending_four_seats');
+    await tester.pumpWidget(
+      MaterialApp(home: EchoExperience(controller: controller)),
+    );
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 800)),
+    );
+    await tester.pump();
+    expect(find.text('审计周目'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('审计周目'));
+    _advanceUntil(
+      controller,
+      'ch3_audit_manifest_puzzle',
+      allowMechanics: true,
+    );
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('audit-field-slot')), findsOneWidget);
+    expect(find.byKey(const ValueKey('submit-audit-order')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('audit-field-slot')));
+    await tester.tap(find.byKey(const ValueKey('audit-field-lease')));
+    await tester.tap(find.byKey(const ValueKey('audit-field-interval')));
+    await tester.tap(find.byKey(const ValueKey('submit-audit-order')));
+    await tester.pump();
+
+    expect(controller.currentId, 'ch3_audit_manifest_recovered');
+    expect(tester.takeException(), isNull);
+  });
+
+  test('临时托管的权限、受托人与见证人会随存档恢复', () async {
+    final controller = await StoryController.load();
+    controller.startNew();
+    _advanceUntil(controller, 'ch3_delegation_gate', allowMechanics: true);
+    controller.completeDelegation(
+      permission: 'door',
+      trustee: 'hanqi',
+      witness: 'yelan',
+    );
+
+    expect(controller.currentId, 'ch3_delegate_hanqi');
+    expect(
+      controller.flags,
+      containsAll([
+        'ch3_permission_door',
+        'ch3_trustee_hanqi',
+        'ch3_witness_yelan',
+      ]),
+    );
+    await controller.saveToSlot(4);
+
+    controller.startNew();
+    controller.loadSlot(4);
+    expect(controller.delegationPermission, 'door');
+    expect(controller.delegationTrustee, 'hanqi');
+    expect(controller.delegationWitness, 'yelan');
+    expect(controller.currentId, 'ch3_delegate_hanqi');
   });
 
   test('六个结局均先播放完整剧情，再进入结局结算页', () {
@@ -672,7 +967,7 @@ void main() {
       findsNothing,
     );
 
-    for (final label in ['完整公开 01 号生还条款', '只承认条件需要多人合作', '伪造一个只需自保的条件']) {
+    for (final label in ['公开 01 号当前可见条款', '只承认条件需要多人合作', '伪造一个只需自保的条件']) {
       final finder = find.text(label);
       expect(finder, findsOneWidget);
       final rect = tester.getRect(finder);
@@ -721,9 +1016,55 @@ void main() {
 
     expect(find.text('无人作证'), findsOneWidget);
     expect(find.text('打开线路图'), findsOneWidget);
-    expect(find.text('从序章重新开始'), findsOneWidget);
+    expect(find.text('从最初的苏醒重新开始'), findsOneWidget);
     expect(find.text('返回标题'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('临时托管PDA在手机横屏内完成三方设置', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(844, 390));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = await StoryController.load();
+    controller.startNew();
+    _advanceUntil(controller, 'ch3_delegation_gate', allowMechanics: true);
+
+    await tester.pumpWidget(
+      MaterialApp(home: EchoExperience(controller: controller)),
+    );
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 800)),
+    );
+    await tester.pump();
+
+    expect(find.text('01号终端 · 20分钟审计授权'), findsOneWidget);
+    expect(find.text('生成三方托管记录'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.byKey(const ValueKey('delegation-door')));
+    await tester.tap(find.byKey(const ValueKey('delegation-hanqi')));
+    await tester.tap(find.byKey(const ValueKey('delegation-yelan')));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('confirm-delegation')));
+    await tester.pump();
+
+    expect(controller.currentId, 'ch3_delegate_hanqi');
+    expect(controller.delegationPermission, 'door');
+    expect(tester.takeException(), isNull);
+  });
+
+  test('CASE 02区分署名、受托能力与被重放的旧授权', () async {
+    final controller = await StoryController.load();
+    controller.startNew();
+    _advanceUntil(controller, 'ch3_case02_deduction', allowMechanics: true);
+    controller.submitDeduction('owner_action');
+    expect(controller.currentId, 'ch3_case02_owner_error');
+    controller.advance();
+    expect(controller.currentId, 'ch3_case02_deduction');
+    controller.submitDeduction('lease_replay');
+    expect(controller.currentId, 'ch3_case02_resolved');
+    expect(controller.flags, contains('case02_solved'));
   });
 
   testWidgets('现场亮点收纳物品后可在背包拖放组合', (tester) async {
@@ -930,6 +1271,88 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('B-03调查通过离线工具恢复撤销后的托管会话', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(844, 390));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = await StoryController.load();
+    controller.startNew();
+    _advanceUntil(
+      controller,
+      'ch3_storage_investigation',
+      allowMechanics: true,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(home: EchoExperience(controller: controller)),
+    );
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 800)),
+    );
+    await tester.pump();
+
+    for (final id in [
+      'sealed_crate',
+      'locked_audit_pda',
+      'supply_shelf',
+      'audit_case',
+    ]) {
+      expect(find.byKey(ValueKey('investigation-glint-$id')), findsOneWidget);
+    }
+    await tester.tap(
+      find.byKey(const ValueKey('investigation-glint-locked_audit_pda')),
+    );
+    await tester.tap(
+      find.byKey(const ValueKey('investigation-glint-audit_case')),
+    );
+    await tester.pump();
+    await tester.tap(find.byTooltip('打开背包'));
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('inventory-item-audit_case')));
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey('inspection-action-case_reader')),
+    );
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey('inventory-item-offline_reader')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byTooltip('关闭'));
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey('inventory-item-locked_audit_pda')),
+    );
+    await tester.pump();
+    expect(find.textContaining('四十二秒'), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('inspection-action-pda_clock')));
+    await tester.pump();
+    await tester.tap(find.byTooltip('关闭'));
+    await tester.pump();
+
+    await _longPressDrag(
+      tester,
+      find.byKey(const ValueKey('inventory-item-offline_reader')),
+      find.byKey(const ValueKey('inventory-drop-locked_audit_pda')),
+    );
+    await tester.pump();
+
+    expect(controller.investigationClues, contains('delegation_gap'));
+    expect(controller.inventoryItems, contains('handover_receipt'));
+    expect(find.textContaining('撤销后四十二秒'), findsOneWidget);
+    await tester.tap(find.byTooltip('关闭'));
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey('inventory-item-locked_audit_pda')),
+    );
+    await tester.pump();
+    expect(find.text('恢复会话记录的审计PDA'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('背包物品栏支持鼠标向左右拖动', (tester) async {
     await tester.binding.setSurfaceSize(const Size(844, 390));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -994,6 +1417,132 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('长背包可选中远端工具后滚动并点击目标组合', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(844, 390));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = await StoryController.load();
+    controller.startNew();
+    _advanceUntil(controller, 'investigation_gate');
+    for (final itemId in [
+      'terminal_area',
+      'wall_box',
+      'collar_lock',
+      'tool_tray',
+      'folding_ruler',
+      'insulated_pick',
+      'distance_record',
+      'control_inner',
+      'north_door_floor',
+      'empty_cradle',
+      'service_cart',
+      'offline_test_lead',
+      'folding_magnifier',
+      'sealed_crate',
+      'locked_audit_pda',
+      'supply_shelf',
+      'audit_case',
+      'uv_lamp',
+      'spring_scale',
+      'offline_reader',
+      'handover_receipt',
+    ]) {
+      controller.collectInvestigationItem(itemId);
+    }
+    controller.recordInvestigationAction('control_trace');
+
+    await tester.pumpWidget(
+      MaterialApp(home: EchoExperience(controller: controller)),
+    );
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 800)),
+    );
+    await tester.pump();
+    await tester.tap(find.byTooltip('打开背包'));
+    await tester.pump();
+
+    final list = find.byKey(const ValueKey('inventory-scroll-list'));
+    final scrollable = find.descendant(
+      of: list,
+      matching: find.byType(Scrollable),
+    );
+    final scrollState = tester.state<ScrollableState>(scrollable);
+    scrollState.position.jumpTo(500);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(
+      find.byKey(const ValueKey('inventory-item-offline_test_lead')),
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey('inventory-select-combine-offline_test_lead')),
+    );
+    await tester.pump();
+    expect(find.textContaining('组合中：离线测试线'), findsOneWidget);
+
+    final updatedScrollable = find.descendant(
+      of: list,
+      matching: find.byType(Scrollable),
+    );
+    tester.state<ScrollableState>(updatedScrollable).position.jumpTo(0);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(
+      find.byKey(const ValueKey('inventory-item-control_inner')),
+    );
+    await tester.pump();
+
+    expect(controller.investigationActions, contains('control_replay'));
+    expect(find.textContaining('十分钟撤权计时'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('三种转运机关在手机横屏内均不溢出', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(844, 390));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = await StoryController.load();
+    controller.startNew();
+    _advanceUntil(
+      controller,
+      'ch3_transfer_access_puzzle',
+      allowMechanics: true,
+    );
+    await tester.pumpWidget(
+      MaterialApp(home: EchoExperience(controller: controller)),
+    );
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 800)),
+    );
+    await tester.pump();
+    expect(find.text('转运间'), findsOneWidget);
+    expect(find.byKey(const ValueKey('access-swipe-card')), findsOneWidget);
+
+    controller.recordPuzzleProgress(
+      'ch3_access_card_found',
+      grantsItem: 'maintenance_card',
+    );
+    controller.recordPuzzleProgress(
+      'ch3_shift_note_found',
+      grantsItem: 'shift_note',
+    );
+    controller.recordPuzzleProgress(
+      'ch3_access_card_swiped',
+      consumesItems: const ['maintenance_card'],
+    );
+    controller.completePuzzle('access_0916');
+    _advanceUntil(controller, 'ch3_balance_puzzle', allowMechanics: true);
+    await tester.pump();
+    expect(find.byKey(const ValueKey('weigh-selected')), findsOneWidget);
+
+    controller.completePuzzle('triangle_cross_ring_dot_square');
+    _advanceUntil(controller, 'ch3_slide_puzzle', allowMechanics: true);
+    await tester.pump();
+    expect(find.byKey(const ValueKey('circuit-slide-board')), findsOneWidget);
+    expect(find.byKey(const ValueKey('circuit-empty')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('规则推演先闭合三段证据链再开放死因假说', (tester) async {
     await tester.binding.setSurfaceSize(const Size(844, 390));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -1016,7 +1565,30 @@ void main() {
     expect(find.text('实施媒介'), findsOneWidget);
     expect(find.text('主动离开终端'), findsNothing);
 
+    final distanceCard = find.byKey(
+      const ValueKey('deduction-evidence-distance'),
+    );
     await tester.tap(find.text('1.4m / 23m'));
+    await tester.pump();
+    expect(
+      find.descendant(
+        of: distanceCard,
+        matching: find.byIcon(Icons.check_circle_rounded),
+      ),
+      findsOneWidget,
+    );
+    await tester.ensureVisible(distanceCard);
+    await tester.pump();
+    await tester.tap(distanceCard);
+    await tester.pump();
+    expect(
+      find.descendant(
+        of: distanceCard,
+        matching: find.byIcon(Icons.check_circle_rounded),
+      ),
+      findsNothing,
+    );
+    await tester.tap(distanceCard);
     await tester.pump();
     await tester.tap(find.text('180 秒'));
     await tester.pump();
@@ -1029,6 +1601,27 @@ void main() {
     expect(find.textContaining('证据链闭合'), findsOneWidget);
     await tester.ensureVisible(find.text('主动离开终端'));
     expect(find.text('主动离开终端'), findsOneWidget);
+    final suicideHypothesis = find.byKey(
+      const ValueKey('deduction-hypothesis-suicide'),
+    );
+    await tester.tap(suicideHypothesis);
+    await tester.pump();
+    expect(
+      find.descendant(
+        of: suicideHypothesis,
+        matching: find.byIcon(Icons.radio_button_checked),
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(suicideHypothesis);
+    await tester.pump();
+    expect(
+      find.descendant(
+        of: suicideHypothesis,
+        matching: find.byIcon(Icons.radio_button_checked),
+      ),
+      findsNothing,
+    );
     expect(tester.takeException(), isNull);
   });
 }
@@ -1051,7 +1644,7 @@ void _advanceUntil(
   bool allowMechanics = false,
 }) {
   var guard = 0;
-  while (controller.currentId != target && guard < 180) {
+  while (controller.currentId != target && guard < 360) {
     guard += 1;
     switch (controller.phase) {
       case StoryPhase.dialogue:
@@ -1060,16 +1653,53 @@ void _advanceUntil(
         } else {
           controller.advance();
         }
-      case StoryPhase.investigation when allowMechanics:
-        controller.completeInvestigation(
-          controller.currentId == 'ch2_gym_investigation'
-              ? {'gym_control', 'gym_cable', 'gym_cradle'}
-              : {'distance', 'repeater', 'timer'},
+      case StoryPhase.delegation when allowMechanics:
+        controller.completeDelegation(
+          permission: 'door',
+          trustee: 'hanqi',
+          witness: 'yelan',
         );
+      case StoryPhase.investigation when allowMechanics:
+        controller.completeInvestigation(switch (controller.currentId) {
+          'ch2_gym_investigation' => {'gym_control', 'gym_cable', 'gym_cradle'},
+          'ch3_storage_investigation' => {
+            'seal_reclosed',
+            'delegation_gap',
+            'weight_mismatch',
+          },
+          _ => {'distance', 'repeater', 'timer'},
+        });
+      case StoryPhase.puzzle when allowMechanics:
+        switch (controller.currentId) {
+          case 'ch3_transfer_access_puzzle':
+            controller.recordPuzzleProgress(
+              'ch3_access_card_found',
+              grantsItem: 'maintenance_card',
+            );
+            controller.recordPuzzleProgress(
+              'ch3_shift_note_found',
+              grantsItem: 'shift_note',
+            );
+            controller.recordPuzzleProgress(
+              'ch3_access_card_swiped',
+              consumesItems: const ['maintenance_card'],
+            );
+            controller.completePuzzle('access_0916');
+          case 'ch3_balance_puzzle':
+            controller.completePuzzle('triangle_cross_ring_dot_square');
+          case 'ch3_slide_puzzle':
+            controller.completePuzzle('circuit_complete');
+          case 'ch3_audit_manifest_puzzle':
+            controller.completePuzzle('slot_lease_interval');
+        }
       case StoryPhase.tuning when allowMechanics:
         controller.completeTuning();
       case StoryPhase.deduction when allowMechanics:
-        controller.submitDeduction('repeater');
+        controller.submitDeduction(
+          controller.currentId == 'ch3_case02_deduction'
+              ? 'lease_replay'
+              : 'repeater',
+        );
       default:
         fail('无法从 ${controller.currentId} 前往 $target');
     }
