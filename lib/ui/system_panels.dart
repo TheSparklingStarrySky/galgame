@@ -1415,6 +1415,9 @@ class _RouteMapScreenState extends State<_RouteMapScreen> {
                                     ? () {
                                         if (controller.jumpToNode(node.id) &&
                                             context.mounted) {
+                                          GameAudioScope.maybeOf(
+                                            context,
+                                          )?.playSfx(GameSfx.routeJump);
                                           Navigator.pop(context);
                                         }
                                       }

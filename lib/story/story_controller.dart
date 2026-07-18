@@ -661,6 +661,19 @@ class StoryController extends ChangeNotifier {
 
   void submitDeduction(String hypothesis) {
     _markCurrentRead();
+    if (currentId == 'ch5_case04_deduction') {
+      if (hypothesis == 'maintenance_slot') {
+        flags.add('case04_solved');
+        logic += 2;
+        currentId = 'ch5_case04_resolved';
+      } else if (hypothesis == 'hidden_person') {
+        currentId = 'ch5_case04_person_error';
+      } else {
+        currentId = 'ch5_case04_deleted_error';
+      }
+      _enterCurrent();
+      return;
+    }
     if (currentId == 'ch4_case03_deduction') {
       if (hypothesis == 'directed_resonance') {
         flags.add('case03_solved');

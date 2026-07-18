@@ -18,64 +18,14 @@ class $AssetsImagesGen {
   final $AssetsScenesGen scenes = const $AssetsScenesGen();
 }
 
-class $AssetsCgGen {
-  const $AssetsCgGen();
-
-  final AssetGenImage awakening01 = const AssetGenImage(
-    'assets/images/cg/awakening/01.png',
-  );
-  final AssetGenImage awakening02 = const AssetGenImage(
-    'assets/images/cg/awakening/02.png',
-  );
-  final AssetGenImage collarExecution01 = const AssetGenImage(
-    'assets/images/cg/collar_execution/01.png',
-  );
-  final AssetGenImage collarExecution02 = const AssetGenImage(
-    'assets/images/cg/collar_execution/02.png',
-  );
-  final AssetGenImage controlRoomDeath01 = const AssetGenImage(
-    'assets/images/cg/control_room_death/01.png',
-  );
-  final AssetGenImage controlRoomDeath02 = const AssetGenImage(
-    'assets/images/cg/control_room_death/02.png',
-  );
-  final AssetGenImage gymRescue01 = const AssetGenImage(
-    'assets/images/cg/gym_rescue/01.png',
-  );
-  final AssetGenImage gymRescue02 = const AssetGenImage(
-    'assets/images/cg/gym_rescue/02.png',
-  );
-  final AssetGenImage storageInvestigation01 = const AssetGenImage(
-    'assets/images/cg/storage_investigation/01.png',
-  );
-  final AssetGenImage storageInvestigation02 = const AssetGenImage(
-    'assets/images/cg/storage_investigation/02.png',
-  );
-  final AssetGenImage transferEscape01 = const AssetGenImage(
-    'assets/images/cg/transfer_escape/01.png',
-  );
-  final AssetGenImage transferEscape02 = const AssetGenImage(
-    'assets/images/cg/transfer_escape/02.png',
-  );
-  final AssetGenImage xingyaoCollapse01 = const AssetGenImage(
-    'assets/images/cg/xingyao_collapse/01.png',
-  );
-  final AssetGenImage xingyaoCollapse02 = const AssetGenImage(
-    'assets/images/cg/xingyao_collapse/02.png',
-  );
-  final AssetGenImage auditRescue01 = const AssetGenImage(
-    'assets/images/cg/audit_rescue/01.png',
-  );
-  final AssetGenImage auditRescue02 = const AssetGenImage(
-    'assets/images/cg/audit_rescue/02.png',
-  );
-}
-
 class $AssetsScenesGen {
   const $AssetsScenesGen();
 
   final AssetGenImage archiveCorridor = const AssetGenImage(
     'assets/images/scenes/archive_corridor.png',
+  );
+  final AssetGenImage archiveRoom = const AssetGenImage(
+    'assets/images/scenes/archive_room.png',
   );
   final AssetGenImage assemblyHall = const AssetGenImage(
     'assets/images/scenes/assembly_hall.png',
@@ -92,11 +42,11 @@ class $AssetsScenesGen {
   final AssetGenImage infirmary = const AssetGenImage(
     'assets/images/scenes/infirmary.png',
   );
-  final AssetGenImage medicalIsolation = const AssetGenImage(
-    'assets/images/scenes/medical_isolation.png',
-  );
   final AssetGenImage maintenanceRoom = const AssetGenImage(
     'assets/images/scenes/maintenance_room.png',
+  );
+  final AssetGenImage medicalIsolation = const AssetGenImage(
+    'assets/images/scenes/medical_isolation.png',
   );
   final AssetGenImage oldGym = const AssetGenImage(
     'assets/images/scenes/old_gym.png',
@@ -109,6 +59,112 @@ class $AssetsScenesGen {
   );
   final AssetGenImage transferRoom = const AssetGenImage(
     'assets/images/scenes/transfer_room.png',
+  );
+}
+
+class $AssetsCgGen {
+  const $AssetsCgGen();
+
+  final $AssetsAuditRescueGen auditRescue = const $AssetsAuditRescueGen();
+  final $AssetsAwakeningGen awakening = const $AssetsAwakeningGen();
+  final $AssetsCollarExecutionGen collarExecution =
+      const $AssetsCollarExecutionGen();
+  final $AssetsControlRoomDeathGen controlRoomDeath =
+      const $AssetsControlRoomDeathGen();
+  final $AssetsGymRescueGen gymRescue = const $AssetsGymRescueGen();
+  final $AssetsStorageInvestigationGen storageInvestigation =
+      const $AssetsStorageInvestigationGen();
+  final $AssetsTransferEscapeGen transferEscape =
+      const $AssetsTransferEscapeGen();
+  final $AssetsXingyaoCollapseGen xingyaoCollapse =
+      const $AssetsXingyaoCollapseGen();
+}
+
+class $AssetsAwakeningGen {
+  const $AssetsAwakeningGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/awakening/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/awakening/02.png',
+  );
+}
+
+class $AssetsCollarExecutionGen {
+  const $AssetsCollarExecutionGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/collar_execution/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/collar_execution/02.png',
+  );
+}
+
+class $AssetsControlRoomDeathGen {
+  const $AssetsControlRoomDeathGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/control_room_death/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/control_room_death/02.png',
+  );
+}
+
+class $AssetsGymRescueGen {
+  const $AssetsGymRescueGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/gym_rescue/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/gym_rescue/02.png',
+  );
+}
+
+class $AssetsStorageInvestigationGen {
+  const $AssetsStorageInvestigationGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/storage_investigation/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/storage_investigation/02.png',
+  );
+}
+
+class $AssetsTransferEscapeGen {
+  const $AssetsTransferEscapeGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/transfer_escape/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/transfer_escape/02.png',
+  );
+}
+
+class $AssetsXingyaoCollapseGen {
+  const $AssetsXingyaoCollapseGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/xingyao_collapse/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/xingyao_collapse/02.png',
+  );
+}
+
+class $AssetsAuditRescueGen {
+  const $AssetsAuditRescueGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/audit_rescue/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/audit_rescue/02.png',
   );
 }
 
@@ -173,6 +229,9 @@ class $AssetsSuMiGen {
 class $AssetsHanQiGen {
   const $AssetsHanQiGen();
 
+  final AssetGenImage armed = const AssetGenImage(
+    'assets/images/characters/han_qi/armed.png',
+  );
   final AssetGenImage conflicted = const AssetGenImage(
     'assets/images/characters/han_qi/conflicted.png',
   );
@@ -181,9 +240,6 @@ class $AssetsHanQiGen {
   );
   final AssetGenImage protective = const AssetGenImage(
     'assets/images/characters/han_qi/protective.png',
-  );
-  final AssetGenImage armed = const AssetGenImage(
-    'assets/images/characters/han_qi/armed.png',
   );
 }
 
@@ -229,11 +285,11 @@ class $AssetsChenMoGen {
   final AssetGenImage desperate = const AssetGenImage(
     'assets/images/characters/chen_mo/desperate.png',
   );
-  final AssetGenImage guarded = const AssetGenImage(
-    'assets/images/characters/chen_mo/guarded.png',
-  );
   final AssetGenImage discovery = const AssetGenImage(
     'assets/images/characters/chen_mo/discovery.png',
+  );
+  final AssetGenImage guarded = const AssetGenImage(
+    'assets/images/characters/chen_mo/guarded.png',
   );
   final AssetGenImage neutral = const AssetGenImage(
     'assets/images/characters/chen_mo/neutral.png',
@@ -279,6 +335,7 @@ class $AssetsYeLanGen {
 class $AssetsItemsGen {
   const $AssetsItemsGen();
 
+  final $AssetsArchiveGen archive = const $AssetsArchiveGen();
   final $AssetsControlRoomGen controlRoom = const $AssetsControlRoomGen();
   final $AssetsGymGen gym = const $AssetsGymGen();
   final $AssetsMedicalGen medical = const $AssetsMedicalGen();
@@ -291,11 +348,11 @@ class $AssetsControlRoomGen {
   final AssetGenImage collarTimer = const AssetGenImage(
     'assets/images/items/control_room/collar_timer.png',
   );
-  final AssetGenImage distanceTerminal = const AssetGenImage(
-    'assets/images/items/control_room/distance_terminal.png',
-  );
   final AssetGenImage distanceRecord = const AssetGenImage(
     'assets/images/items/control_room/distance_record.png',
+  );
+  final AssetGenImage distanceTerminal = const AssetGenImage(
+    'assets/images/items/control_room/distance_terminal.png',
   );
   final AssetGenImage foldingRuler = const AssetGenImage(
     'assets/images/items/control_room/folding_ruler.png',
@@ -393,24 +450,154 @@ class $AssetsStorageGen {
   final AssetGenImage sealedCrate = const AssetGenImage(
     'assets/images/items/storage/sealed_crate.png',
   );
+  final AssetGenImage shiftNote = const AssetGenImage(
+    'assets/images/items/storage/shift_note.png',
+  );
   final AssetGenImage springScale = const AssetGenImage(
     'assets/images/items/storage/spring_scale.png',
   );
   final AssetGenImage supplyShelf = const AssetGenImage(
     'assets/images/items/storage/supply_shelf.png',
   );
-  final AssetGenImage shiftNote = const AssetGenImage(
-    'assets/images/items/storage/shift_note.png',
-  );
   final AssetGenImage uvLamp = const AssetGenImage(
     'assets/images/items/storage/uv_lamp.png',
+  );
+}
+
+class $AssetsArchiveGen {
+  const $AssetsArchiveGen();
+
+  final AssetGenImage accessBackup = const AssetGenImage(
+    'assets/images/items/archive/access_backup.png',
+  );
+  final AssetGenImage accessBackupMapped = const AssetGenImage(
+    'assets/images/items/archive/access_backup_mapped.png',
+  );
+  final AssetGenImage archivePhoto = const AssetGenImage(
+    'assets/images/items/archive/archive_photo.png',
+  );
+  final AssetGenImage archivePhotoRevealed = const AssetGenImage(
+    'assets/images/items/archive/archive_photo_revealed.png',
+  );
+  final AssetGenImage archiveRoster = const AssetGenImage(
+    'assets/images/items/archive/archive_roster.png',
+  );
+  final AssetGenImage archiveRosterVerified = const AssetGenImage(
+    'assets/images/items/archive/archive_roster_verified.png',
+  );
+  final AssetGenImage checksumKey = const AssetGenImage(
+    'assets/images/items/archive/checksum_key.png',
+  );
+  final AssetGenImage dateOverlay = const AssetGenImage(
+    'assets/images/items/archive/date_overlay.png',
+  );
+  final AssetGenImage serverMirror = const AssetGenImage(
+    'assets/images/items/archive/server_mirror.png',
+  );
+  final AssetGenImage serverMirrorVerified = const AssetGenImage(
+    'assets/images/items/archive/server_mirror_verified.png',
+  );
+  final AssetGenImage transmittedLight = const AssetGenImage(
+    'assets/images/items/archive/transmitted_light.png',
   );
 }
 
 class $AssetsAudioGen {
   const $AssetsAudioGen();
 
+  final $AssetsBgmGen bgm = const $AssetsBgmGen();
+  final $AssetsSfxGen sfx = const $AssetsSfxGen();
   final String audioManifest = 'assets/audio/audio_manifest.json';
+  final String originalSources = 'assets/audio/original_sources.json';
+  final String pixabaySources = 'assets/audio/pixabay_sources.json';
+}
+
+class $AssetsBgmGen {
+  const $AssetsBgmGen();
+
+  final String aftermathVoid = 'assets/audio/bgm/aftermath_void.mp3';
+  final String assemblyDistrust = 'assets/audio/bgm/assembly_distrust.mp3';
+  final String auditRevelation = 'assets/audio/bgm/audit_revelation.m4a';
+  final String awakeningRoom = 'assets/audio/bgm/awakening_room.mp3';
+  final String betrayalHunt = 'assets/audio/bgm/betrayal_hunt.m4a';
+  final String bondLincheng = 'assets/audio/bgm/bond_lincheng.m4a';
+  final String bondSumi = 'assets/audio/bgm/bond_sumi.m4a';
+  final String bondXingyao = 'assets/audio/bgm/bond_xingyao.m4a';
+  final String countdownCrisis = 'assets/audio/bgm/countdown_crisis.mp3';
+  final String deductionChain = 'assets/audio/bgm/deduction_chain.mp3';
+  final String endingAfterlight = 'assets/audio/bgm/ending_afterlight.mp3';
+  final String investigationPulse = 'assets/audio/bgm/investigation_pulse.mp3';
+  final String nightFacility = 'assets/audio/bgm/night_facility.m4a';
+  final String rescueAction = 'assets/audio/bgm/rescue_action.m4a';
+  final String ruleExecution = 'assets/audio/bgm/rule_execution.mp3';
+  final String titleProtocol = 'assets/audio/bgm/title_protocol.mp3';
+}
+
+class $AssetsSfxGen {
+  const $AssetsSfxGen();
+
+  final String accessDenied = 'assets/audio/sfx/access_denied.mp3';
+  final String accessGranted = 'assets/audio/sfx/access_granted.mp3';
+  final String acidSplash = 'assets/audio/sfx/acid_splash.m4a';
+  final String administratorChannelOff =
+      'assets/audio/sfx/administrator_channel_off.m4a';
+  final String administratorChannelOn =
+      'assets/audio/sfx/administrator_channel_on.mp3';
+  final String ambAssemblyPa = 'assets/audio/sfx/amb_assembly_pa.m4a';
+  final String ambCorridorRoomtone =
+      'assets/audio/sfx/amb_corridor_roomtone.mp3';
+  final String ambFluorescentHum = 'assets/audio/sfx/amb_fluorescent_hum.mp3';
+  final String ambInfirmaryEquipment =
+      'assets/audio/sfx/amb_infirmary_equipment.m4a';
+  final String ambStorageRefrigeration =
+      'assets/audio/sfx/amb_storage_refrigeration.m4a';
+  final String ambVentilation = 'assets/audio/sfx/amb_ventilation.mp3';
+  final String archivePage = 'assets/audio/sfx/archive_page.m4a';
+  final String archiveSeal = 'assets/audio/sfx/archive_seal.m4a';
+  final String archiveShelfImpact = 'assets/audio/sfx/archive_shelf_impact.m4a';
+  final String archiveShelfMotor = 'assets/audio/sfx/archive_shelf_motor.m4a';
+  final String balanceWeight = 'assets/audio/sfx/balance_weight.mp3';
+  final String bodyFall = 'assets/audio/sfx/body_fall.mp3';
+  final String boxOpen = 'assets/audio/sfx/box_open.mp3';
+  final String checksumVerified = 'assets/audio/sfx/checksum_verified.m4a';
+  final String choiceReveal = 'assets/audio/sfx/choice_reveal.mp3';
+  final String circuitPowerOn = 'assets/audio/sfx/circuit_power_on.mp3';
+  final String clueAcquired = 'assets/audio/sfx/clue_acquired.mp3';
+  final String collarDetonation = 'assets/audio/sfx/collar_detonation.mp3';
+  final String collarLock = 'assets/audio/sfx/collar_lock.mp3';
+  final String collarWarning = 'assets/audio/sfx/collar_warning.mp3';
+  final String combineFail = 'assets/audio/sfx/combine_fail.mp3';
+  final String combineSuccess = 'assets/audio/sfx/combine_success.mp3';
+  final String directedTone = 'assets/audio/sfx/directed_tone.mp3';
+  final String emergencyShower = 'assets/audio/sfx/emergency_shower.m4a';
+  final String facilityAlarm = 'assets/audio/sfx/facility_alarm.mp3';
+  final String footstepsConcrete = 'assets/audio/sfx/footsteps_concrete.m4a';
+  final String gasRelease = 'assets/audio/sfx/gas_release.m4a';
+  final String itemPickup = 'assets/audio/sfx/item_pickup.mp3';
+  final String jackSlip = 'assets/audio/sfx/jack_slip.mp3';
+  final String keyUnlockBox = 'assets/audio/sfx/key_unlock_box.mp3';
+  final String keypadPress = 'assets/audio/sfx/keypad_press.mp3';
+  final String loadComplete = 'assets/audio/sfx/load_complete.mp3';
+  final String measuringTape = 'assets/audio/sfx/measuring_tape.m4a';
+  final String medicalMonitor = 'assets/audio/sfx/medical_monitor.m4a';
+  final String metalDoorLock = 'assets/audio/sfx/metal_door_lock.mp3';
+  final String metalDoorOpen = 'assets/audio/sfx/metal_door_open.mp3';
+  final String microfilmScanner = 'assets/audio/sfx/microfilm_scanner.m4a';
+  final String pdaClose = 'assets/audio/sfx/pda_close.mp3';
+  final String pdaNotification = 'assets/audio/sfx/pda_notification.mp3';
+  final String pdaOpen = 'assets/audio/sfx/pda_open.mp3';
+  final String ropeTension = 'assets/audio/sfx/rope_tension.m4a';
+  final String routeJump = 'assets/audio/sfx/route_jump.m4a';
+  final String saveComplete = 'assets/audio/sfx/save_complete.mp3';
+  final String shutterJam = 'assets/audio/sfx/shutter_jam.mp3';
+  final String shutterMotor = 'assets/audio/sfx/shutter_motor.mp3';
+  final String stoneTileSlide = 'assets/audio/sfx/stone_tile_slide.mp3';
+  final String surveillanceServo = 'assets/audio/sfx/surveillance_servo.m4a';
+  final String terminalBoot = 'assets/audio/sfx/terminal_boot.mp3';
+  final String uiCancel = 'assets/audio/sfx/ui_cancel.mp3';
+  final String uiConfirm = 'assets/audio/sfx/ui_confirm.mp3';
+  final String uvLamp = 'assets/audio/sfx/uv_lamp.m4a';
+  final String wrenchImpact = 'assets/audio/sfx/wrench_impact.mp3';
 }
 
 class AssetGenImage {

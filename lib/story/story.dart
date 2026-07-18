@@ -1,6 +1,7 @@
 part 'story_chapter2.dart';
 part 'story_chapter3.dart';
 part 'story_chapter4.dart';
+part 'story_chapter5.dart';
 
 enum StoryPhase {
   title,
@@ -57,6 +58,7 @@ enum SceneKey {
   storageRoom,
   transferRoom,
   archiveCorridor,
+  archiveRoom,
   medicalIsolation,
   securityRoom,
   maintenanceRoom,
@@ -2021,6 +2023,7 @@ final storyBeats = Map<String, StoryBeat>.unmodifiable({
   ...chapterTwoExpansionBeats,
   ...chapterThreeBeats,
   ...chapterFourBeats,
+  ...chapterFiveBeats,
 });
 
 const _routeNodeSpecs = <({String id, int stage, double lane})>[
@@ -2065,6 +2068,14 @@ const _routeNodeSpecs = <({String id, int stage, double lane})>[
   (id: 'ch4_audit_seal', stage: 42, lane: 60),
   (id: 'ch4_e04_signal', stage: 44, lane: 300),
   (id: 'ch4_end', stage: 45, lane: 300),
+  (id: 'ch5_midnight', stage: 46, lane: 300),
+  (id: 'ch5_case04_resolved', stage: 51, lane: 300),
+  (id: 'ch5_standard_branch_gate', stage: 53, lane: 300),
+  (id: 'ch5_hanqi_revenge_death', stage: 54, lane: 180),
+  (id: 'ch5_alliance_silence_death', stage: 54, lane: 300),
+  (id: 'ch5_majority_silence_death', stage: 54, lane: 420),
+  (id: 'ch5_audit_slot12_challenge', stage: 54, lane: 60),
+  (id: 'ch5_end', stage: 57, lane: 300),
 ];
 
 final routeNodes = List<RouteNode>.unmodifiable(
@@ -2123,6 +2134,21 @@ const routeConnections = <String, List<String>>{
   'ch4_majority_vote': ['ch4_e04_signal'],
   'ch4_audit_seal': ['ch4_e04_signal'],
   'ch4_e04_signal': ['ch4_end'],
+  'ch4_end': ['ch5_midnight'],
+  'ch5_midnight': ['ch5_case04_resolved'],
+  'ch5_case04_resolved': [
+    'ch5_standard_branch_gate',
+    'ch5_audit_slot12_challenge',
+  ],
+  'ch5_standard_branch_gate': [
+    'ch5_hanqi_revenge_death',
+    'ch5_alliance_silence_death',
+    'ch5_majority_silence_death',
+  ],
+  'ch5_hanqi_revenge_death': ['ch5_end'],
+  'ch5_alliance_silence_death': ['ch5_end'],
+  'ch5_majority_silence_death': ['ch5_end'],
+  'ch5_audit_slot12_challenge': ['ch5_end'],
 };
 
 const cgEntries = <CgEntry>[
@@ -2196,6 +2222,78 @@ const cgEntries = <CgEntry>[
     assets: [
       'assets/images/cg/audit_rescue/01.png',
       'assets/images/cg/audit_rescue/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch5_e04_identity',
+    title: '不存在的第十二个人',
+    caption: 'E-04身份复原 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch5_e04_identity/01.png',
+      'assets/images/cg/ch5_e04_identity/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch5_hanqi_shelf',
+    title: '没有同时落下的两只手',
+    caption: '移动柜复仇 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch5_hanqi_shelf/01.png',
+      'assets/images/cg/ch5_hanqi_shelf/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch5_yelan_acid',
+    title: '被锁住的冲洗距离',
+    caption: '腐蚀剂灭口 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch5_yelan_acid/01.png',
+      'assets/images/cg/ch5_yelan_acid/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch5_chenmo_gas',
+    title: '撤回没有达到多数',
+    caption: '服务器隔离 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch5_chenmo_gas/01.png',
+      'assets/images/cg/ch5_chenmo_gas/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch5_audit_prevention',
+    title: '预演不是命运',
+    caption: '三条杀戮链中断 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch5_audit_prevention/01.png',
+      'assets/images/cg/ch5_audit_prevention/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch5_bond_xingyao',
+    title: '共享一侧频率',
+    caption: '黎星遥关系事件 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch5_bond_xingyao/01.png',
+      'assets/images/cg/ch5_bond_xingyao/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch5_bond_sumi',
+    title: '脉搏之外的回答',
+    caption: '苏弥关系事件 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch5_bond_sumi/01.png',
+      'assets/images/cg/ch5_bond_sumi/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch5_bond_lincheng',
+    title: '写下自己的名字',
+    caption: '林澄关系事件 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch5_bond_lincheng/01.png',
+      'assets/images/cg/ch5_bond_lincheng/02.png',
     ],
   ),
 ];
@@ -2309,6 +2407,7 @@ String sceneImageAsset(SceneKey scene) => switch (scene) {
   SceneKey.storageRoom => 'assets/images/scenes/storage_room.png',
   SceneKey.transferRoom => 'assets/images/scenes/transfer_room.png',
   SceneKey.archiveCorridor => 'assets/images/scenes/archive_corridor.png',
+  SceneKey.archiveRoom => 'assets/images/scenes/archive_room.png',
   SceneKey.medicalIsolation => 'assets/images/scenes/medical_isolation.png',
   SceneKey.securityRoom => 'assets/images/scenes/security_room.png',
   SceneKey.maintenanceRoom => 'assets/images/scenes/maintenance_room.png',

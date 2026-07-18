@@ -70,6 +70,14 @@ flutter:
     - assets/images/cg/transfer_escape/
     - assets/images/cg/xingyao_collapse/
     - assets/images/cg/audit_rescue/
+    - assets/images/cg/ch5_e04_identity/
+    - assets/images/cg/ch5_hanqi_shelf/
+    - assets/images/cg/ch5_yelan_acid/
+    - assets/images/cg/ch5_chenmo_gas/
+    - assets/images/cg/ch5_audit_prevention/
+    - assets/images/cg/ch5_bond_xingyao/
+    - assets/images/cg/ch5_bond_sumi/
+    - assets/images/cg/ch5_bond_lincheng/
     - assets/images/characters/shen_yan/
     - assets/images/characters/li_xingyao/
     - assets/images/characters/su_mi/
@@ -85,6 +93,7 @@ flutter:
     - assets/images/items/gym/
     - assets/images/items/medical/
     - assets/images/items/storage/
+    - assets/images/items/archive/
     - assets/audio/
     - assets/audio/bgm/
     - assets/audio/sfx/

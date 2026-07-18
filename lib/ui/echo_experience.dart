@@ -480,7 +480,9 @@ class _TitleLayer extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final narrow = constraints.maxWidth < 900;
-            final short = constraints.maxHeight < 650;
+            // Retina browser captures can expose only about 720 logical pixels;
+            // keep that common landscape height in the one-screen title layout.
+            final short = constraints.maxHeight < 760;
             final toolsWidth = narrow ? 230.0 : 320.0;
             return Padding(
               padding: EdgeInsets.fromLTRB(
@@ -2681,6 +2683,110 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
       asset: 'assets/images/items/medical/headset_spectrum_capture.png',
       description: '七秒周期的18.6kHz脉冲只存在于右声道，证明暴露沿PDA输出链定向发生。',
     ),
+    'archive_roster': _InvestigationItem(
+      id: 'archive_roster',
+      name: '装订绑架名册',
+      asset: 'assets/images/items/archive/archive_roster.png',
+      description: '厚纸名册从01排到12，末页的纸张、墨色与装订状态需要分开核对。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['archive_roster_binding'],
+          name: '装订痕迹连续的名册',
+          description: '01至11的页码、骑缝章和指纹栏连续；“12”位于末页新墨粉上，还需要复原打印先后。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['archive_roster_binding', 'archive_roster_overlay'],
+          name: '确认只有十一人的原始名册',
+          asset: 'assets/images/items/archive/archive_roster_verified.png',
+          description: '斜纹片显示“12”的墨粉覆盖装订锈斑，且缺少姓名、指纹、药量和运输编号。原始绑架链只包含01至11。',
+        ),
+      ],
+    ),
+    'archive_photo': _InvestigationItem(
+      id: 'archive_photo',
+      name: '被涂改的旧员工合照',
+      asset: 'assets/images/items/archive/archive_photo.png',
+      description: '合照右侧有一块被黑墨覆盖的长方形区域，背面粘着半张褪色资产签。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['archive_photo_edges'],
+          description: '黑墨边缘是规则的设备轮廓，不像沿人像描画；背面资产签仍无法完整辨认。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['archive_photo_edges', 'archive_photo_light'],
+          name: '显出维护终端的旧合照',
+          asset: 'assets/images/items/archive/archive_photo_revealed.png',
+          description: '透射光显出推车式测试终端与“SLOT-12 / MAINTENANCE”资产标签。被遮住的从来不是一张人脸。',
+        ),
+      ],
+    ),
+    'access_backup': _InvestigationItem(
+      id: 'access_backup',
+      name: '门禁备份纸卷',
+      asset: 'assets/images/items/archive/access_backup.png',
+      description: '热敏纸连续记录身份槽、区域和秒级时间，纸卷很长，直接阅读难以看出跨区关系。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['archive_access_sequence'],
+          description: '已圈出12号握手：F-01、C-02与E-04的记录相隔只有七秒，但还需要与实际路线时间叠合。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: [
+            'archive_access_sequence',
+            'archive_access_overlay',
+          ],
+          name: '不可能的12号跨区路径',
+          asset: 'assets/images/items/archive/access_backup_mapped.png',
+          description: '透明时间尺显示最短步行需要九分钟；七秒切换只能由多个固定底座轮流重放同一身份。',
+        ),
+      ],
+    ),
+    'archive_server': _InvestigationItem(
+      id: 'archive_server',
+      name: '离线服务器镜像台',
+      asset: 'assets/images/items/archive/server_mirror.png',
+      description: '镜像台与主机物理断开，抽屉内封存着三件年代鉴别和校验工具。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: [
+            'archive_take_overlay',
+            'archive_take_light',
+            'archive_take_checksum',
+          ],
+          name: '取出工具的镜像台',
+          description: '年代斜纹片、冷光透射片和只读校验钥匙均已取出；镜像配置仍需要独立校验。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: [
+            'archive_take_overlay',
+            'archive_take_light',
+            'archive_take_checksum',
+            'archive_server_checksum',
+          ],
+          name: '验证身份槽配置的镜像台',
+          asset: 'assets/images/items/archive/server_mirror_verified.png',
+          description: '只读校验确认12号仅有“计入人数、接受托管、占用区域”三项开关，没有个人档案；修改均由ZERO裁定进程签名。',
+        ),
+      ],
+    ),
+    'date_overlay': _InvestigationItem(
+      id: 'date_overlay',
+      name: '年代斜纹片',
+      asset: 'assets/images/items/archive/date_overlay.png',
+      description: '带微距刻线的透明片，可对齐纸张压痕、锈斑与热敏时间，判断记录生成先后。',
+    ),
+    'transmitted_light': _InvestigationItem(
+      id: 'transmitted_light',
+      name: '冷光透射片',
+      asset: 'assets/images/items/archive/transmitted_light.png',
+      description: '均匀低温背光片，可显出相纸黑墨下的轮廓和背面资产标签，不继续损伤旧照片。',
+    ),
+    'checksum_key': _InvestigationItem(
+      id: 'checksum_key',
+      name: '只读校验钥匙',
+      asset: 'assets/images/items/archive/checksum_key.png',
+      description: '只验证离线镜像签名、不具备写入能力的硬件钥匙，无法借检查动作修改配置。',
+    ),
   };
 
   static const _controlRoom = _InvestigationSpec(
@@ -3105,10 +3211,132 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
     ],
   );
 
+  static const _archive = _InvestigationSpec(
+    title: '档案复原 / E-04',
+    targets: [
+      _InvestigationTarget(
+        id: 'archive_roster',
+        initialLabel: '纸质绑架名册',
+        clueTitle: '初始名单只有十一人',
+        asset: 'assets/images/items/archive/archive_roster.png',
+        prompt: '末页出现“12”不能直接证明第十二人存在。先核对装订连续性，再判断墨粉与锈斑的覆盖先后。',
+        actions: [
+          _InspectionAction(
+            id: 'archive_roster_binding',
+            label: '核对页码、骑缝章与指纹栏',
+            icon: Icons.menu_book_outlined,
+            result: '01至11的页码与骑缝章连续，每人都有指纹、药量和运输栏；末页12只有新打印编号。',
+          ),
+          _InspectionAction(
+            id: 'archive_roster_overlay',
+            label: '对齐墨粉、压痕与装订锈斑',
+            icon: Icons.layers_outlined,
+            requiresItems: ['date_overlay'],
+            requiresActions: ['archive_roster_binding'],
+            result: '斜纹片显示“12”的墨粉覆盖在装订锈斑之上，是绑架完成后补入的字段。',
+            verifiesClue: 'initial_roster_11',
+          ),
+        ],
+      ),
+      _InvestigationTarget(
+        id: 'archive_photo',
+        initialLabel: '被涂改的员工合照',
+        clueTitle: 'SLOT-12维护终端',
+        asset: 'assets/images/items/archive/archive_photo.png',
+        prompt: '黑墨遮住一块规则轮廓。不要先假定那是一名被抹除的人，先观察边缘与背面残签。',
+        actions: [
+          _InspectionAction(
+            id: 'archive_photo_edges',
+            label: '检查黑墨边缘与墙面螺孔',
+            icon: Icons.photo_size_select_large_outlined,
+            result: '遮挡区边缘笔直，底部有推车轮廓；尺寸与档案库墙上拆走设备后的螺孔一致。',
+          ),
+          _InspectionAction(
+            id: 'archive_photo_light',
+            label: '透照黑墨与背面资产签',
+            icon: Icons.light_mode_outlined,
+            requiresItems: ['transmitted_light'],
+            requiresActions: ['archive_photo_edges'],
+            result: '透射光显出一台测试终端，资产标签完整读作“SLOT-12 / MAINTENANCE”。',
+            verifiesClue: 'slot12_asset_tag',
+          ),
+        ],
+      ),
+      _InvestigationTarget(
+        id: 'access_backup',
+        initialLabel: '门禁备份纸卷',
+        clueTitle: '七秒跨区重放',
+        asset: 'assets/images/items/archive/access_backup.png',
+        prompt: '连续纸卷记录很多真实进出。先提取12号序列，再与设施实际步行时间叠合。',
+        actions: [
+          _InspectionAction(
+            id: 'archive_access_sequence',
+            label: '按身份槽提取连续握手',
+            icon: Icons.receipt_long_outlined,
+            result: '12号依次在F-01、C-02、E-04出现，相邻记录只差七秒；三个位置都装有固定底座。',
+          ),
+          _InspectionAction(
+            id: 'archive_access_overlay',
+            label: '叠合秒级时间与最短路线',
+            icon: Icons.route_outlined,
+            requiresItems: ['date_overlay'],
+            requiresActions: ['archive_access_sequence'],
+            result: '最短路线也需要九分钟。七秒切换无法来自一具连续移动的身体，只能是固定底座重放。',
+            verifiesClue: 'slot12_impossible_travel',
+          ),
+        ],
+      ),
+      _InvestigationTarget(
+        id: 'archive_server',
+        initialLabel: '离线镜像与工具抽屉',
+        clueTitle: '可切换的身份槽配置',
+        asset: 'assets/images/items/archive/server_mirror.png',
+        prompt: '先取出不会向主机发送握手的工具，再校验镜像；不要用联网终端直接打开配置。',
+        actions: [
+          _InspectionAction(
+            id: 'archive_take_overlay',
+            label: '取出年代斜纹片',
+            icon: Icons.layers_outlined,
+            result: '透明片可以比较纸张压痕、装订锈斑与热敏纸时间，但本身不提供结论。',
+            grantsItem: 'date_overlay',
+          ),
+          _InspectionAction(
+            id: 'archive_take_light',
+            label: '取出冷光透射片',
+            icon: Icons.light_mode_outlined,
+            result: '低温背光不会进一步损伤相纸，可观察黑墨下仍保留的银盐影像。',
+            grantsItem: 'transmitted_light',
+          ),
+          _InspectionAction(
+            id: 'archive_take_checksum',
+            label: '取出只读校验钥匙',
+            icon: Icons.key_outlined,
+            result: '硬件钥匙没有写入触点，只能验证镜像签名，无法把检查动作伪装成配置修改。',
+            grantsItem: 'checksum_key',
+          ),
+          _InspectionAction(
+            id: 'archive_server_checksum',
+            label: '离线校验身份槽12配置',
+            icon: Icons.verified_user_outlined,
+            requiresItems: ['checksum_key'],
+            requiresActions: [
+              'archive_take_overlay',
+              'archive_take_light',
+              'archive_take_checksum',
+            ],
+            result: '镜像中没有12号个人档案，只有人数、托管与区域占用三项独立开关，修改由ZERO裁定进程签名。',
+            verifiesClue: 'slot12_configurable_identity',
+          ),
+        ],
+      ),
+    ],
+  );
+
   _InvestigationSpec get _spec => switch (widget.controller.currentId) {
     'ch2_gym_investigation' => _gym,
     'ch3_storage_investigation' => _storage,
     'ch4_medical_investigation' => _medical,
+    'ch5_archive_investigation' => _archive,
     _ => _controlRoom,
   };
 
@@ -3123,7 +3351,7 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
       widget.controller.investigationClues.intersection(_currentClueIds);
 
   _InvestigationTarget? _targetFor(String id) {
-    for (final spec in [_controlRoom, _gym, _storage, _medical]) {
+    for (final spec in [_controlRoom, _gym, _storage, _medical, _archive]) {
       for (final target in spec.targets) {
         if (target.id == id) return target;
       }
@@ -4120,6 +4348,7 @@ class _DeductionLayerState extends State<_DeductionLayer> {
 
   bool get _isCase02 => widget.controller.currentId == 'ch3_case02_deduction';
   bool get _isCase03 => widget.controller.currentId == 'ch4_case03_deduction';
+  bool get _isCase04 => widget.controller.currentId == 'ch5_case04_deduction';
 
   @override
   void initState() {
@@ -4145,7 +4374,13 @@ class _DeductionLayerState extends State<_DeductionLayer> {
     }
   }
 
-  List<({String id, String title, String prompt})> get _roles => _isCase03
+  List<({String id, String title, String prompt})> get _roles => _isCase04
+      ? const [
+          (id: 'fact', title: '初始实体', prompt: '确认绑架开始时有多少组完整的人身记录'),
+          (id: 'threshold', title: '连续身体', prompt: '判断12号的区域移动是否可能由同一人完成'),
+          (id: 'mechanism', title: '系统身份', prompt: '说明服务器究竟为12号保存了什么'),
+        ]
+      : _isCase03
       ? const [
           (id: 'fact', title: '身体反应', prompt: '先确认昏厥前后出现了哪组体征'),
           (id: 'threshold', title: '暴露媒介', prompt: '找出症状加重前什么只作用于患者'),
@@ -4164,7 +4399,46 @@ class _DeductionLayerState extends State<_DeductionLayer> {
         ];
 
   List<({String id, IconData icon, String title, String body})> get _evidence =>
-      _isCase03
+      _isCase04
+      ? const [
+          (
+            id: 'initial_roster_11',
+            icon: Icons.menu_book_outlined,
+            title: '连续的十一组绑架记录',
+            body: '01至11有指纹、药量与运输栏，12为事后补印',
+          ),
+          (
+            id: 'slot12_impossible_travel',
+            icon: Icons.route_outlined,
+            title: '七秒跨越三处区域',
+            body: '最短步行九分钟，三个固定底座依次发出握手',
+          ),
+          (
+            id: 'slot12_configurable_identity',
+            icon: Icons.settings_input_component_outlined,
+            title: '三项可切换配置',
+            body: '只有人数、托管与区域开关，没有个人档案',
+          ),
+          (
+            id: 'slot12_asset_tag',
+            icon: Icons.badge_outlined,
+            title: 'SLOT-12资产标签',
+            body: '旧合照中被涂黑的是推车式维护终端',
+          ),
+          (
+            id: 'missing_wall_mount',
+            icon: Icons.crop_square_outlined,
+            title: '墙面设备拆除印记',
+            body: '螺孔尺寸与旧照片里的测试设备相符',
+          ),
+          (
+            id: 'white_signal_online',
+            icon: Icons.radio_button_checked,
+            title: '12号白点持续在线',
+            body: '白点在多个区域出现，但在线本身不能证明实体存在',
+          ),
+        ]
+      : _isCase03
       ? const [
           (
             id: 'clinical_pattern',
@@ -4281,7 +4555,17 @@ class _DeductionLayerState extends State<_DeductionLayer> {
           ),
         ];
 
-  List<(String, String, String)> get _hypotheses => _isCase03
+  List<(String, String, String)> get _hypotheses => _isCase04
+      ? const [
+          ('hidden_person', '被隐藏的第十二名参与者', '12号是被主办方删除姓名、藏在设施深处的真人。'),
+          ('deleted_participant', '已死亡后继续使用的编号', '12号曾是参与者，死亡后其终端仍被系统当作在线身份。'),
+          (
+            'maintenance_slot',
+            '可重放的维护身份槽',
+            '12号没有对应身体，由多个底座重放并被选择性计入人数、托管与区域。',
+          ),
+        ]
+      : _isCase03
       ? const [
           ('sedative_poisoning', '镇静剂投药', '失踪药物被用在星遥身上，高频只是与昏厥同时出现。'),
           ('air_contamination', '换气污染导致昏厥', '隔离病房的风管向室内输送了未知刺激物。'),
@@ -4299,7 +4583,13 @@ class _DeductionLayerState extends State<_DeductionLayer> {
           ('repeater', '中继器伪造定位', '凶手转发了距离握手，让项圈在规则内执行死刑。'),
         ];
 
-  Map<String, String> get _correctChain => _isCase03
+  Map<String, String> get _correctChain => _isCase04
+      ? const {
+          'fact': 'initial_roster_11',
+          'threshold': 'slot12_impossible_travel',
+          'mechanism': 'slot12_configurable_identity',
+        }
+      : _isCase03
       ? const {
           'fact': 'clinical_pattern',
           'threshold': 'directed_tone',
@@ -4347,7 +4637,9 @@ class _DeductionLayerState extends State<_DeductionLayer> {
     setState(() {
       _chainVerified = verified;
       _chainFeedback = verified
-          ? _isCase03
+          ? _isCase04
+                ? '证据链闭合：初始绑架链只有十一人，12号无法对应连续身体，服务器也只保存可切换的维护身份配置。'
+                : _isCase03
                 ? '证据链闭合：体征符合定向感觉冲突，脉冲只进入右声道，现场也没有镇静剂进入体内的路径。'
                 : _isCase02
                 ? '证据链闭合：物资真实移动，旧会话在撤销后仍可用，系统随后把签名归到01名下。'
@@ -4365,7 +4657,9 @@ class _DeductionLayerState extends State<_DeductionLayer> {
         children: [
           _TopBar(
             controller: widget.controller,
-            title: _isCase03
+            title: _isCase04
+                ? '身份推演 / CASE 04'
+                : _isCase03
                 ? '医学推演 / CASE 03'
                 : _isCase02
                 ? '权限推演 / CASE 02'
@@ -4464,7 +4758,9 @@ class _DeductionLayerState extends State<_DeductionLayer> {
                       if (_chainVerified) ...[
                         const SizedBox(height: 22),
                         _Eyebrow(
-                          text: _isCase03
+                          text: _isCase04
+                              ? 'IDENTITY OF SLOT 12'
+                              : _isCase03
                               ? 'CAUSE OF SYNCOPE'
                               : _isCase02
                               ? 'OPERATION OWNERSHIP'
@@ -4503,7 +4799,9 @@ class _DeductionLayerState extends State<_DeductionLayer> {
                                   },
                             icon: const Icon(Icons.gavel_outlined),
                             label: Text(
-                              _isCase03
+                              _isCase04
+                                  ? '提交12号身份判断'
+                                  : _isCase03
                                   ? '提交昏厥机制'
                                   : _isCase02
                                   ? '提交操作归属'

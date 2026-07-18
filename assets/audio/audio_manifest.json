@@ -1,10 +1,10 @@
 {
-  "version": 4,
-  "status": "p0_sources_integrated_for_audition",
+  "version": 5,
+  "status": "p0_pixabay_and_p1_original_integrated",
   "format": {
     "master": "wav, 48kHz, 24-bit",
-    "bgm": "ogg, stereo, 48kHz, seamless loop",
-    "sfx": "ogg, mono or stereo, 48kHz",
+    "bgm": "runtime MP3 or AAC/M4A, stereo",
+    "sfx": "runtime MP3 or AAC/M4A, mono or stereo",
     "voice": "ogg, mono, 48kHz, -18 LUFS target",
     "downloaded": "mp3, original Pixabay sample rate and mix"
   },
@@ -19,10 +19,10 @@
   "sourceProcessing": {
     "readyForAudition": true,
     "runtimeIntegrated": true,
-    "runtimeFormat": "mp3",
+    "runtimeFormat": "mp3 + aac/m4a",
     "longOneShotsUsePlaybackCaps": true,
-    "requiresTrimLoopAndLoudnessPass": true,
-    "records": "assets/audio/pixabay_sources.json",
+    "requiresTrimLoopAndLoudnessPass": false,
+    "records": "assets/audio/pixabay_sources.json + assets/audio/original_sources.json",
     "cueResolver": "lib/audio/audio_cues.dart",
     "playbackController": "lib/audio/game_audio_controller.dart"
   },
@@ -54,8 +54,13 @@
       "priority": "P0",
       "loop": true,
       "targetSeconds": "90-150",
-      "usage": ["title", "ending_review", "route_map"],
-      "brief": "冷静、空旷、带三音电子识别动机，不直接恐怖"
+      "usage": [
+        "title",
+        "ending_review",
+        "route_map"
+      ],
+      "brief": "冷静、空旷、带三音电子识别动机，不直接恐怖",
+      "origin": "pixabay"
     },
     {
       "id": "awakening_room",
@@ -63,8 +68,13 @@
       "priority": "P0",
       "loop": true,
       "targetSeconds": "90-180",
-      "usage": ["game_start", "dormitory", "early_corridor"],
-      "brief": "荧光灯与低频空气感，困惑大于危险，极少旋律"
+      "usage": [
+        "game_start",
+        "dormitory",
+        "early_corridor"
+      ],
+      "brief": "荧光灯与低频空气感，困惑大于危险，极少旋律",
+      "origin": "pixabay"
     },
     {
       "id": "assembly_distrust",
@@ -72,8 +82,13 @@
       "priority": "P0",
       "loop": true,
       "targetSeconds": "100-180",
-      "usage": ["assembly_hall", "introductions", "rule_discussion"],
-      "brief": "克制的低音弦乐与脉冲，适合长对话，不抢人声"
+      "usage": [
+        "assembly_hall",
+        "introductions",
+        "rule_discussion"
+      ],
+      "brief": "克制的低音弦乐与脉冲，适合长对话，不抢人声",
+      "origin": "pixabay"
     },
     {
       "id": "rule_execution",
@@ -81,8 +96,13 @@
       "priority": "P0",
       "loop": true,
       "targetSeconds": "45-75",
-      "usage": ["final_warning", "collar_detonation", "death_announcement"],
-      "brief": "从主办方三音动机升级为失真警报和低频冲击，结尾留静默"
+      "usage": [
+        "final_warning",
+        "collar_detonation",
+        "death_announcement"
+      ],
+      "brief": "从主办方三音动机升级为失真警报和低频冲击，结尾留静默",
+      "origin": "pixabay"
     },
     {
       "id": "aftermath_void",
@@ -90,8 +110,13 @@
       "priority": "P0",
       "loop": true,
       "targetSeconds": "90-150",
-      "usage": ["death_aftermath", "grief", "body_discovery"],
-      "brief": "稀疏钢琴、空气噪声和长尾，不煽情"
+      "usage": [
+        "death_aftermath",
+        "grief",
+        "body_discovery"
+      ],
+      "brief": "稀疏钢琴、空气噪声和长尾，不煽情",
+      "origin": "pixabay"
     },
     {
       "id": "investigation_pulse",
@@ -99,8 +124,13 @@
       "priority": "P0",
       "loop": true,
       "targetSeconds": "120-210",
-      "usage": ["investigation", "inventory", "puzzle"],
-      "brief": "法证感低频脉冲、极简合成器，无鼓或弱节拍"
+      "usage": [
+        "investigation",
+        "inventory",
+        "puzzle"
+      ],
+      "brief": "法证感低频脉冲、极简合成器，无鼓或弱节拍",
+      "origin": "pixabay"
     },
     {
       "id": "deduction_chain",
@@ -108,8 +138,13 @@
       "priority": "P0",
       "loop": true,
       "targetSeconds": "100-180",
-      "usage": ["deduction", "evidence_chain", "rule_inference"],
-      "brief": "逐层增加的钟表和电子节拍，正确闭环时可叠加高音层"
+      "usage": [
+        "deduction",
+        "evidence_chain",
+        "rule_inference"
+      ],
+      "brief": "逐层增加的钟表和电子节拍，正确闭环时可叠加高音层",
+      "origin": "pixabay"
     },
     {
       "id": "countdown_crisis",
@@ -117,71 +152,108 @@
       "priority": "P0",
       "loop": true,
       "targetSeconds": "75-120",
-      "usage": ["sealed_area", "distance_threshold", "evacuation"],
-      "brief": "机械脉冲和克制打击乐，必须能长时间循环而不疲劳"
+      "usage": [
+        "sealed_area",
+        "distance_threshold",
+        "evacuation"
+      ],
+      "brief": "机械脉冲和克制打击乐，必须能长时间循环而不疲劳",
+      "origin": "pixabay"
     },
     {
       "id": "rescue_action",
-      "asset": "assets/audio/bgm/rescue_action.ogg",
+      "asset": "assets/audio/bgm/rescue_action.m4a",
       "priority": "P1",
       "loop": true,
-      "targetSeconds": "75-120",
-      "usage": ["gym_rescue", "medical_transfer", "team_action"],
-      "brief": "偏人力协作的紧张节奏，不做英雄式预告片音乐"
+      "targetSeconds": "64",
+      "usage": [
+        "gym_rescue",
+        "medical_transfer",
+        "team_action"
+      ],
+      "brief": "偏人力协作的紧张节奏，不做英雄式预告片音乐",
+      "origin": "procedural_original"
     },
     {
       "id": "night_facility",
-      "asset": "assets/audio/bgm/night_facility.ogg",
+      "asset": "assets/audio/bgm/night_facility.m4a",
       "priority": "P1",
       "loop": true,
-      "targetSeconds": "120-240",
-      "usage": ["rest_period", "night_conversation", "empty_facility"],
-      "brief": "安静但无法真正放松，远处机械声与微弱和声"
+      "targetSeconds": "64",
+      "usage": [
+        "rest_period",
+        "night_conversation",
+        "empty_facility"
+      ],
+      "brief": "安静但无法真正放松，远处机械声与微弱和声",
+      "origin": "procedural_original"
     },
     {
       "id": "bond_xingyao",
-      "asset": "assets/audio/bgm/bond_xingyao.ogg",
+      "asset": "assets/audio/bgm/bond_xingyao.m4a",
       "priority": "P1",
       "loop": true,
-      "targetSeconds": "90-150",
-      "usage": ["xingyao_bond", "xingyao_romance"],
-      "brief": "清亮钢琴、玻璃质感合成器与轻微数字噪点，聪敏又不安"
+      "targetSeconds": "64",
+      "usage": [
+        "xingyao_bond",
+        "xingyao_romance"
+      ],
+      "brief": "清亮钢琴、玻璃质感合成器与轻微数字噪点，聪敏又不安",
+      "origin": "procedural_original"
     },
     {
       "id": "bond_sumi",
-      "asset": "assets/audio/bgm/bond_sumi.ogg",
+      "asset": "assets/audio/bgm/bond_sumi.m4a",
       "priority": "P1",
       "loop": true,
-      "targetSeconds": "90-150",
-      "usage": ["sumi_bond", "sumi_romance"],
-      "brief": "温暖钢琴和低音大提琴，克制、可靠，避免医疗剧煽情"
+      "targetSeconds": "64",
+      "usage": [
+        "sumi_bond",
+        "sumi_romance"
+      ],
+      "brief": "温暖钢琴和低音大提琴，克制、可靠，避免医疗剧煽情",
+      "origin": "procedural_original"
     },
     {
       "id": "bond_lincheng",
-      "asset": "assets/audio/bgm/bond_lincheng.ogg",
+      "asset": "assets/audio/bgm/bond_lincheng.m4a",
       "priority": "P1",
       "loop": true,
-      "targetSeconds": "90-150",
-      "usage": ["lincheng_bond", "lincheng_romance"],
-      "brief": "轻木琴、拨弦和柔和钢琴，保留学生感但不幼稚"
+      "targetSeconds": "64",
+      "usage": [
+        "lincheng_bond",
+        "lincheng_romance"
+      ],
+      "brief": "轻木琴、拨弦和柔和钢琴，保留学生感但不幼稚",
+      "origin": "procedural_original"
     },
     {
       "id": "betrayal_hunt",
-      "asset": "assets/audio/bgm/betrayal_hunt.ogg",
+      "asset": "assets/audio/bgm/betrayal_hunt.m4a",
       "priority": "P1",
       "loop": true,
-      "targetSeconds": "75-120",
-      "usage": ["killing_route", "armed_conflict", "bad_end"],
-      "brief": "工业噪声、心跳式低频与不规则节拍，强调人对人的威胁"
+      "targetSeconds": "64",
+      "usage": [
+        "killing_route",
+        "armed_conflict",
+        "bad_end"
+      ],
+      "brief": "工业噪声、心跳式低频与不规则节拍，强调人对人的威胁",
+      "origin": "procedural_original"
     },
     {
       "id": "audit_revelation",
-      "asset": "assets/audio/bgm/audit_revelation.ogg",
+      "asset": "assets/audio/bgm/audit_revelation.m4a",
       "priority": "P1",
       "loop": true,
-      "targetSeconds": "100-180",
-      "usage": ["audit_route", "organizer_truth", "hidden_system"],
-      "brief": "标题三音动机的完整形态，从冷硬逐渐转为可理解的和声"
+      "targetSeconds": "64",
+      "usage": [
+        "audit_route",
+        "organizer_truth",
+        "hidden_system"
+      ],
+      "brief": "标题三音动机的完整形态，从冷硬逐渐转为可理解的和声",
+      "origin": "procedural_original"
     },
     {
       "id": "ending_afterlight",
@@ -189,63 +261,472 @@
       "priority": "P0",
       "loop": false,
       "targetSeconds": "120-210",
-      "usage": ["survival_ending", "romance_ending", "credits"],
-      "brief": "带伤痕的希望感，先独奏后加入弦乐，保留标题三音动机"
+      "usage": [
+        "survival_ending",
+        "romance_ending",
+        "credits"
+      ],
+      "brief": "带伤痕的希望感，先独奏后加入弦乐，保留标题三音动机",
+      "origin": "pixabay"
     }
   ],
   "sfx": [
-    {"id": "ui_confirm", "asset": "assets/audio/sfx/ui_confirm.mp3", "group": "ui", "priority": "P0", "loop": false},
-    {"id": "ui_cancel", "asset": "assets/audio/sfx/ui_cancel.mp3", "group": "ui", "priority": "P0", "loop": false},
-    {"id": "pda_open", "asset": "assets/audio/sfx/pda_open.mp3", "group": "ui", "priority": "P0", "loop": false},
-    {"id": "pda_close", "asset": "assets/audio/sfx/pda_close.mp3", "group": "ui", "priority": "P0", "loop": false},
-    {"id": "save_complete", "asset": "assets/audio/sfx/save_complete.mp3", "group": "ui", "priority": "P0", "loop": false},
-    {"id": "load_complete", "asset": "assets/audio/sfx/load_complete.mp3", "group": "ui", "priority": "P0", "loop": false},
-    {"id": "choice_reveal", "asset": "assets/audio/sfx/choice_reveal.mp3", "group": "ui", "priority": "P0", "loop": false},
-    {"id": "route_jump", "asset": "assets/audio/sfx/route_jump.ogg", "group": "ui", "priority": "P1", "loop": false},
-    {"id": "clue_acquired", "asset": "assets/audio/sfx/clue_acquired.mp3", "group": "ui", "priority": "P0", "loop": false},
-    {"id": "combine_success", "asset": "assets/audio/sfx/combine_success.mp3", "group": "ui", "priority": "P0", "loop": false},
-    {"id": "combine_fail", "asset": "assets/audio/sfx/combine_fail.mp3", "group": "ui", "priority": "P0", "loop": false},
-
-    {"id": "terminal_boot", "asset": "assets/audio/sfx/terminal_boot.mp3", "group": "system", "priority": "P0", "loop": false},
-    {"id": "pda_notification", "asset": "assets/audio/sfx/pda_notification.mp3", "group": "system", "priority": "P0", "loop": false},
-    {"id": "administrator_channel_on", "asset": "assets/audio/sfx/administrator_channel_on.mp3", "group": "system", "priority": "P0", "loop": false},
-    {"id": "administrator_channel_off", "asset": "assets/audio/sfx/administrator_channel_off.ogg", "group": "system", "priority": "P1", "loop": false},
-    {"id": "collar_warning", "asset": "assets/audio/sfx/collar_warning.mp3", "group": "system", "priority": "P0", "loop": false},
-    {"id": "collar_lock", "asset": "assets/audio/sfx/collar_lock.mp3", "group": "system", "priority": "P0", "loop": false},
-    {"id": "collar_detonation", "asset": "assets/audio/sfx/collar_detonation.mp3", "group": "story", "priority": "P0", "loop": false},
-    {"id": "facility_alarm", "asset": "assets/audio/sfx/facility_alarm.mp3", "group": "system", "priority": "P0", "loop": true},
-    {"id": "access_granted", "asset": "assets/audio/sfx/access_granted.mp3", "group": "system", "priority": "P0", "loop": false},
-    {"id": "access_denied", "asset": "assets/audio/sfx/access_denied.mp3", "group": "system", "priority": "P0", "loop": false},
-    {"id": "surveillance_servo", "asset": "assets/audio/sfx/surveillance_servo.ogg", "group": "system", "priority": "P1", "loop": false},
-
-    {"id": "amb_fluorescent_hum", "asset": "assets/audio/sfx/amb_fluorescent_hum.mp3", "group": "ambience", "priority": "P0", "loop": true},
-    {"id": "amb_ventilation", "asset": "assets/audio/sfx/amb_ventilation.mp3", "group": "ambience", "priority": "P0", "loop": true},
-    {"id": "amb_corridor_roomtone", "asset": "assets/audio/sfx/amb_corridor_roomtone.mp3", "group": "ambience", "priority": "P0", "loop": true},
-    {"id": "amb_assembly_pa", "asset": "assets/audio/sfx/amb_assembly_pa.ogg", "group": "ambience", "priority": "P1", "loop": true},
-    {"id": "amb_infirmary_equipment", "asset": "assets/audio/sfx/amb_infirmary_equipment.ogg", "group": "ambience", "priority": "P1", "loop": true},
-    {"id": "amb_storage_refrigeration", "asset": "assets/audio/sfx/amb_storage_refrigeration.ogg", "group": "ambience", "priority": "P1", "loop": true},
-
-    {"id": "metal_door_open", "asset": "assets/audio/sfx/metal_door_open.mp3", "group": "foley", "priority": "P0", "loop": false},
-    {"id": "metal_door_lock", "asset": "assets/audio/sfx/metal_door_lock.mp3", "group": "foley", "priority": "P0", "loop": false},
-    {"id": "footsteps_concrete", "asset": "assets/audio/sfx/footsteps_concrete.ogg", "group": "foley", "priority": "P1", "loop": false},
-    {"id": "wrench_impact", "asset": "assets/audio/sfx/wrench_impact.mp3", "group": "story", "priority": "P0", "loop": false},
-    {"id": "body_fall", "asset": "assets/audio/sfx/body_fall.mp3", "group": "story", "priority": "P0", "loop": false},
-    {"id": "shutter_motor", "asset": "assets/audio/sfx/shutter_motor.mp3", "group": "foley", "priority": "P0", "loop": true},
-    {"id": "shutter_jam", "asset": "assets/audio/sfx/shutter_jam.mp3", "group": "story", "priority": "P0", "loop": false},
-    {"id": "rope_tension", "asset": "assets/audio/sfx/rope_tension.ogg", "group": "foley", "priority": "P1", "loop": false},
-    {"id": "jack_slip", "asset": "assets/audio/sfx/jack_slip.mp3", "group": "story", "priority": "P0", "loop": false},
-    {"id": "medical_monitor", "asset": "assets/audio/sfx/medical_monitor.ogg", "group": "story", "priority": "P1", "loop": true},
-    {"id": "directed_tone", "asset": "assets/audio/sfx/directed_tone.mp3", "group": "story", "priority": "P0", "loop": false},
-
-    {"id": "item_pickup", "asset": "assets/audio/sfx/item_pickup.mp3", "group": "puzzle", "priority": "P0", "loop": false},
-    {"id": "key_unlock_box", "asset": "assets/audio/sfx/key_unlock_box.mp3", "group": "puzzle", "priority": "P0", "loop": false},
-    {"id": "box_open", "asset": "assets/audio/sfx/box_open.mp3", "group": "puzzle", "priority": "P0", "loop": false},
-    {"id": "uv_lamp", "asset": "assets/audio/sfx/uv_lamp.ogg", "group": "puzzle", "priority": "P1", "loop": false},
-    {"id": "measuring_tape", "asset": "assets/audio/sfx/measuring_tape.ogg", "group": "puzzle", "priority": "P1", "loop": false},
-    {"id": "keypad_press", "asset": "assets/audio/sfx/keypad_press.mp3", "group": "puzzle", "priority": "P0", "loop": false},
-    {"id": "balance_weight", "asset": "assets/audio/sfx/balance_weight.mp3", "group": "puzzle", "priority": "P0", "loop": false},
-    {"id": "stone_tile_slide", "asset": "assets/audio/sfx/stone_tile_slide.mp3", "group": "puzzle", "priority": "P0", "loop": false},
-    {"id": "circuit_power_on", "asset": "assets/audio/sfx/circuit_power_on.mp3", "group": "puzzle", "priority": "P0", "loop": false}
+    {
+      "id": "ui_confirm",
+      "asset": "assets/audio/sfx/ui_confirm.mp3",
+      "group": "ui",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "ui_cancel",
+      "asset": "assets/audio/sfx/ui_cancel.mp3",
+      "group": "ui",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "pda_open",
+      "asset": "assets/audio/sfx/pda_open.mp3",
+      "group": "ui",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "pda_close",
+      "asset": "assets/audio/sfx/pda_close.mp3",
+      "group": "ui",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "save_complete",
+      "asset": "assets/audio/sfx/save_complete.mp3",
+      "group": "ui",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "load_complete",
+      "asset": "assets/audio/sfx/load_complete.mp3",
+      "group": "ui",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "choice_reveal",
+      "asset": "assets/audio/sfx/choice_reveal.mp3",
+      "group": "ui",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "route_jump",
+      "asset": "assets/audio/sfx/route_jump.m4a",
+      "group": "ui",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "clue_acquired",
+      "asset": "assets/audio/sfx/clue_acquired.mp3",
+      "group": "ui",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "combine_success",
+      "asset": "assets/audio/sfx/combine_success.mp3",
+      "group": "ui",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "combine_fail",
+      "asset": "assets/audio/sfx/combine_fail.mp3",
+      "group": "ui",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "terminal_boot",
+      "asset": "assets/audio/sfx/terminal_boot.mp3",
+      "group": "system",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "pda_notification",
+      "asset": "assets/audio/sfx/pda_notification.mp3",
+      "group": "system",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "administrator_channel_on",
+      "asset": "assets/audio/sfx/administrator_channel_on.mp3",
+      "group": "system",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "administrator_channel_off",
+      "asset": "assets/audio/sfx/administrator_channel_off.m4a",
+      "group": "system",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "collar_warning",
+      "asset": "assets/audio/sfx/collar_warning.mp3",
+      "group": "system",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "collar_lock",
+      "asset": "assets/audio/sfx/collar_lock.mp3",
+      "group": "system",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "collar_detonation",
+      "asset": "assets/audio/sfx/collar_detonation.mp3",
+      "group": "story",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "facility_alarm",
+      "asset": "assets/audio/sfx/facility_alarm.mp3",
+      "group": "system",
+      "priority": "P0",
+      "loop": true,
+      "origin": "pixabay"
+    },
+    {
+      "id": "access_granted",
+      "asset": "assets/audio/sfx/access_granted.mp3",
+      "group": "system",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "access_denied",
+      "asset": "assets/audio/sfx/access_denied.mp3",
+      "group": "system",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "surveillance_servo",
+      "asset": "assets/audio/sfx/surveillance_servo.m4a",
+      "group": "system",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "amb_fluorescent_hum",
+      "asset": "assets/audio/sfx/amb_fluorescent_hum.mp3",
+      "group": "ambience",
+      "priority": "P0",
+      "loop": true,
+      "origin": "pixabay"
+    },
+    {
+      "id": "amb_ventilation",
+      "asset": "assets/audio/sfx/amb_ventilation.mp3",
+      "group": "ambience",
+      "priority": "P0",
+      "loop": true,
+      "origin": "pixabay"
+    },
+    {
+      "id": "amb_corridor_roomtone",
+      "asset": "assets/audio/sfx/amb_corridor_roomtone.mp3",
+      "group": "ambience",
+      "priority": "P0",
+      "loop": true,
+      "origin": "pixabay"
+    },
+    {
+      "id": "amb_assembly_pa",
+      "asset": "assets/audio/sfx/amb_assembly_pa.m4a",
+      "group": "ambience",
+      "priority": "P1",
+      "loop": true,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "amb_infirmary_equipment",
+      "asset": "assets/audio/sfx/amb_infirmary_equipment.m4a",
+      "group": "ambience",
+      "priority": "P1",
+      "loop": true,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "amb_storage_refrigeration",
+      "asset": "assets/audio/sfx/amb_storage_refrigeration.m4a",
+      "group": "ambience",
+      "priority": "P1",
+      "loop": true,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "metal_door_open",
+      "asset": "assets/audio/sfx/metal_door_open.mp3",
+      "group": "foley",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "metal_door_lock",
+      "asset": "assets/audio/sfx/metal_door_lock.mp3",
+      "group": "foley",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "footsteps_concrete",
+      "asset": "assets/audio/sfx/footsteps_concrete.m4a",
+      "group": "foley",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "wrench_impact",
+      "asset": "assets/audio/sfx/wrench_impact.mp3",
+      "group": "story",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "body_fall",
+      "asset": "assets/audio/sfx/body_fall.mp3",
+      "group": "story",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "shutter_motor",
+      "asset": "assets/audio/sfx/shutter_motor.mp3",
+      "group": "foley",
+      "priority": "P0",
+      "loop": true,
+      "origin": "pixabay"
+    },
+    {
+      "id": "shutter_jam",
+      "asset": "assets/audio/sfx/shutter_jam.mp3",
+      "group": "story",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "rope_tension",
+      "asset": "assets/audio/sfx/rope_tension.m4a",
+      "group": "foley",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "jack_slip",
+      "asset": "assets/audio/sfx/jack_slip.mp3",
+      "group": "story",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "medical_monitor",
+      "asset": "assets/audio/sfx/medical_monitor.m4a",
+      "group": "story",
+      "priority": "P1",
+      "loop": true,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "directed_tone",
+      "asset": "assets/audio/sfx/directed_tone.mp3",
+      "group": "story",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "item_pickup",
+      "asset": "assets/audio/sfx/item_pickup.mp3",
+      "group": "puzzle",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "key_unlock_box",
+      "asset": "assets/audio/sfx/key_unlock_box.mp3",
+      "group": "puzzle",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "box_open",
+      "asset": "assets/audio/sfx/box_open.mp3",
+      "group": "puzzle",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "uv_lamp",
+      "asset": "assets/audio/sfx/uv_lamp.m4a",
+      "group": "puzzle",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "measuring_tape",
+      "asset": "assets/audio/sfx/measuring_tape.m4a",
+      "group": "puzzle",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "keypad_press",
+      "asset": "assets/audio/sfx/keypad_press.mp3",
+      "group": "puzzle",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "balance_weight",
+      "asset": "assets/audio/sfx/balance_weight.mp3",
+      "group": "puzzle",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "stone_tile_slide",
+      "asset": "assets/audio/sfx/stone_tile_slide.mp3",
+      "group": "puzzle",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "circuit_power_on",
+      "asset": "assets/audio/sfx/circuit_power_on.mp3",
+      "group": "puzzle",
+      "priority": "P0",
+      "loop": false,
+      "origin": "pixabay"
+    },
+    {
+      "id": "archive_page",
+      "asset": "assets/audio/sfx/archive_page.m4a",
+      "group": "puzzle",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "microfilm_scanner",
+      "asset": "assets/audio/sfx/microfilm_scanner.m4a",
+      "group": "puzzle",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "archive_shelf_motor",
+      "asset": "assets/audio/sfx/archive_shelf_motor.m4a",
+      "group": "story",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "archive_shelf_impact",
+      "asset": "assets/audio/sfx/archive_shelf_impact.m4a",
+      "group": "story",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "acid_splash",
+      "asset": "assets/audio/sfx/acid_splash.m4a",
+      "group": "story",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "emergency_shower",
+      "asset": "assets/audio/sfx/emergency_shower.m4a",
+      "group": "story",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "gas_release",
+      "asset": "assets/audio/sfx/gas_release.m4a",
+      "group": "story",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "archive_seal",
+      "asset": "assets/audio/sfx/archive_seal.m4a",
+      "group": "story",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "checksum_verified",
+      "asset": "assets/audio/sfx/checksum_verified.m4a",
+      "group": "system",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    }
   ],
   "voice": []
 }

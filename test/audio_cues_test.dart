@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:galgame/audio/audio_cues.dart';
 import 'package:galgame/story/story.dart';
@@ -48,6 +50,30 @@ void main() {
       ).bgm,
       GameBgm.investigationPulse,
     );
+    expect(
+      resolveStoryAudioCue(
+        phase: StoryPhase.dialogue,
+        scene: SceneKey.archiveRoom,
+        nodeId: 'ch5_xingyao_near',
+      ).bgm,
+      GameBgm.bondXingyao,
+    );
+    expect(
+      resolveStoryAudioCue(
+        phase: StoryPhase.dialogue,
+        scene: SceneKey.archiveRoom,
+        nodeId: 'ch5_alliance_yelan_intervenes',
+      ).bgm,
+      GameBgm.betrayalHunt,
+    );
+    expect(
+      resolveStoryAudioCue(
+        phase: StoryPhase.dialogue,
+        scene: SceneKey.archiveRoom,
+        nodeId: 'ch5_audit_find_override',
+      ).bgm,
+      GameBgm.auditRevelation,
+    );
   });
 
   test('室内区域使用对应环境底噪', () {
@@ -65,7 +91,7 @@ void main() {
         scene: SceneKey.storageRoom,
         nodeId: 'supply_room',
       ).ambience,
-      GameAmbience.ventilation,
+      GameAmbience.storageRefrigeration,
     );
     expect(
       resolveStoryAudioCue(
@@ -73,7 +99,7 @@ void main() {
         scene: SceneKey.infirmary,
         nodeId: 'sumi_infirmary',
       ).ambience,
-      GameAmbience.fluorescentHum,
+      GameAmbience.infirmaryEquipment,
     );
   });
 
@@ -83,6 +109,39 @@ void main() {
     expect(storyNodeSfx('ch2_shutter_drop'), GameSfx.shutterMotor);
     expect(storyNodeSfx('ch3_b03_alarm'), GameSfx.facilityAlarm);
     expect(storyNodeSfx('ch4_tone_returns'), GameSfx.directedTone);
+    expect(
+      storyNodeSfx('ch5_hanqi_override_reveal'),
+      GameSfx.archiveShelfMotor,
+    );
+    expect(storyNodeSfx('ch5_alliance_yelan_intervenes'), GameSfx.acidSplash);
+    expect(storyNodeSfx('ch5_majority_silence_death'), GameSfx.gasRelease);
+    expect(storyNodeSfx('ch5_e04_sealed'), GameSfx.archiveSeal);
+  });
+
+  test('运行时音频枚举均指向实际资源', () {
+    for (final bgm in GameBgm.values) {
+      expect(
+        File('assets/${bgm.asset}').existsSync(),
+        isTrue,
+        reason: bgm.name,
+      );
+    }
+    for (final ambience in GameAmbience.values) {
+      expect(
+        File('assets/${ambience.asset}').existsSync(),
+        isTrue,
+        reason: ambience.name,
+      );
+    }
+    for (final sfx in GameSfx.values) {
+      expect(
+        File('assets/${sfx.asset}').existsSync(),
+        isTrue,
+        reason: sfx.name,
+      );
+    }
+    expect(GameBgm.endingAfterlight.loop, isFalse);
+    expect(GameBgm.auditRevelation.loop, isTrue);
   });
 
   test('音量设置会限制范围并持久化', () async {

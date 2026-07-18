@@ -915,7 +915,7 @@ void main() {
       storyBeats['ch4_majority_death_rescue']!.deathEvents.single.participantId,
       '09',
     );
-    expect(storyBeats['ch4_end']!.next, isNull);
+    expect(storyBeats['ch4_end']!.next, 'ch5_midnight');
     expect(
       routeNodes.where((node) => node.id.startsWith('ch4_')).length,
       lessThan(chapter.length ~/ 6),
@@ -1033,6 +1033,124 @@ void main() {
     );
   });
 
+  test('第五章完成校验字段、E-04调查与12号身份推理', () {
+    final chapter = storyBeats.values
+        .where((beat) => beat.id.startsWith('ch5_'))
+        .toList();
+
+    expect(chapter.length, greaterThanOrEqualTo(80));
+    expect(storyBeats['ch5_midnight']!.timelineMinute, 4320);
+    expect(
+      storyBeats['ch5_archive_investigation']!.phase,
+      StoryPhase.investigation,
+    );
+    expect(storyBeats['ch5_case04_deduction']!.phase, StoryPhase.deduction);
+    expect(storyBeats['ch5_archive_first_view']!.scene, SceneKey.archiveRoom);
+    expect(
+      storyBeats['ch5_case04_resolved']!.flagsOnEnter,
+      contains('slot12_maintenance_proven'),
+    );
+    expect(storyBeats['ch5_end']!.next, isNull);
+    expect(
+      routeNodes.where((node) => node.id.startsWith('ch5_')).length,
+      lessThan(chapter.length ~/ 4),
+    );
+    for (final path in [
+      'assets/images/scenes/archive_room.png',
+      'assets/images/items/archive/archive_roster.png',
+      'assets/images/items/archive/archive_roster_verified.png',
+      'assets/images/items/archive/archive_photo.png',
+      'assets/images/items/archive/archive_photo_revealed.png',
+      'assets/images/items/archive/access_backup.png',
+      'assets/images/items/archive/access_backup_mapped.png',
+      'assets/images/items/archive/server_mirror.png',
+      'assets/images/items/archive/server_mirror_verified.png',
+      'assets/images/items/archive/date_overlay.png',
+      'assets/images/items/archive/transmitted_light.png',
+      'assets/images/items/archive/checksum_key.png',
+    ]) {
+      expect(File(path).existsSync(), isTrue, reason: '$path 必须存在');
+    }
+  });
+
+  test('第五章普通模式沿三种首杀制度产生不同复仇或灭口后果', () async {
+    const routes = [
+      (
+        next: 'ch4_strong_custody',
+        expectedDeath: '04',
+        expectedResponsible: '06',
+        expectedFlag: 'ch5_revenge_killing',
+      ),
+      (
+        next: 'ch4_alliance_custody',
+        expectedDeath: '11',
+        expectedResponsible: '08',
+        expectedFlag: 'ch5_silencing_killing',
+      ),
+      (
+        next: 'ch4_majority_custody',
+        expectedDeath: '08',
+        expectedResponsible: '06',
+        expectedFlag: 'ch5_majority_repeated_killing',
+      ),
+    ];
+
+    for (final route in routes) {
+      final controller = await StoryController.load();
+      controller.startNew();
+      _advanceUntil(controller, 'ch4_key_custody_choice', allowMechanics: true);
+      controller.choose(
+        controller.availableChoices.singleWhere(
+          (choice) => choice.next == route.next,
+        ),
+      );
+      _advanceUntil(controller, 'ch5_end', allowMechanics: true);
+
+      final death = controller.deathRecords.singleWhere(
+        (record) => record.storyNodeId.startsWith('ch5_'),
+      );
+      expect(death.participantId, route.expectedDeath, reason: route.next);
+      expect(
+        death.responsibleParticipantIds,
+        contains(route.expectedResponsible),
+        reason: route.next,
+      );
+      expect(controller.flags, contains(route.expectedFlag));
+      expect(controller.flags, contains('case04_solved'));
+    }
+  });
+
+  test('第五章审计模式验证预演并阻止三条杀戮链', () async {
+    final controller = await StoryController.load();
+    controller.completeFullRunEnding('ending_four_seats');
+    controller.startNew(mode: StoryRunMode.audit);
+    _advanceUntil(controller, 'ch4_audit_decision', allowMechanics: true);
+    controller.choose(
+      controller.availableChoices.singleWhere(
+        (choice) => choice.next == 'ch4_audit_public_seal',
+      ),
+    );
+    _advanceUntil(controller, 'ch5_end', allowMechanics: true);
+
+    expect(controller.flags, contains('ch5_audit_chain_blocked'));
+    expect(controller.flags, contains('ch5_slot12_count_rejected'));
+    expect(controller.flags, contains('ch5_restore_signature_escrowed'));
+    expect(
+      controller.deathRecords.where(
+        (record) => record.storyNodeId.startsWith('ch5_'),
+      ),
+      isEmpty,
+    );
+    expect(
+      controller.highRiskItems['door_override']!.state,
+      HighRiskItemState.indexed,
+    );
+    expect(
+      controller.highRiskItems['corrosive_cleaner']!.state,
+      HighRiskItemState.indexed,
+    );
+  });
+
   test('游戏正文和鉴赏文案不显示制作章节字样', () {
     final chapterPattern = RegExp(r'第[一二三四五六七八九十0-9]+章|序章|章节(?:结束)?');
     for (final beat in storyBeats.values) {
@@ -1062,6 +1180,31 @@ void main() {
         expect(asset, contains('/images/cg/'), reason: cg.id);
         expect(File(asset).existsSync(), isTrue, reason: asset);
       }
+    }
+  });
+
+  test('第五章新增 CG 均已完整绑定两帧正文节点', () {
+    const expectedIds = {
+      'cg_ch5_e04_identity',
+      'cg_ch5_hanqi_shelf',
+      'cg_ch5_yelan_acid',
+      'cg_ch5_chenmo_gas',
+      'cg_ch5_audit_prevention',
+      'cg_ch5_bond_xingyao',
+      'cg_ch5_bond_sumi',
+      'cg_ch5_bond_lincheng',
+    };
+    final chapterFiveEntries = cgEntries
+        .where((entry) => entry.id.startsWith('cg_ch5_'))
+        .toList();
+
+    expect(chapterFiveEntries.map((entry) => entry.id).toSet(), expectedIds);
+    for (final entry in chapterFiveEntries) {
+      final frames = storyBeats.values
+          .where((beat) => beat.cgId == entry.id)
+          .map((beat) => beat.cgFrame)
+          .toSet();
+      expect(frames, {0, 1}, reason: entry.id);
     }
   });
 
@@ -1781,6 +1924,71 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('E-04档案调查与CASE 04适配手机横屏', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(844, 390));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = await StoryController.load();
+    controller.startNew();
+    _advanceUntil(
+      controller,
+      'ch5_archive_investigation',
+      allowMechanics: true,
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: EchoExperience(controller: controller, audioEnabled: false),
+      ),
+    );
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 800)),
+    );
+    await tester.pump();
+
+    for (final id in [
+      'archive_roster',
+      'archive_photo',
+      'access_backup',
+      'archive_server',
+    ]) {
+      expect(find.byKey(ValueKey('investigation-glint-$id')), findsOneWidget);
+    }
+    expect(find.text('档案复原 / E-04'), findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey('investigation-glint-archive_server')),
+    );
+    await tester.pump();
+    await tester.tap(find.byTooltip('打开背包'));
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey('inventory-item-archive_server')),
+    );
+    await tester.pump();
+    await tester.tap(
+      find.byKey(const ValueKey('inspection-action-archive_take_checksum')),
+    );
+    await tester.pump();
+    expect(controller.inventoryItems, contains('checksum_key'));
+    expect(find.textContaining('只读校验钥匙'), findsWidgets);
+    expect(tester.takeException(), isNull);
+
+    controller.completeInvestigation({
+      'initial_roster_11',
+      'slot12_asset_tag',
+      'slot12_impossible_travel',
+      'slot12_configurable_identity',
+    });
+    _advanceUntil(controller, 'ch5_case04_deduction');
+    await tester.pump();
+
+    expect(find.text('初始实体'), findsOneWidget);
+    expect(find.text('连续身体'), findsOneWidget);
+    expect(find.text('系统身份'), findsOneWidget);
+    expect(find.text('可重放的维护身份槽'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('背包物品栏支持鼠标向左右拖动', (tester) async {
     await tester.binding.setSurfaceSize(const Size(844, 390));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -2202,6 +2410,12 @@ void _advanceUntil(
             'directed_tone',
             'no_sedative_delivery',
           },
+          'ch5_archive_investigation' => {
+            'initial_roster_11',
+            'slot12_asset_tag',
+            'slot12_impossible_travel',
+            'slot12_configurable_identity',
+          },
           _ => {'distance', 'repeater', 'timer'},
         });
       case StoryPhase.puzzle when allowMechanics:
@@ -2233,6 +2447,7 @@ void _advanceUntil(
         controller.submitDeduction(switch (controller.currentId) {
           'ch3_case02_deduction' => 'lease_replay',
           'ch4_case03_deduction' => 'directed_resonance',
+          'ch5_case04_deduction' => 'maintenance_slot',
           _ => 'repeater',
         });
       default:

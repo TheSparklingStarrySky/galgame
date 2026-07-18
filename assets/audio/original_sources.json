@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "generation_date": "2026-07-18",
+  "origin": "project_original_procedural_audio",
+  "generator": "tool/generate_original_audio.py",
+  "runtime_format": "AAC in M4A, 44.1 kHz stereo",
+  "rights": "Generated specifically for this project from deterministic synthesis code; no sampled recordings or imitated compositions.",
+  "bgm": [
+    "rescue_action",
+    "night_facility",
+    "bond_xingyao",
+    "bond_sumi",
+    "bond_lincheng",
+    "betrayal_hunt",
+    "audit_revelation"
+  ],
+  "sfx": [
+    "route_jump",
+    "administrator_channel_off",
+    "surveillance_servo",
+    "amb_assembly_pa",
+    "amb_infirmary_equipment",
+    "amb_storage_refrigeration",
+    "footsteps_concrete",
+    "rope_tension",
+    "medical_monitor",
+    "uv_lamp",
+    "measuring_tape",
+    "archive_page",
+    "microfilm_scanner",
+    "archive_shelf_motor",
+    "archive_shelf_impact",
+    "acid_splash",
+    "emergency_shower",
+    "gas_release",
+    "archive_seal",
+    "checksum_verified"
+  ]
+}

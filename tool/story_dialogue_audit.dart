@@ -19,7 +19,7 @@ const _speechVerbs = <String>[
 ];
 
 void main() {
-  for (final chapter in ['ch1_', 'ch2_', 'ch3_', 'ch4_']) {
+  for (final chapter in ['ch1_', 'ch2_', 'ch3_', 'ch4_', 'ch5_']) {
     final beats = storyBeats.values
         .where((beat) => beat.id.startsWith(chapter))
         .toList(growable: false);
@@ -28,6 +28,15 @@ void main() {
     final suspicious = <String>[];
 
     for (final beat in beats) {
+      final paragraphCount = beat.text.split('\n').length;
+      if (beat.passageSpeakers.isNotEmpty &&
+          beat.passageSpeakers.length != paragraphCount) {
+        print(
+          '${beat.id}: paragraphCount=$paragraphCount, '
+          'speakerCount=${beat.passageSpeakers.length}',
+        );
+        continue;
+      }
       for (final passage in beat.passages) {
         if (passage.speaker == Speaker.narration) {
           narrationChars += passage.text.length;

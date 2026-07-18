@@ -2056,6 +2056,6 @@ const chapterFourBeats = <String, StoryBeat>{
       Speaker.administrator,
       Speaker.narration,
     ],
-    next: null,
+    next: 'ch5_midnight',
   ),
 };

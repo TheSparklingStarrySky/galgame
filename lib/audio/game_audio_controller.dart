@@ -163,7 +163,9 @@ class GameAudioController {
         await player.stop();
         _currentBgm = null;
         if (_disposed || _suspended || target != _requestedBgm) return;
-        await player.setReleaseMode(ReleaseMode.loop);
+        await player.setReleaseMode(
+          target.loop ? ReleaseMode.loop : ReleaseMode.stop,
+        );
         if (_disposed || _suspended || target != _requestedBgm) return;
         await player.play(AssetSource(target.asset), volume: 0);
         _currentBgm = target;
