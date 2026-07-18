@@ -974,6 +974,8 @@ const chapterTwoExpansionBeats = <String, StoryBeat>{
     speaker: Speaker.suMi,
     scene: SceneKey.oldGym,
     portraitMood: 'concerned',
+    cgId: 'cg_gym',
+    cgFrame: 1,
     text:
         '千斤顶顶到一半，器材架底部从积灰的木地板上滑开两厘米。高原的脸瞬间失去血色，苏弥立刻叫停，拒绝在看不清受力点时继续硬抬。\n林澄把折叠垫塞进滑动方向，韩骐改用绳索把架体固定到看台立柱，高原则用没有受伤的腿确认地面震动。\n这次停顿消耗了一分二十秒，却避免救援本身成为第二次砸伤。倒计时越紧，越不能把“更快”误写成“更安全”。',
     passageSpeakers: [Speaker.narration, Speaker.narration, Speaker.narration],

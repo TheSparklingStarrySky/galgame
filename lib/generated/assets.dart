@@ -12,9 +12,63 @@ class Assets {
 class $AssetsImagesGen {
   const $AssetsImagesGen();
 
+  final $AssetsCgGen cg = const $AssetsCgGen();
   final $AssetsCharactersGen characters = const $AssetsCharactersGen();
   final $AssetsItemsGen items = const $AssetsItemsGen();
   final $AssetsScenesGen scenes = const $AssetsScenesGen();
+}
+
+class $AssetsCgGen {
+  const $AssetsCgGen();
+
+  final AssetGenImage awakening01 = const AssetGenImage(
+    'assets/images/cg/awakening/01.png',
+  );
+  final AssetGenImage awakening02 = const AssetGenImage(
+    'assets/images/cg/awakening/02.png',
+  );
+  final AssetGenImage collarExecution01 = const AssetGenImage(
+    'assets/images/cg/collar_execution/01.png',
+  );
+  final AssetGenImage collarExecution02 = const AssetGenImage(
+    'assets/images/cg/collar_execution/02.png',
+  );
+  final AssetGenImage controlRoomDeath01 = const AssetGenImage(
+    'assets/images/cg/control_room_death/01.png',
+  );
+  final AssetGenImage controlRoomDeath02 = const AssetGenImage(
+    'assets/images/cg/control_room_death/02.png',
+  );
+  final AssetGenImage gymRescue01 = const AssetGenImage(
+    'assets/images/cg/gym_rescue/01.png',
+  );
+  final AssetGenImage gymRescue02 = const AssetGenImage(
+    'assets/images/cg/gym_rescue/02.png',
+  );
+  final AssetGenImage storageInvestigation01 = const AssetGenImage(
+    'assets/images/cg/storage_investigation/01.png',
+  );
+  final AssetGenImage storageInvestigation02 = const AssetGenImage(
+    'assets/images/cg/storage_investigation/02.png',
+  );
+  final AssetGenImage transferEscape01 = const AssetGenImage(
+    'assets/images/cg/transfer_escape/01.png',
+  );
+  final AssetGenImage transferEscape02 = const AssetGenImage(
+    'assets/images/cg/transfer_escape/02.png',
+  );
+  final AssetGenImage xingyaoCollapse01 = const AssetGenImage(
+    'assets/images/cg/xingyao_collapse/01.png',
+  );
+  final AssetGenImage xingyaoCollapse02 = const AssetGenImage(
+    'assets/images/cg/xingyao_collapse/02.png',
+  );
+  final AssetGenImage auditRescue01 = const AssetGenImage(
+    'assets/images/cg/audit_rescue/01.png',
+  );
+  final AssetGenImage auditRescue02 = const AssetGenImage(
+    'assets/images/cg/audit_rescue/02.png',
+  );
 }
 
 class $AssetsScenesGen {
@@ -38,8 +92,17 @@ class $AssetsScenesGen {
   final AssetGenImage infirmary = const AssetGenImage(
     'assets/images/scenes/infirmary.png',
   );
+  final AssetGenImage medicalIsolation = const AssetGenImage(
+    'assets/images/scenes/medical_isolation.png',
+  );
+  final AssetGenImage maintenanceRoom = const AssetGenImage(
+    'assets/images/scenes/maintenance_room.png',
+  );
   final AssetGenImage oldGym = const AssetGenImage(
     'assets/images/scenes/old_gym.png',
+  );
+  final AssetGenImage securityRoom = const AssetGenImage(
+    'assets/images/scenes/security_room.png',
   );
   final AssetGenImage storageRoom = const AssetGenImage(
     'assets/images/scenes/storage_room.png',
@@ -57,11 +120,20 @@ class $AssetsCharactersGen {
   final $AssetsHanQiGen hanQi = const $AssetsHanQiGen();
   final $AssetsLiXingyaoGen liXingyao = const $AssetsLiXingyaoGen();
   final $AssetsLinChengGen linCheng = const $AssetsLinChengGen();
+  final $AssetsShenYanGen shenYan = const $AssetsShenYanGen();
   final $AssetsSuMiGen suMi = const $AssetsSuMiGen();
   final $AssetsTangYiGen tangYi = const $AssetsTangYiGen();
   final $AssetsWuZhengGen wuZheng = const $AssetsWuZhengGen();
   final $AssetsYeLanGen yeLan = const $AssetsYeLanGen();
   final $AssetsZhouXuGen zhouXu = const $AssetsZhouXuGen();
+}
+
+class $AssetsShenYanGen {
+  const $AssetsShenYanGen();
+
+  final AssetGenImage neutral = const AssetGenImage(
+    'assets/images/characters/shen_yan/neutral.png',
+  );
 }
 
 class $AssetsLiXingyaoGen {
@@ -75,6 +147,9 @@ class $AssetsLiXingyaoGen {
   );
   final AssetGenImage relaxed = const AssetGenImage(
     'assets/images/characters/li_xingyao/relaxed.png',
+  );
+  final AssetGenImage vertigo = const AssetGenImage(
+    'assets/images/characters/li_xingyao/vertigo.png',
   );
 }
 
@@ -90,6 +165,9 @@ class $AssetsSuMiGen {
   final AssetGenImage relieved = const AssetGenImage(
     'assets/images/characters/su_mi/relieved.png',
   );
+  final AssetGenImage shaken = const AssetGenImage(
+    'assets/images/characters/su_mi/shaken.png',
+  );
 }
 
 class $AssetsHanQiGen {
@@ -103,6 +181,9 @@ class $AssetsHanQiGen {
   );
   final AssetGenImage protective = const AssetGenImage(
     'assets/images/characters/han_qi/protective.png',
+  );
+  final AssetGenImage armed = const AssetGenImage(
+    'assets/images/characters/han_qi/armed.png',
   );
 }
 
@@ -145,6 +226,9 @@ class $AssetsLinChengGen {
 class $AssetsChenMoGen {
   const $AssetsChenMoGen();
 
+  final AssetGenImage desperate = const AssetGenImage(
+    'assets/images/characters/chen_mo/desperate.png',
+  );
   final AssetGenImage guarded = const AssetGenImage(
     'assets/images/characters/chen_mo/guarded.png',
   );
@@ -197,6 +281,7 @@ class $AssetsItemsGen {
 
   final $AssetsControlRoomGen controlRoom = const $AssetsControlRoomGen();
   final $AssetsGymGen gym = const $AssetsGymGen();
+  final $AssetsMedicalGen medical = const $AssetsMedicalGen();
   final $AssetsStorageGen storage = const $AssetsStorageGen();
 }
 
@@ -249,6 +334,41 @@ class $AssetsGymGen {
   );
   final AssetGenImage terminalCradle = const AssetGenImage(
     'assets/images/items/gym/terminal_cradle.png',
+  );
+}
+
+class $AssetsMedicalGen {
+  const $AssetsMedicalGen();
+
+  final AssetGenImage headsetSpectrumCapture = const AssetGenImage(
+    'assets/images/items/medical/headset_spectrum_capture.png',
+  );
+  final AssetGenImage injectionInfusionChecked = const AssetGenImage(
+    'assets/images/items/medical/injection_infusion_checked.png',
+  );
+  final AssetGenImage injectionInfusionSet = const AssetGenImage(
+    'assets/images/items/medical/injection_infusion_set.png',
+  );
+  final AssetGenImage medicalAssayCard = const AssetGenImage(
+    'assets/images/items/medical/medical_assay_card.png',
+  );
+  final AssetGenImage medicalTestCase = const AssetGenImage(
+    'assets/images/items/medical/medical_test_case.png',
+  );
+  final AssetGenImage offlineSpectrumClip = const AssetGenImage(
+    'assets/images/items/medical/offline_spectrum_clip.png',
+  );
+  final AssetGenImage patientHeadset = const AssetGenImage(
+    'assets/images/items/medical/patient_headset.png',
+  );
+  final AssetGenImage patientHeadsetChecked = const AssetGenImage(
+    'assets/images/items/medical/patient_headset_checked.png',
+  );
+  final AssetGenImage sedativeTestStrip = const AssetGenImage(
+    'assets/images/items/medical/sedative_test_strip.png',
+  );
+  final AssetGenImage triageRecord = const AssetGenImage(
+    'assets/images/items/medical/triage_record.png',
   );
 }
 

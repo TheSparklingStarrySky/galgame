@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flame: ^1.34.0
   shared_preferences: ^2.5.3
+  audioplayers: ^6.8.1
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +62,15 @@ flutter:
 
   assets:
     - assets/images/scenes/
+    - assets/images/cg/awakening/
+    - assets/images/cg/collar_execution/
+    - assets/images/cg/control_room_death/
+    - assets/images/cg/gym_rescue/
+    - assets/images/cg/storage_investigation/
+    - assets/images/cg/transfer_escape/
+    - assets/images/cg/xingyao_collapse/
+    - assets/images/cg/audit_rescue/
+    - assets/images/characters/shen_yan/
     - assets/images/characters/li_xingyao/
     - assets/images/characters/su_mi/
     - assets/images/characters/han_qi/
@@ -73,8 +83,11 @@ flutter:
     - assets/images/characters/ye_lan/
     - assets/images/items/control_room/
     - assets/images/items/gym/
+    - assets/images/items/medical/
     - assets/images/items/storage/
     - assets/audio/
+    - assets/audio/bgm/
+    - assets/audio/sfx/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

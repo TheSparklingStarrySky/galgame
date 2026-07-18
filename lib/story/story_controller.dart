@@ -125,6 +125,9 @@ class SaveSnapshot {
     this.delegationPermission,
     this.delegationTrustee,
     this.delegationWitness,
+    this.thumbnailBase64,
+    this.thumbnailAsset,
+    this.thumbnailText,
   });
 
   final String currentId;
@@ -148,6 +151,9 @@ class SaveSnapshot {
   final String? delegationPermission;
   final String? delegationTrustee;
   final String? delegationWitness;
+  final String? thumbnailBase64;
+  final String? thumbnailAsset;
+  final String? thumbnailText;
 
   String get nodeLabel => storyBeats[currentId]?.label ?? currentId;
 
@@ -175,6 +181,9 @@ class SaveSnapshot {
     'delegationPermission': delegationPermission,
     'delegationTrustee': delegationTrustee,
     'delegationWitness': delegationWitness,
+    'thumbnailBase64': thumbnailBase64,
+    'thumbnailAsset': thumbnailAsset,
+    'thumbnailText': thumbnailText,
   };
 
   static SaveSnapshot? fromJson(Map<String, dynamic> json) {
@@ -248,6 +257,9 @@ class SaveSnapshot {
       delegationPermission: json['delegationPermission'] as String?,
       delegationTrustee: json['delegationTrustee'] as String?,
       delegationWitness: json['delegationWitness'] as String?,
+      thumbnailBase64: json['thumbnailBase64'] as String?,
+      thumbnailAsset: json['thumbnailAsset'] as String?,
+      thumbnailText: json['thumbnailText'] as String?,
     );
   }
 }
@@ -264,6 +276,9 @@ class StoryController extends ChangeNotifier {
   static const _checkpointKey = 'zero_protocol_checkpoints_v2';
 
   final SharedPreferences _preferences;
+  Future<String?> Function()? _saveThumbnailCapture;
+  String? _saveThumbnailAsset;
+  String? _saveThumbnailText;
 
   StoryPhase phase = StoryPhase.title;
   String currentId = 'game_start';
@@ -274,6 +289,9 @@ class StoryController extends ChangeNotifier {
   int cooperation = 0;
   double textSpeed = 0.65;
   double autoDelay = 1.8;
+  double bgmVolume = 0.65;
+  double ambienceVolume = 0.32;
+  double sfxVolume = 0.78;
   bool reduceMotion = false;
   bool skipUnread = false;
   bool autoPlay = false;
@@ -380,6 +398,8 @@ class StoryController extends ChangeNotifier {
     deathRecords.clear();
     _resetHighRiskItems();
     history.clear();
+    _saveThumbnailAsset = null;
+    _saveThumbnailText = null;
     autoPlay = false;
     skipMode = false;
     _enterCurrent();
@@ -402,15 +422,47 @@ class StoryController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void markCgViewed(String id) {
+    if (cgById(id) == null || !unlockedCgs.add(id)) return;
+    _saveCollections();
+  }
+
   Future<void> saveToSlot(int index) async {
     if (index < 0 || index >= slotCount || phase == StoryPhase.title) return;
-    final snapshot = _createSnapshot();
+    String? thumbnailBase64;
+    try {
+      thumbnailBase64 = await _saveThumbnailCapture?.call();
+    } catch (_) {
+      thumbnailBase64 = null;
+    }
+    final snapshot = _createSnapshot(
+      thumbnailBase64: thumbnailBase64,
+      thumbnailAsset: _saveThumbnailAsset ?? sceneImageAsset(scene),
+      thumbnailText:
+          _saveThumbnailText ??
+          (current.passages.isEmpty
+              ? current.label
+              : current.passages.first.text),
+    );
     saveSlots[index] = snapshot;
     await _preferences.setString(
       '$_slotPrefix$index',
       jsonEncode(snapshot.toJson()),
     );
     notifyListeners();
+  }
+
+  void attachSaveThumbnailCapture(Future<String?> Function() capture) {
+    _saveThumbnailCapture = capture;
+  }
+
+  void detachSaveThumbnailCapture() {
+    _saveThumbnailCapture = null;
+  }
+
+  void setSaveThumbnailFallback({required String asset, required String text}) {
+    _saveThumbnailAsset = asset;
+    _saveThumbnailText = text;
   }
 
   void loadSlot(int index) {
@@ -429,14 +481,15 @@ class StoryController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void jumpToNode(String id) {
+  bool jumpToNode(String id) {
     final snapshot = checkpoints[id];
-    if (snapshot == null || !seenNodes.contains(id)) return;
+    if (snapshot == null || !seenNodes.contains(id)) return false;
     _restoreSnapshot(snapshot);
     autoPlay = false;
     skipMode = false;
     _saveAuto();
     notifyListeners();
+    return true;
   }
 
   void advance() {
@@ -458,6 +511,10 @@ class StoryController extends ChangeNotifier {
     logic += effect.logic;
     cooperation += effect.cooperation;
     if (effect.flag case final flag?) flags.add(flag);
+    if (effect.highRiskItemId case final itemId?) {
+      final holderId = effect.highRiskHolderId;
+      if (holderId != null) _holdHighRiskItem(itemId, holderId);
+    }
 
     if (currentId == 'response_choice') {
       if (choice.next == 'chase_signal' && flags.contains('route_xingyao')) {
@@ -604,6 +661,19 @@ class StoryController extends ChangeNotifier {
 
   void submitDeduction(String hypothesis) {
     _markCurrentRead();
+    if (currentId == 'ch4_case03_deduction') {
+      if (hypothesis == 'directed_resonance') {
+        flags.add('case03_solved');
+        logic += 2;
+        currentId = 'ch4_case03_resolved';
+      } else if (hypothesis == 'sedative_poisoning') {
+        currentId = 'ch4_case03_sedative_error';
+      } else {
+        currentId = 'ch4_case03_contamination_error';
+      }
+      _enterCurrent();
+      return;
+    }
     if (currentId == 'ch3_case02_deduction') {
       if (hypothesis == 'lease_replay') {
         flags.add('case02_solved');
@@ -659,6 +729,24 @@ class StoryController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setBgmVolume(double value) {
+    bgmVolume = value.clamp(0.0, 1.0).toDouble();
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void setAmbienceVolume(double value) {
+    ambienceVolume = value.clamp(0.0, 1.0).toDouble();
+    _saveSettings();
+    notifyListeners();
+  }
+
+  void setSfxVolume(double value) {
+    sfxVolume = value.clamp(0.0, 1.0).toDouble();
+    _saveSettings();
+    notifyListeners();
+  }
+
   void setReduceMotion(bool value) {
     reduceMotion = value;
     _saveSettings();
@@ -686,11 +774,7 @@ class StoryController extends ChangeNotifier {
             record.state != HighRiskItemState.missing)) {
       return false;
     }
-    highRiskItems[id] = record.copyWith(
-      state: HighRiskItemState.held,
-      holderId: holderId,
-      updatedAtMinute: _elapsedMinutes,
-    );
+    _holdHighRiskItem(id, holderId);
     _saveAuto();
     notifyListeners();
     return true;
@@ -777,10 +861,11 @@ class StoryController extends ChangeNotifier {
     seenNodes.add(currentId);
     flags.addAll(current.flagsOnEnter);
     _indexHighRiskItems(current.highRiskItemsOnEnter);
+    _markHighRiskItemsMissing(current.highRiskItemsMissingOnEnter);
+    _resealHighRiskItems(current.highRiskItemsResealedOnEnter);
     for (final event in current.deathEvents) {
       _recordDeathEvent(event);
     }
-    if (current.cgId case final cg?) unlockedCgs.add(cg);
     if (current.endingId case final ending?) {
       unlockedEndings.add(ending);
       if (fullRunEndingIds.contains(ending)) auditModeUnlocked = true;
@@ -800,6 +885,9 @@ class StoryController extends ChangeNotifier {
         auditNext != null &&
         flags.containsAll(beat.auditRequiredFlags)) {
       return auditNext;
+    }
+    for (final entry in beat.nextByFlag.entries) {
+      if (flags.contains(entry.key)) return entry.value;
     }
     return beat.next;
   }
@@ -836,6 +924,44 @@ class StoryController extends ChangeNotifier {
     }
   }
 
+  void _holdHighRiskItem(String id, String holderId) {
+    final record = highRiskItems[id];
+    if (record == null ||
+        (record.state != HighRiskItemState.indexed &&
+            record.state != HighRiskItemState.missing)) {
+      return;
+    }
+    highRiskItems[id] = record.copyWith(
+      state: HighRiskItemState.held,
+      holderId: holderId,
+      updatedAtMinute: _elapsedMinutes,
+    );
+  }
+
+  void _markHighRiskItemsMissing(Iterable<String> ids) {
+    for (final id in ids) {
+      final record = highRiskItems[id];
+      if (record == null || record.state == HighRiskItemState.used) continue;
+      highRiskItems[id] = record.copyWith(
+        state: HighRiskItemState.missing,
+        clearHolder: true,
+        updatedAtMinute: _elapsedMinutes,
+      );
+    }
+  }
+
+  void _resealHighRiskItems(Iterable<String> ids) {
+    for (final id in ids) {
+      final record = highRiskItems[id];
+      if (record == null || record.state == HighRiskItemState.used) continue;
+      highRiskItems[id] = record.copyWith(
+        state: HighRiskItemState.indexed,
+        clearHolder: true,
+        updatedAtMinute: _elapsedMinutes,
+      );
+    }
+  }
+
   void _recordDeathEvent(StoryDeathEvent event) {
     if (deathRecords.any(
       (record) => record.participantId == event.participantId,
@@ -853,6 +979,16 @@ class StoryController extends ChangeNotifier {
         sourceItemId: event.sourceItemId,
       ),
     );
+    if (event.sourceItemId case final sourceItemId?) {
+      final record = highRiskItems[sourceItemId];
+      if (record != null && record.state != HighRiskItemState.used) {
+        highRiskItems[sourceItemId] = record.copyWith(
+          state: HighRiskItemState.used,
+          clearHolder: true,
+          updatedAtMinute: event.timelineMinute,
+        );
+      }
+    }
   }
 
   void _markCurrentRead() {
@@ -867,7 +1003,11 @@ class StoryController extends ChangeNotifier {
     if (history.length > 120) history.removeAt(0);
   }
 
-  SaveSnapshot _createSnapshot() => SaveSnapshot(
+  SaveSnapshot _createSnapshot({
+    String? thumbnailBase64,
+    String? thumbnailAsset,
+    String? thumbnailText,
+  }) => SaveSnapshot(
     currentId: currentId,
     savedAt: DateTime.now(),
     xingyaoTrust: xingyaoTrust,
@@ -889,6 +1029,9 @@ class StoryController extends ChangeNotifier {
     delegationPermission: delegationPermission,
     delegationTrustee: delegationTrustee,
     delegationWitness: delegationWitness,
+    thumbnailBase64: thumbnailBase64,
+    thumbnailAsset: thumbnailAsset,
+    thumbnailText: thumbnailText,
   );
 
   void _restoreSnapshot(SaveSnapshot snapshot) {
@@ -952,6 +1095,16 @@ class StoryController extends ChangeNotifier {
         final settings = jsonDecode(settingsRaw) as Map<String, dynamic>;
         textSpeed = (settings['textSpeed'] as num?)?.toDouble() ?? 0.65;
         autoDelay = (settings['autoDelay'] as num?)?.toDouble() ?? 1.8;
+        bgmVolume = ((settings['bgmVolume'] as num?)?.toDouble() ?? 0.65)
+            .clamp(0.0, 1.0)
+            .toDouble();
+        ambienceVolume =
+            ((settings['ambienceVolume'] as num?)?.toDouble() ?? 0.32)
+                .clamp(0.0, 1.0)
+                .toDouble();
+        sfxVolume = ((settings['sfxVolume'] as num?)?.toDouble() ?? 0.78)
+            .clamp(0.0, 1.0)
+            .toDouble();
         reduceMotion = settings['reduceMotion'] as bool? ?? false;
         skipUnread = settings['skipUnread'] as bool? ?? false;
       } on FormatException {
@@ -1044,6 +1197,9 @@ class StoryController extends ChangeNotifier {
       jsonEncode({
         'textSpeed': textSpeed,
         'autoDelay': autoDelay,
+        'bgmVolume': bgmVolume,
+        'ambienceVolume': ambienceVolume,
+        'sfxVolume': sfxVolume,
         'reduceMotion': reduceMotion,
         'skipUnread': skipUnread,
       }),

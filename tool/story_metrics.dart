@@ -28,10 +28,16 @@ List<String> _outgoing(StoryBeat beat) {
   if (beat.id == 'ch3_delegation_gate') {
     return const ['ch3_delegate_hanqi'];
   }
+  if (beat.id == 'ch4_case03_deduction') {
+    return const ['ch4_case03_resolved'];
+  }
   if (beat.choices.isNotEmpty) {
     return beat.choices.map((choice) => choice.next).toSet().toList();
   }
-  return beat.next == null ? const [] : [beat.next!];
+  return {
+    if (beat.next case final next?) next,
+    ...beat.nextByFlag.values,
+  }.toList(growable: false);
 }
 
 ({int visible, int nodes, List<String> ids}) _pathMetrics(List<String> ids) {
@@ -62,6 +68,7 @@ void main() {
     (beat) =>
         !beat.id.startsWith('ch2_') &&
         !beat.id.startsWith('ch3_') &&
+        !beat.id.startsWith('ch4_') &&
         !_draftEndingIds.contains(beat.id),
   );
   final chapterTwo = storyBeats.values.where(
@@ -70,6 +77,9 @@ void main() {
   final chapterThree = storyBeats.values.where(
     (beat) => beat.id.startsWith('ch3_'),
   );
+  final chapterFour = storyBeats.values.where(
+    (beat) => beat.id.startsWith('ch4_'),
+  );
   final draftEndings = storyBeats.values.where(
     (beat) => _draftEndingIds.contains(beat.id),
   );
@@ -77,6 +87,7 @@ void main() {
   _printGroup('chapter1', chapterOne);
   _printGroup('chapter2', chapterTwo);
   _printGroup('chapter3', chapterThree);
+  _printGroup('chapter4', chapterFour);
   _printGroup('draftEndings', draftEndings);
   _printGroup('allStoryData', storyBeats.values);
 
@@ -118,10 +129,30 @@ void main() {
   );
   final chapterThreePaths = collectPaths(
     'ch3_chapter_title',
+    stopAt: 'ch3_end',
   ).map(_pathMetrics).toList()..sort((a, b) => a.visible.compareTo(b.visible));
   print(
     'chapter3Playthrough: paths=${chapterThreePaths.length}, '
     'visible=${chapterThreePaths.first.visible}-${chapterThreePaths.last.visible}, '
     'nodes=${chapterThreePaths.first.nodes}-${chapterThreePaths.last.nodes}',
+  );
+  final chapterFourPaths = collectPaths(
+    'ch4_daybreak',
+    stopAt: 'ch4_end',
+  ).map(_pathMetrics).toList()..sort((a, b) => a.visible.compareTo(b.visible));
+  print(
+    'chapter4StandardPlaythrough: paths=${chapterFourPaths.length}, '
+    'visible=${chapterFourPaths.first.visible}-${chapterFourPaths.last.visible}, '
+    'nodes=${chapterFourPaths.first.nodes}-${chapterFourPaths.last.nodes}',
+  );
+  final chapterFourAuditPaths = collectPaths(
+    'ch4_audit_projection',
+    stopAt: 'ch4_end',
+  ).map(_pathMetrics).toList()..sort((a, b) => a.visible.compareTo(b.visible));
+  print(
+    'chapter4AuditFromProjection: paths=${chapterFourAuditPaths.length}, '
+    'visible=${chapterFourAuditPaths.first.visible}-'
+    '${chapterFourAuditPaths.last.visible}, '
+    'nodes=${chapterFourAuditPaths.first.nodes}-${chapterFourAuditPaths.last.nodes}',
   );
 }

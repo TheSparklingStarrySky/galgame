@@ -103,6 +103,9 @@ class EchoSceneGame extends FlameGame {
     SceneKey.storageRoom => 'scenes/storage_room.png',
     SceneKey.transferRoom => 'scenes/transfer_room.png',
     SceneKey.archiveCorridor => 'scenes/archive_corridor.png',
+    SceneKey.medicalIsolation => 'scenes/medical_isolation.png',
+    SceneKey.securityRoom => 'scenes/security_room.png',
+    SceneKey.maintenanceRoom => 'scenes/maintenance_room.png',
   };
 
   void _layoutBackdrop() {

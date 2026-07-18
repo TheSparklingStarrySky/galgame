@@ -830,6 +830,8 @@ const chapterThreeBeats = <String, StoryBeat>{
     speaker: Speaker.gaoYuan,
     scene: SceneKey.storageRoom,
     portraitMood: 'injured',
+    cgId: 'cg_storage',
+    cgFrame: 1,
     text:
         '紫外检查显示，封条胶层中间有一道连续热痕，边缘纤维却没有正常撕裂。有人用低温加热让封条整片脱离，取物后又压回原位。\n高原通过视频确认工具箱里的便携热封器能够做到。\n“这不是主办方提前摆好的空箱。”他说，“有人在我们进入前真实打开过它。”',
     passageSpeakers: [Speaker.narration, Speaker.narration, Speaker.gaoYuan],
@@ -1292,6 +1294,7 @@ const chapterThreeBeats = <String, StoryBeat>{
     label: '在阈值前十二秒',
     speaker: Speaker.shenYan,
     scene: SceneKey.transferRoom,
+    cgId: 'cg_storage_seal',
     text:
         '01贴上内侧解锁槽，铁栅升起不到半米。我从下面钻出，韩骐抓住肩带把我拖过最后一段。\n距离异常在一百六十八秒停止，离项圈阈值只剩十二秒。终端回到我掌心时仍带着他的体温。\n我们没有拥抱，也没有说谢谢。两个人只是同时退到安全线外，确认对方仍能呼吸。',
     passageSpeakers: [Speaker.narration, Speaker.narration, Speaker.narration],
@@ -1303,6 +1306,7 @@ const chapterThreeBeats = <String, StoryBeat>{
     speaker: Speaker.administrator,
     scene: SceneKey.corridor,
     cgId: 'cg_storage_seal',
+    cgFrame: 1,
     text:
         '二十三点三十分，B-03外墙的锁栓依次落下。隔离转运间、审计PDA和那条可以重放授权的门禁缓存一起被封进黑色区域。\n“第二次永久封锁完成。当前存活参与者：十。”\n物资堆在走廊，所有人都活着。可从今晚开始，我们再也没有一间能够独立上锁的储物区。',
     passageSpeakers: [
@@ -1566,6 +1570,6 @@ const chapterThreeBeats = <String, StoryBeat>{
     text:
         '凌晨一点零七分，公共频道里出现持续不到半秒的尖锐高频。星遥摘下耳机时脚步晃了一下，苏弥立即扶住她。\nPDA地图将下一轮封锁候选标在医疗区C-02。与此同时，药柜盘点显示少了一支尚未使用的镇静剂。\n在托管制度刚刚学会区分“谁同意”和“谁操作”的夜里，新的问题已经要求我们判断：谁有资格决定另一个人是否需要被救。',
     passageSpeakers: [Speaker.narration, Speaker.narration, Speaker.narration],
-    next: null,
+    next: 'ch4_daybreak',
   ),
 };

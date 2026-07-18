@@ -1,16 +1,22 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
+import '../audio/audio_cues.dart';
+import '../audio/game_audio_controller.dart';
 import '../story/story.dart';
 import '../story/story_controller.dart';
 
 Future<void> showPda(BuildContext context, StoryController controller) {
   final hostContext = context;
+  final audio = GameAudioScope.maybeOf(context);
+  audio?.playSfx(GameSfx.pdaOpen);
   return showDialog<void>(
     context: context,
     useSafeArea: false,
     builder: (context) =>
         _PdaScreen(controller: controller, hostContext: hostContext),
-  );
+  ).whenComplete(() => audio?.playSfx(GameSfx.pdaClose));
 }
 
 Future<void> showSaveLoad(
@@ -18,11 +24,15 @@ Future<void> showSaveLoad(
   StoryController controller, {
   bool loadOnly = false,
 }) {
+  final audio = GameAudioScope.maybeOf(context);
   return showDialog<void>(
     context: context,
     useSafeArea: false,
-    builder: (context) =>
-        _SaveLoadScreen(controller: controller, initialLoadMode: loadOnly),
+    builder: (context) => _SaveLoadScreen(
+      controller: controller,
+      initialLoadMode: loadOnly,
+      audio: audio,
+    ),
   );
 }
 
@@ -114,6 +124,37 @@ Future<void> showSettings(BuildContext context, StoryController controller) {
                 leading: Icon(Icons.tune_rounded, color: Color(0xFFD8A24A)),
                 title: Text('设置'),
               ),
+              _SettingSlider(
+                label: '背景音乐',
+                value: controller.bgmVolume,
+                min: 0,
+                max: 1,
+                onChanged: (value) {
+                  controller.setBgmVolume(value);
+                  setSheetState(() {});
+                },
+              ),
+              _SettingSlider(
+                label: '环境声音',
+                value: controller.ambienceVolume,
+                min: 0,
+                max: 1,
+                onChanged: (value) {
+                  controller.setAmbienceVolume(value);
+                  setSheetState(() {});
+                },
+              ),
+              _SettingSlider(
+                label: '界面与音效',
+                value: controller.sfxVolume,
+                min: 0,
+                max: 1,
+                onChanged: (value) {
+                  controller.setSfxVolume(value);
+                  setSheetState(() {});
+                },
+              ),
+              const Divider(height: 22),
               _SettingSlider(
                 label: '文字显示速度',
                 value: controller.textSpeed,
@@ -1119,10 +1160,12 @@ class _SaveLoadScreen extends StatefulWidget {
   const _SaveLoadScreen({
     required this.controller,
     required this.initialLoadMode,
+    required this.audio,
   });
 
   final StoryController controller;
   final bool initialLoadMode;
+  final GameAudioController? audio;
 
   @override
   State<_SaveLoadScreen> createState() => _SaveLoadScreenState();
@@ -1193,9 +1236,11 @@ class _SaveLoadScreenState extends State<_SaveLoadScreen> {
                       onPressed: () async {
                         if (_loadMode) {
                           widget.controller.loadSlot(index);
+                          widget.audio?.playSfx(GameSfx.loadComplete);
                           if (context.mounted) Navigator.pop(context);
                         } else {
                           await widget.controller.saveToSlot(index);
+                          widget.audio?.playSfx(GameSfx.saveComplete);
                         }
                       },
                       onDelete: snapshot == null
@@ -1240,13 +1285,68 @@ class _CollectionScreen extends StatelessWidget {
   }
 }
 
-class _RouteMapScreen extends StatelessWidget {
+class _RouteMapScreen extends StatefulWidget {
   const _RouteMapScreen({required this.controller});
 
   final StoryController controller;
 
   @override
+  State<_RouteMapScreen> createState() => _RouteMapScreenState();
+}
+
+class _RouteMapScreenState extends State<_RouteMapScreen> {
+  final TransformationController _transformationController =
+      TransformationController();
+  Size? _centeredViewport;
+  bool _centerPending = false;
+
+  StoryController get controller => widget.controller;
+
+  RouteNode get _focusedNode {
+    for (final node in routeNodes) {
+      if (node.id == controller.currentId) return node;
+    }
+    for (final beat in controller.history.reversed) {
+      for (final node in routeNodes) {
+        if (node.id == beat.id) return node;
+      }
+    }
+    for (final node in routeNodes.reversed) {
+      if (controller.seenNodes.contains(node.id)) return node;
+    }
+    return routeNodes.first;
+  }
+
+  void _scheduleCenter(Size viewport, RouteNode node) {
+    if (_centeredViewport == viewport || _centerPending) return;
+    _centerPending = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _centerPending = false;
+      if (!mounted) return;
+      const tileSize = Size(126, 62);
+      final nodeCenter = Offset(
+        node.x + tileSize.width / 2,
+        node.y + tileSize.height / 2,
+      );
+      final viewportCenter = Offset(viewport.width / 2, viewport.height / 2);
+      _transformationController.value = Matrix4.translationValues(
+        viewportCenter.dx - nodeCenter.dx,
+        viewportCenter.dy - nodeCenter.dy,
+        0,
+      );
+      _centeredViewport = viewport;
+    });
+  }
+
+  @override
+  void dispose() {
+    _transformationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final focusedNode = _focusedNode;
     return Dialog.fullscreen(
       backgroundColor: const Color(0xFF090E0F),
       child: SafeArea(
@@ -1271,51 +1371,62 @@ class _RouteMapScreen extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: InteractiveViewer(
-                constrained: false,
-                minScale: 0.45,
-                maxScale: 1.5,
-                boundaryMargin: const EdgeInsets.all(180),
-                child: SizedBox(
-                  width: routeNodes.last.x + 180,
-                  height: 500,
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: _RouteConnectionsPainter(
-                            controller.seenNodes,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final viewport = constraints.biggest;
+                  _scheduleCenter(viewport, focusedNode);
+                  return InteractiveViewer(
+                    key: const ValueKey('route-map-viewport'),
+                    transformationController: _transformationController,
+                    constrained: false,
+                    minScale: 0.45,
+                    maxScale: 1.5,
+                    boundaryMargin: const EdgeInsets.all(180),
+                    child: SizedBox(
+                      width: routeNodes.last.x + 180,
+                      height: 500,
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: CustomPaint(
+                              painter: _RouteConnectionsPainter(
+                                controller.seenNodes,
+                              ),
+                            ),
                           ),
-                        ),
+                          ...routeNodes.map((node) {
+                            final beat = storyBeats[node.id]!;
+                            final seen = controller.seenNodes.contains(node.id);
+                            final current =
+                                focusedNode.id == node.id &&
+                                controller.phase != StoryPhase.title;
+                            return Positioned(
+                              left: node.x,
+                              top: node.y,
+                              width: 126,
+                              height: 62,
+                              child: _RouteNodeTile(
+                                key: ValueKey('route-node-${node.id}'),
+                                label: beat.label,
+                                seen: seen,
+                                current: current,
+                                ending: beat.phase == StoryPhase.ending,
+                                onPressed: seen
+                                    ? () {
+                                        if (controller.jumpToNode(node.id) &&
+                                            context.mounted) {
+                                          Navigator.pop(context);
+                                        }
+                                      }
+                                    : null,
+                              ),
+                            );
+                          }),
+                        ],
                       ),
-                      ...routeNodes.map((node) {
-                        final beat = storyBeats[node.id]!;
-                        final seen = controller.seenNodes.contains(node.id);
-                        final current =
-                            controller.currentId == node.id &&
-                            controller.phase != StoryPhase.title;
-                        return Positioned(
-                          left: node.x,
-                          top: node.y,
-                          width: 126,
-                          height: 62,
-                          child: _RouteNodeTile(
-                            label: beat.label,
-                            seen: seen,
-                            current: current,
-                            ending: beat.phase == StoryPhase.ending,
-                            onPressed: seen
-                                ? () {
-                                    controller.jumpToNode(node.id);
-                                    Navigator.pop(context);
-                                  }
-                                : null,
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -1569,60 +1680,102 @@ class _SaveSlotTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
+      key: ValueKey('save-slot-$index'),
       color: const Color(0xFF141B1B),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(6),
         side: const BorderSide(color: Color(0xFF34423E)),
       ),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: enabled ? onPressed : null,
         borderRadius: BorderRadius.circular(6),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: const Color(0xFF26312E),
-                child: Text('${index + 1}'.padLeft(2, '0')),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: snapshot == null
-                    ? const Text(
-                        'EMPTY SLOT',
-                        style: TextStyle(color: Color(0xFF6F7975)),
-                      )
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            snapshot!.nodeLabel,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            _formatTimestamp(snapshot!.savedAt),
-                            style: const TextStyle(
-                              color: Color(0xFF9EA9A4),
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-              if (onDelete != null)
-                IconButton(
-                  tooltip: '删除存档',
-                  onPressed: onDelete,
-                  icon: const Icon(Icons.delete_outline_rounded, size: 20),
-                )
-              else
-                Icon(
-                  loadMode ? Icons.folder_open_rounded : Icons.save_outlined,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (snapshot != null) ...[
+              _SaveThumbnail(snapshot: snapshot!),
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xD90A0E0F),
+                      Color(0x290A0E0F),
+                      Color(0x7A0A0E0F),
+                    ],
+                    stops: [0, 0.52, 1],
+                  ),
                 ),
+              ),
             ],
-          ),
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                crossAxisAlignment: snapshot == null
+                    ? CrossAxisAlignment.center
+                    : CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    backgroundColor: const Color(0xD926312E),
+                    child: Text('${index + 1}'.padLeft(2, '0')),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: snapshot == null
+                        ? const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'EMPTY SLOT',
+                              style: TextStyle(color: Color(0xFF6F7975)),
+                            ),
+                          )
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                snapshot!.nodeLabel,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  shadows: [
+                                    Shadow(color: Colors.black, blurRadius: 5),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _formatTimestamp(snapshot!.savedAt),
+                                style: const TextStyle(
+                                  color: Color(0xFFE0E6E2),
+                                  fontSize: 12,
+                                  shadows: [
+                                    Shadow(color: Colors.black, blurRadius: 5),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                  if (onDelete != null)
+                    IconButton(
+                      tooltip: '删除存档',
+                      onPressed: onDelete,
+                      icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                    )
+                  else
+                    Icon(
+                      loadMode
+                          ? Icons.folder_open_rounded
+                          : Icons.save_outlined,
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1631,6 +1784,103 @@ class _SaveSlotTile extends StatelessWidget {
   static String _formatTimestamp(DateTime date) =>
       '${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} '
       '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+}
+
+class _SaveThumbnail extends StatelessWidget {
+  const _SaveThumbnail({required this.snapshot});
+
+  final SaveSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final encoded = snapshot.thumbnailBase64;
+    if (encoded == null || encoded.isEmpty) {
+      return _SnapshotThumbnail(snapshot: snapshot);
+    }
+    try {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: Image.memory(
+          base64Decode(encoded),
+          key: ValueKey('save-thumbnail-${snapshot.currentId}'),
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+          errorBuilder: (context, _, _) =>
+              _SnapshotThumbnail(snapshot: snapshot),
+        ),
+      );
+    } on FormatException {
+      return _SnapshotThumbnail(snapshot: snapshot);
+    }
+  }
+}
+
+class _SnapshotThumbnail extends StatelessWidget {
+  const _SnapshotThumbnail({required this.snapshot});
+
+  final SaveSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final asset = snapshot.thumbnailAsset;
+    if (asset == null || asset.isEmpty) return const _MissingThumbnail();
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(4),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            asset,
+            key: ValueKey('save-thumbnail-${snapshot.currentId}'),
+            fit: BoxFit.cover,
+            filterQuality: FilterQuality.medium,
+            errorBuilder: (context, _, _) => const _MissingThumbnail(),
+          ),
+          if (snapshot.thumbnailText case final text? when text.isNotEmpty)
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(14, 7, 14, 9),
+                color: const Color(0xD9080B0C),
+                child: Text(
+                  text,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFF2F4F1),
+                    fontSize: 10,
+                    height: 1.25,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MissingThumbnail extends StatelessWidget {
+  const _MissingThumbnail();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0B1011),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: const Color(0xFF2D3936)),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.image_not_supported_outlined,
+          size: 20,
+          color: Color(0xFF69736F),
+        ),
+      ),
+    );
+  }
 }
 
 class _CgTile extends StatelessWidget {
@@ -1649,33 +1899,14 @@ class _CgTile extends StatelessWidget {
         onTap: unlocked
             ? () => showDialog<void>(
                 context: context,
-                builder: (context) => Dialog(
-                  backgroundColor: Colors.black,
-                  insetPadding: const EdgeInsets.all(16),
-                  child: Stack(
-                    children: [
-                      InteractiveViewer(
-                        child: Image.asset(entry.asset, fit: BoxFit.contain),
-                      ),
-                      Positioned(
-                        right: 8,
-                        top: 8,
-                        child: IconButton.filled(
-                          tooltip: '关闭',
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.close_rounded),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                builder: (context) => _CgViewer(entry: entry),
               )
             : null,
         child: Stack(
           fit: StackFit.expand,
           children: [
             if (unlocked)
-              Image.asset(entry.asset, fit: BoxFit.cover)
+              Image.asset(entry.coverAsset, fit: BoxFit.cover)
             else
               const ColoredBox(
                 color: Color(0xFF111616),
@@ -1715,6 +1946,79 @@ class _CgTile extends StatelessWidget {
   }
 }
 
+class _CgViewer extends StatefulWidget {
+  const _CgViewer({required this.entry});
+
+  final CgEntry entry;
+
+  @override
+  State<_CgViewer> createState() => _CgViewerState();
+}
+
+class _CgViewerState extends State<_CgViewer> {
+  int _index = 0;
+
+  void _nextFrame() {
+    setState(() => _index = (_index + 1) % widget.entry.assets.length);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.black,
+      insetPadding: const EdgeInsets.all(12),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          GestureDetector(
+            key: const ValueKey('cg-sequence-viewer'),
+            behavior: HitTestBehavior.opaque,
+            onTap: _nextFrame,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 240),
+              child: Image.asset(
+                widget.entry.assets[_index],
+                key: ValueKey(widget.entry.assets[_index]),
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+              ),
+            ),
+          ),
+          Positioned(
+            left: 12,
+            top: 12,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: const Color(0xB3000000),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                child: Text(
+                  '${_index + 1} / ${widget.entry.assets.length}',
+                  style: const TextStyle(
+                    color: Color(0xFFF2F4F1),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 8,
+            top: 8,
+            child: IconButton.filled(
+              tooltip: '关闭',
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.close_rounded),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _EndingTile extends StatelessWidget {
   const _EndingTile({
     required this.entry,
@@ -1747,6 +2051,7 @@ class _EndingTile extends StatelessWidget {
 
 class _RouteNodeTile extends StatelessWidget {
   const _RouteNodeTile({
+    super.key,
     required this.label,
     required this.seen,
     required this.current,

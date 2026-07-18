@@ -1,74 +1,149 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flame/game.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
+import '../audio/audio_cues.dart';
+import '../audio/game_audio_controller.dart';
 import '../game/echo_scene_game.dart';
 import '../story/story.dart';
 import '../story/story_controller.dart';
 import 'system_panels.dart';
 
 class EchoExperience extends StatefulWidget {
-  const EchoExperience({super.key, required this.controller});
+  const EchoExperience({
+    super.key,
+    required this.controller,
+    this.audioEnabled = true,
+  });
 
   final StoryController controller;
+  final bool audioEnabled;
 
   @override
   State<EchoExperience> createState() => _EchoExperienceState();
 }
 
-class _EchoExperienceState extends State<EchoExperience> {
+class _EchoExperienceState extends State<EchoExperience>
+    with WidgetsBindingObserver {
   late final EchoSceneGame _game;
+  late final GameAudioController _audio;
+  final GlobalKey _saveCaptureKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     _game = EchoSceneGame();
+    _audio = GameAudioController(enabled: widget.audioEnabled);
+    WidgetsBinding.instance.addObserver(this);
     widget.controller.addListener(_syncGame);
+    widget.controller.attachSaveThumbnailCapture(_captureSaveThumbnail);
+    _syncGame();
+  }
+
+  @override
+  void didUpdateWidget(covariant EchoExperience oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller == widget.controller) return;
+    oldWidget.controller
+      ..removeListener(_syncGame)
+      ..detachSaveThumbnailCapture();
+    widget.controller
+      ..addListener(_syncGame)
+      ..attachSaveThumbnailCapture(_captureSaveThumbnail);
+    _syncGame();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     widget.controller.removeListener(_syncGame);
+    widget.controller.detachSaveThumbnailCapture();
+    unawaited(_audio.dispose());
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _audio.resume();
+      case AppLifecycleState.inactive ||
+          AppLifecycleState.paused ||
+          AppLifecycleState.detached ||
+          AppLifecycleState.hidden:
+        _audio.suspend();
+    }
+  }
+
+  Future<String?> _captureSaveThumbnail() async {
+    if (kIsWeb) return null;
+    final boundary = _saveCaptureKey.currentContext?.findRenderObject();
+    if (boundary is! RenderRepaintBoundary || boundary.size.isEmpty) {
+      return null;
+    }
+    if (boundary.debugNeedsPaint) {
+      await WidgetsBinding.instance.endOfFrame;
+    }
+    final pixelRatio = (320 / boundary.size.width).clamp(0.15, 0.75);
+    final image = await boundary.toImage(pixelRatio: pixelRatio);
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    image.dispose();
+    if (bytes == null) return null;
+    return base64Encode(bytes.buffer.asUint8List());
   }
 
   void _syncGame() {
     _game.setScene(widget.controller.scene);
     _game.setReducedMotion(widget.controller.reduceMotion);
     _game.setTuning(active: widget.controller.phase == StoryPhase.tuning);
+    _audio.sync(widget.controller);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          GameWidget<EchoSceneGame>(game: _game),
-          ValueListenableBuilder<bool>(
-            valueListenable: _game.sceneReady,
-            builder: (context, ready, _) {
-              if (!ready) return const _SceneLoadingLayer();
-              return AnimatedBuilder(
-                animation: widget.controller,
-                builder: (context, _) => _buildLayer(widget.controller),
-              );
-            },
+      body: GameAudioScope(
+        audio: _audio,
+        child: Listener(
+          behavior: HitTestBehavior.translucent,
+          onPointerDown: (_) => _audio.handleUserGesture(),
+          child: RepaintBoundary(
+            key: _saveCaptureKey,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                GameWidget<EchoSceneGame>(game: _game),
+                ValueListenableBuilder<bool>(
+                  valueListenable: _game.sceneReady,
+                  builder: (context, ready, _) {
+                    if (!ready) return const _SceneLoadingLayer();
+                    return AnimatedBuilder(
+                      animation: widget.controller,
+                      builder: (context, _) => _buildLayer(widget.controller),
+                    );
+                  },
+                ),
+                ValueListenableBuilder<String?>(
+                  valueListenable: _game.sceneLoadError,
+                  builder: (context, error, _) {
+                    if (error == null) return const SizedBox.shrink();
+                    return _SceneLoadErrorBanner(
+                      message: error,
+                      onRetry: _game.retryScene,
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
-          ValueListenableBuilder<String?>(
-            valueListenable: _game.sceneLoadError,
-            builder: (context, error, _) {
-              if (error == null) return const SizedBox.shrink();
-              return _SceneLoadErrorBanner(
-                message: error,
-                onRetry: _game.retryScene,
-              );
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -587,15 +662,25 @@ class _DialogueLayerState extends State<DialogueLayer> {
   bool _progressionScheduled = false;
 
   StoryBeat get beat => widget.controller.current;
+  CgEntry? get _cgEntry => cgById(beat.cgId);
   _DialoguePage get _currentPage => _textPages[_pageIndex];
   bool get _isLastPage => _pageIndex == _textPages.length - 1;
+  bool get _isFinalCgFrame {
+    final entry = _cgEntry;
+    return entry != null && beat.cgFrame >= entry.assets.length - 1;
+  }
+
   int get _totalCharacters => _currentPage.text.characters.length;
   bool get _finished => _visibleCharacters >= _totalCharacters;
 
   @override
   void initState() {
     super.initState();
-    _textPages = _paginateText(beat);
+    _textPages = _paginateText(
+      beat,
+      maxCharacters: beat.cgId == null ? 72 : 46,
+    );
+    _syncThumbnailFallback();
     _startTyping();
   }
 
@@ -675,6 +760,7 @@ class _DialogueLayerState extends State<DialogueLayer> {
       if (!mounted) return;
       if (_visibleCharacters >= _totalCharacters) {
         timer.cancel();
+        _markCgViewedIfComplete();
         _scheduleProgression();
       } else {
         setState(() => _visibleCharacters += 1);
@@ -685,7 +771,13 @@ class _DialogueLayerState extends State<DialogueLayer> {
   void _finishTyping() {
     _typeTimer?.cancel();
     if (!_finished) setState(() => _visibleCharacters = _totalCharacters);
+    _markCgViewedIfComplete();
     _scheduleProgression();
+  }
+
+  void _markCgViewedIfComplete() {
+    if (!_isLastPage || !_finished || !_isFinalCgFrame) return;
+    if (beat.cgId case final id?) widget.controller.markCgViewed(id);
   }
 
   void _showNextPage() {
@@ -697,15 +789,23 @@ class _DialogueLayerState extends State<DialogueLayer> {
       _visibleCharacters = 0;
       _progressionScheduled = false;
     });
+    _syncThumbnailFallback();
     _startTyping();
   }
 
   void _advancePageOrNode() {
     if (_isLastPage) {
-      widget.controller.advance();
+      _completeNode();
     } else {
       _showNextPage();
     }
+  }
+
+  void _completeNode() {
+    if (_isFinalCgFrame) {
+      if (beat.cgId case final id?) widget.controller.markCgViewed(id);
+    }
+    widget.controller.advance();
   }
 
   void _scheduleProgression() {
@@ -764,12 +864,39 @@ class _DialogueLayerState extends State<DialogueLayer> {
         final short = constraints.maxHeight < 520;
         const panelHeight = 112.0;
         final railInset = short ? 72.0 : 84.0;
+        final visiblePortrait = _cgEntry == null
+            ? portraitAsset(_portraitSpeaker, _portraitMood)
+            : null;
         return Stack(
           fit: StackFit.expand,
           children: [
+            if (_cgEntry case final entry?)
+              Positioned.fill(
+                child: AnimatedSwitcher(
+                  duration: widget.controller.reduceMotion
+                      ? Duration.zero
+                      : const Duration(milliseconds: 360),
+                  child: SizedBox.expand(
+                    key: ValueKey('story-cg-${entry.id}-${beat.cgFrame}'),
+                    child: Image.asset(
+                      _cgAsset(entry),
+                      fit: BoxFit.cover,
+                      filterQuality: FilterQuality.high,
+                      errorBuilder: (context, _, _) => const ColoredBox(
+                        color: Color(0xFF090E0F),
+                        child: Center(
+                          child: Text(
+                            '事件 CG 加载失败',
+                            style: TextStyle(color: Color(0xFFF2F4F1)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             _TopBar(controller: widget.controller),
-            if (portraitAsset(_portraitSpeaker, _portraitMood)
-                case final asset?)
+            if (visiblePortrait case final asset?)
               Positioned.fill(
                 top: 42,
                 right: railInset,
@@ -800,7 +927,12 @@ class _DialogueLayerState extends State<DialogueLayer> {
                     child: _ChoiceOverlay(
                       choices: widget.controller.availableChoices,
                       compact: short,
-                      onChoice: widget.controller.choose,
+                      onChoice: (choice) {
+                        GameAudioScope.maybeOf(
+                          context,
+                        )?.playSfx(GameSfx.choiceReveal);
+                        widget.controller.choose(choice);
+                      },
                     ),
                   ),
                 ),
@@ -823,7 +955,7 @@ class _DialogueLayerState extends State<DialogueLayer> {
                           : !_isLastPage
                           ? _showNextPage
                           : beat.choices.isEmpty
-                          ? widget.controller.advance
+                          ? _completeNode
                           : null,
                     ),
                   ),
@@ -846,6 +978,19 @@ class _DialogueLayerState extends State<DialogueLayer> {
 
   String get _portraitMood =>
       _portraitSpeaker == beat.speaker ? beat.portraitMood : 'neutral';
+
+  String _cgAsset(CgEntry entry) {
+    final frame = beat.cgFrame.clamp(0, entry.assets.length - 1);
+    return entry.assets[frame];
+  }
+
+  void _syncThumbnailFallback() {
+    final entry = _cgEntry;
+    widget.controller.setSaveThumbnailFallback(
+      asset: entry == null ? sceneImageAsset(beat.scene) : _cgAsset(entry),
+      text: _currentPage.text,
+    );
+  }
 }
 
 class _RetryingPortrait extends StatefulWidget {
@@ -1171,6 +1316,7 @@ class _PuzzleLayerState extends State<_PuzzleLayer> {
 
   void _collectAccessItem(String id) {
     if (id == 'maintenance_card' && !_hasCard) {
+      GameAudioScope.maybeOf(context)?.playSfx(GameSfx.itemPickup);
       widget.controller.recordPuzzleProgress(
         'ch3_access_card_found',
         grantsItem: 'maintenance_card',
@@ -1179,6 +1325,7 @@ class _PuzzleLayerState extends State<_PuzzleLayer> {
       return;
     }
     if (id == 'shift_note' && !_hasNote) {
+      GameAudioScope.maybeOf(context)?.playSfx(GameSfx.itemPickup);
       widget.controller.recordPuzzleProgress(
         'ch3_shift_note_found',
         grantsItem: 'shift_note',
@@ -1197,9 +1344,11 @@ class _PuzzleLayerState extends State<_PuzzleLayer> {
       return;
     }
     if (!_hasCard) {
+      GameAudioScope.maybeOf(context)?.playSfx(GameSfx.accessDenied);
       setState(() => _feedback = '读卡器短促鸣叫，没有识别到可用凭证。');
       return;
     }
+    GameAudioScope.maybeOf(context)?.playSfx(GameSfx.accessGranted);
     widget.controller.recordPuzzleProgress(
       'ch3_access_card_swiped',
       consumesItems: const ['maintenance_card'],
@@ -1209,6 +1358,7 @@ class _PuzzleLayerState extends State<_PuzzleLayer> {
 
   void _enterDigit(String digit) {
     if (!_cardSwiped || _accessCode.length >= 4) return;
+    GameAudioScope.maybeOf(context)?.playSfx(GameSfx.keypadPress);
     setState(() {
       _accessCode += digit;
       _feedback = null;
@@ -1217,13 +1367,16 @@ class _PuzzleLayerState extends State<_PuzzleLayer> {
 
   void _submitAccessCode() {
     if (!_cardSwiped) {
+      GameAudioScope.maybeOf(context)?.playSfx(GameSfx.accessDenied);
       setState(() => _feedback = '键盘没有亮起。门上的读卡器仍在等待响应。');
       return;
     }
     if (_accessCode == '0916') {
+      GameAudioScope.maybeOf(context)?.playSfx(GameSfx.accessGranted);
       widget.controller.completePuzzle('access_0916');
       return;
     }
+    GameAudioScope.maybeOf(context)?.playSfx(GameSfx.accessDenied);
     setState(() {
       _accessCode = '';
       _feedback = '锁舌没有动作，四个按键同时熄灭。';
@@ -1247,6 +1400,7 @@ class _PuzzleLayerState extends State<_PuzzleLayer> {
     final right = _balanceRight;
     if (left == null || right == null) return;
     final comparison = _weightValues[left]!.compareTo(_weightValues[right]!);
+    GameAudioScope.maybeOf(context)?.playSfx(GameSfx.balanceWeight);
     setState(() {
       _feedback = comparison == 0
           ? '天平保持水平。'
@@ -1276,9 +1430,11 @@ class _PuzzleLayerState extends State<_PuzzleLayer> {
       5,
       (index) => _balanceOrder[index] == expected[index],
     ).every((correct) => correct)) {
+      GameAudioScope.maybeOf(context)?.playSfx(GameSfx.circuitPowerOn);
       widget.controller.completePuzzle('triangle_cross_ring_dot_square');
       return;
     }
+    GameAudioScope.maybeOf(context)?.playSfx(GameSfx.accessDenied);
     setState(() => _feedback = '机关没有响应。某些相邻砝码的轻重关系仍然相反。');
   }
 
@@ -1288,9 +1444,11 @@ class _PuzzleLayerState extends State<_PuzzleLayer> {
     final adjacent =
         (sameRow && (index - blank).abs() == 1) || (index - blank).abs() == 3;
     if (!adjacent) {
+      GameAudioScope.maybeOf(context)?.playSfx(GameSfx.combineFail);
       setState(() => _feedback = '这块石板没有与空格相邻。');
       return;
     }
+    GameAudioScope.maybeOf(context)?.playSfx(GameSfx.stoneTileSlide);
     setState(() {
       final tile = _tiles[index];
       _tiles[index] = 8;
@@ -1302,6 +1460,7 @@ class _PuzzleLayerState extends State<_PuzzleLayer> {
       9,
       (index) => _tiles[index] == index,
     ).every((correct) => correct)) {
+      GameAudioScope.maybeOf(context)?.playSfx(GameSfx.circuitPowerOn);
       widget.controller.completePuzzle('circuit_complete');
     }
   }
@@ -1317,13 +1476,16 @@ class _PuzzleLayerState extends State<_PuzzleLayer> {
 
   void _submitAuditOrder() {
     if (_auditOrder.length < 3) {
+      GameAudioScope.maybeOf(context)?.playSfx(GameSfx.accessDenied);
       setState(() => _feedback = '校验输入仍有空列。');
       return;
     }
     if (_auditOrder.join('_') == 'slot_lease_interval') {
+      GameAudioScope.maybeOf(context)?.playSfx(GameSfx.accessGranted);
       widget.controller.completePuzzle('slot_lease_interval');
       return;
     }
+    GameAudioScope.maybeOf(context)?.playSfx(GameSfx.accessDenied);
     setState(() => _feedback = '三组短码能够成列，但校验值没有闭合。');
   }
 
@@ -2135,11 +2297,18 @@ class _InvestigationSpec {
 }
 
 class _InvestigationLayerState extends State<_InvestigationLayer> {
+  final ScrollController _inventoryScrollController = ScrollController();
   String? _activeItemId;
   String? _combineItemId;
   _InspectionAction? _lastAction;
   String? _feedback;
   bool _backpackOpen = false;
+
+  @override
+  void dispose() {
+    _inventoryScrollController.dispose();
+    super.dispose();
+  }
 
   static const _items = <String, _InvestigationItem>{
     'terminal_area': _InvestigationItem(
@@ -2420,6 +2589,97 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
       name: '转运设备倒班记录',
       asset: 'assets/images/items/storage/shift_note.png',
       description: '复写纸只保留09时与16时两次交接，页脚注明旧控制器按发生顺序连写时间。',
+    ),
+    'medical_test_case': _InvestigationItem(
+      id: 'medical_test_case',
+      name: '离线医疗检验盒',
+      asset: 'assets/images/items/medical/medical_test_case.png',
+      description: '封签完整的床旁检验盒，内部工具可以在不联网的情况下复核残液与音频输出。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['medical_case_strip', 'medical_case_spectrum'],
+          name: '取空的医疗检验盒',
+          description: '药物试纸与离线频谱夹已收入背包，盒内剩余格位均为密封备品。',
+        ),
+      ],
+    ),
+    'sedative_test_strip': _InvestigationItem(
+      id: 'sedative_test_strip',
+      name: '镇静剂检验试纸',
+      asset: 'assets/images/items/medical/sedative_test_strip.png',
+      description: '可对注射器内壁与输液残液进行同批对照，显色结果会保留在纸卡上。',
+    ),
+    'offline_spectrum_clip': _InvestigationItem(
+      id: 'offline_spectrum_clip',
+      name: '离线频谱夹',
+      asset: 'assets/images/items/medical/offline_spectrum_clip.png',
+      description: '夹在耳机左右声道之间的被动检测器，不向PDA发送任何握手。',
+    ),
+    'injection_infusion_set': _InvestigationItem(
+      id: 'injection_infusion_set',
+      name: '注射器与输液残液',
+      asset: 'assets/images/items/medical/injection_infusion_set.png',
+      description: '外层注射器包装已被打开，无菌内封、针帽和输液接口需要分开检查。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['medical_inner_seal'],
+          name: '未穿刺的注射与输液组',
+          description: '注射器内封没有针帽穿刺点，输液端口防回流膜也完整；还需要检验残液。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['medical_inner_seal', 'medical_residue_assay'],
+          name: '排除镇静剂投药的器材',
+          asset: 'assets/images/items/medical/injection_infusion_checked.png',
+          description: '无菌内封与输液接口均未穿破，试纸对照也未检出失踪镇静剂。现场没有可验证的投药路径。',
+        ),
+      ],
+    ),
+    'medical_assay_card': _InvestigationItem(
+      id: 'medical_assay_card',
+      name: '药物检验对照卡',
+      asset: 'assets/images/items/medical/medical_assay_card.png',
+      description: '注射器内壁、输液残液和标准样并列显色；前两项均未呈现镇静剂反应。',
+    ),
+    'triage_record': _InvestigationItem(
+      id: 'triage_record',
+      name: '分时检伤记录',
+      asset: 'assets/images/items/medical/triage_record.png',
+      description: '星遥从首次耳鸣到恢复对话的体征、症状与操作时间被分开记录。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['triage_timeline'],
+          description: '眼震、恶心与定向障碍均早于意识丧失，拔掉右耳机后逐步减轻。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['triage_timeline', 'triage_compare'],
+          name: '前庭刺激型晕厥记录',
+          description: '呼吸未受抑制，瞳孔等大；眼震与定向障碍随单侧暴露加重，与常见镇静剂过量模式不同。',
+        ),
+      ],
+    ),
+    'patient_headset': _InvestigationItem(
+      id: 'patient_headset',
+      name: '星遥的双声道耳机',
+      asset: 'assets/images/items/medical/patient_headset.png',
+      description: '右侧耳罩被星遥在倒下前抓住，左右接头可以分别离线检查。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['headset_channel_check'],
+          description: '左右声道线路完整，右侧输出缓存的写入频率却显著高于左侧。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['headset_channel_check', 'headset_spectrum'],
+          name: '记录定向脉冲的耳机',
+          asset: 'assets/images/items/medical/patient_headset_checked.png',
+          description: '离线频谱显示右声道每七秒收到一组18.6kHz窄脉冲，左声道与空气麦克风中都不存在。',
+        ),
+      ],
+    ),
+    'headset_spectrum_capture': _InvestigationItem(
+      id: 'headset_spectrum_capture',
+      name: '右声道脉冲捕获卡',
+      asset: 'assets/images/items/medical/headset_spectrum_capture.png',
+      description: '七秒周期的18.6kHz脉冲只存在于右声道，证明暴露沿PDA输出链定向发生。',
     ),
   };
 
@@ -2742,9 +3002,113 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
     ],
   );
 
+  static const _medical = _InvestigationSpec(
+    title: '医疗调查 / C-02',
+    targets: [
+      _InvestigationTarget(
+        id: 'injection_infusion_set',
+        initialLabel: '注射与输液器材',
+        clueTitle: '无镇静剂投药路径',
+        asset: 'assets/images/items/medical/injection_infusion_set.png',
+        prompt: '外层包装已被打开，但不能因此假定注射已经完成。先检查无菌封与输液接口。',
+        actions: [
+          _InspectionAction(
+            id: 'medical_inner_seal',
+            label: '检查无菌内封与穿刺口',
+            icon: Icons.biotech_outlined,
+            result: '注射器内封没有针帽穿刺点，输液接口的防回流膜也完整。外包装被拆开不等于已经投药。',
+          ),
+          _InspectionAction(
+            id: 'medical_residue_assay',
+            label: '检验内壁与输液残液',
+            icon: Icons.science_outlined,
+            requiresItems: ['sedative_test_strip'],
+            requiresActions: ['medical_inner_seal'],
+            result: '标准样正常显色，注射器内壁与输液残液均为阴性。现场没有镇静剂通过这两条路径进入体内的痕迹。',
+            grantsItem: 'medical_assay_card',
+            verifiesClue: 'no_sedative_delivery',
+            consumesItems: ['sedative_test_strip'],
+          ),
+        ],
+      ),
+      _InvestigationTarget(
+        id: 'triage_record',
+        initialLabel: '分时检伤表',
+        clueTitle: '前庭刺激型晕厥',
+        asset: 'assets/images/items/medical/triage_record.png',
+        prompt: '体征、主观感受与操作时间必须先按发生顺序排列，再与候选机制比较。',
+        actions: [
+          _InspectionAction(
+            id: 'triage_timeline',
+            label: '重建症状与操作时间线',
+            icon: Icons.timeline_rounded,
+            result: '耳鸣、右侧定向障碍和眼震早于意识丧失；拔掉右耳机两分钟后，意识与血压开始恢复。',
+          ),
+          _InspectionAction(
+            id: 'triage_compare',
+            label: '与镇静剂过量模式比对',
+            icon: Icons.monitor_heart_outlined,
+            requiresActions: ['triage_timeline'],
+            result: '呼吸未受抑制，瞳孔等大，眼震与定向障碍随单侧暴露加重。记录更符合前庭感觉冲突引起的短暂晕厥。',
+            verifiesClue: 'clinical_pattern',
+          ),
+        ],
+      ),
+      _InvestigationTarget(
+        id: 'patient_headset',
+        initialLabel: '双声道耳机',
+        clueTitle: '右声道定向脉冲',
+        asset: 'assets/images/items/medical/patient_headset.png',
+        prompt: '星遥倒下前抓住右侧耳机。先比较左右线路，再在不发送握手的情况下捕获输出。',
+        actions: [
+          _InspectionAction(
+            id: 'headset_channel_check',
+            label: '分别检查左右声道缓存',
+            icon: Icons.graphic_eq_rounded,
+            result: '左右硬件完整，右侧输出缓存的写入频率却显著高于左侧。需要离线捕获实际频谱。',
+          ),
+          _InspectionAction(
+            id: 'headset_spectrum',
+            label: '对比左右声道频谱',
+            icon: Icons.multiline_chart_rounded,
+            requiresItems: ['offline_spectrum_clip'],
+            requiresActions: ['headset_channel_check'],
+            result: '右声道每七秒出现一组18.6kHz窄脉冲，左声道与空气麦克风均无对应信号。暴露沿PDA音频输出链定向发生。',
+            grantsItem: 'headset_spectrum_capture',
+            verifiesClue: 'directed_tone',
+          ),
+        ],
+      ),
+      _InvestigationTarget(
+        id: 'medical_test_case',
+        initialLabel: '床旁检验盒',
+        clueTitle: '离线检验工具',
+        asset: 'assets/images/items/medical/medical_test_case.png',
+        prompt: '检验盒的封签完整，内部工具只用于验证材料与输出，不能直接指认持有者。',
+        actions: [
+          _InspectionAction(
+            id: 'medical_case_strip',
+            label: '取出药物检验试纸',
+            icon: Icons.science_outlined,
+            result: '试纸可将器材内壁、输液残液与标准样放在同一张卡上对照。',
+            grantsItem: 'sedative_test_strip',
+          ),
+          _InspectionAction(
+            id: 'medical_case_spectrum',
+            label: '取出离线频谱夹',
+            icon: Icons.headphones_outlined,
+            result: '频谱夹只被动读取左右声道，不会向PDA或设施主机发送握手。',
+            grantsItem: 'offline_spectrum_clip',
+          ),
+        ],
+      ),
+    ],
+  );
+
   _InvestigationSpec get _spec => switch (widget.controller.currentId) {
     'ch2_gym_investigation' => _gym,
     'ch3_storage_investigation' => _storage,
+    'ch4_medical_investigation' => _medical,
     _ => _controlRoom,
   };
 
@@ -2759,7 +3123,7 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
       widget.controller.investigationClues.intersection(_currentClueIds);
 
   _InvestigationTarget? _targetFor(String id) {
-    for (final spec in [_controlRoom, _gym, _storage]) {
+    for (final spec in [_controlRoom, _gym, _storage, _medical]) {
       for (final target in spec.targets) {
         if (target.id == id) return target;
       }
@@ -2788,6 +3152,9 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
   }
 
   void _toggleBackpack() {
+    GameAudioScope.maybeOf(
+      context,
+    )?.playSfx(_backpackOpen ? GameSfx.pdaClose : GameSfx.pdaOpen);
     setState(() {
       _backpackOpen = !_backpackOpen;
       if (!_backpackOpen) {
@@ -2799,6 +3166,7 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
   }
 
   void _collect(_InvestigationTarget target) {
+    GameAudioScope.maybeOf(context)?.playSfx(GameSfx.itemPickup);
     widget.controller.collectInvestigationItem(target.id);
     setState(() {
       _feedback = '已收纳「${_resolvedItem(target.id).name}」，可从右侧打开背包查看。';
@@ -2831,6 +3199,7 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
         .where((id) => !_completedActions.contains(id))
         .toList(growable: false);
     if (missingItems.isNotEmpty || missingActions.isNotEmpty) {
+      GameAudioScope.maybeOf(context)?.playSfx(GameSfx.combineFail);
       setState(() {
         _feedback = missingActions.isNotEmpty
             ? '这个物品还有未确认的细节，暂时无法完成组合。'
@@ -2848,6 +3217,16 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
       verifiesClue: action.verifiesClue,
       consumesItems: action.consumesItems,
     );
+    final audio = GameAudioScope.maybeOf(context);
+    if (action.verifiesClue != null) {
+      audio?.playSfx(GameSfx.clueAcquired);
+    } else if (action.grantsItem != null) {
+      audio?.playSfx(GameSfx.itemPickup);
+    } else if (action.requiresItems.isNotEmpty) {
+      audio?.playSfx(GameSfx.combineSuccess);
+    } else {
+      audio?.playSfx(GameSfx.uiConfirm);
+    }
     if (_activeItemId != null && !_inventory.contains(_activeItemId)) {
       setState(() => _activeItemId = null);
     }
@@ -2856,34 +3235,41 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
     }
   }
 
-  bool _combine(String draggedId, String targetId) {
-    if (draggedId == targetId) return false;
-    final target = _targetFor(targetId);
-    final dragged = _items[draggedId];
-    if (target == null || dragged == null) {
+  bool _combine(String firstId, String secondId) {
+    if (firstId == secondId) return false;
+
+    _InvestigationTarget? resolvedTarget;
+    _InspectionAction? resolvedAction;
+    for (final pair in [
+      (targetId: firstId, toolId: secondId),
+      (targetId: secondId, toolId: firstId),
+    ]) {
+      final target = _targetFor(pair.targetId);
+      if (target == null || !_items.containsKey(pair.toolId)) continue;
+      final candidates = target.actions
+          .where((action) => action.requiresItems.contains(pair.toolId))
+          .toList(growable: false);
+      if (candidates.isEmpty) continue;
+      resolvedTarget = target;
+      resolvedAction = candidates.firstWhere(
+        (candidate) => !_completedActions.contains(candidate.id),
+        orElse: () => candidates.first,
+      );
+      break;
+    }
+
+    if (resolvedTarget == null || resolvedAction == null) {
+      GameAudioScope.maybeOf(context)?.playSfx(GameSfx.combineFail);
       setState(() => _feedback = '这两件物品无法组合。');
       return false;
     }
-    final candidates = target.actions
-        .where((action) => action.requiresItems.contains(draggedId))
-        .toList(growable: false);
-    if (candidates.isEmpty) {
-      setState(
-        () => _feedback =
-            '「${_resolvedItem(draggedId).name}」用在「${_resolvedItem(targetId).name}」上没有反应。',
-      );
-      return false;
-    }
-    final action = candidates.firstWhere(
-      (candidate) => !_completedActions.contains(candidate.id),
-      orElse: () => candidates.first,
-    );
+
     setState(() {
-      _activeItemId = targetId;
+      _activeItemId = resolvedTarget!.id;
       _lastAction = null;
     });
-    _runAction(action);
-    return _completedActions.contains(action.id);
+    _runAction(resolvedAction);
+    return _completedActions.contains(resolvedAction.id);
   }
 
   @override
@@ -2954,6 +3340,7 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
           ),
         if (_backpackOpen)
           Align(
+            key: const ValueKey('inventory-backpack-panel'),
             alignment: Alignment.bottomCenter,
             child: SafeArea(
               minimum: const EdgeInsets.fromLTRB(14, 8, 82, 10),
@@ -3046,6 +3433,7 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
                                         key: const ValueKey(
                                           'inventory-scroll-list',
                                         ),
+                                        controller: _inventoryScrollController,
                                         scrollDirection: Axis.horizontal,
                                         physics: const BouncingScrollPhysics(
                                           parent:
@@ -3474,6 +3862,7 @@ class _InventoryItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget card({required bool highlighted}) => GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 120),
@@ -3716,6 +4105,9 @@ class _DeductionLayer extends StatefulWidget {
 }
 
 class _DeductionLayerState extends State<_DeductionLayer> {
+  late final List<({String id, IconData icon, String title, String body})>
+  _orderedEvidence;
+  late final List<(String, String, String)> _orderedHypotheses;
   String? _selected;
   final Map<String, String?> _chain = {
     'fact': null,
@@ -3727,8 +4119,39 @@ class _DeductionLayerState extends State<_DeductionLayer> {
   String? _chainFeedback;
 
   bool get _isCase02 => widget.controller.currentId == 'ch3_case02_deduction';
+  bool get _isCase03 => widget.controller.currentId == 'ch4_case03_deduction';
 
-  List<({String id, String title, String prompt})> get _roles => _isCase02
+  @override
+  void initState() {
+    super.initState();
+    final random = math.Random();
+    _orderedEvidence = List.of(_evidence)..shuffle(random);
+    _orderedHypotheses = List.of(_hypotheses)..shuffle(random);
+
+    final correctIds = _correctChain.values.toSet();
+    final leadingCorrect = _orderedEvidence
+        .take(3)
+        .where((item) => correctIds.contains(item.id))
+        .length;
+    if (leadingCorrect == 3) {
+      final distractorIndex = _orderedEvidence.indexWhere(
+        (item) => !correctIds.contains(item.id),
+        3,
+      );
+      final swapIndex = random.nextInt(3);
+      final displaced = _orderedEvidence[swapIndex];
+      _orderedEvidence[swapIndex] = _orderedEvidence[distractorIndex];
+      _orderedEvidence[distractorIndex] = displaced;
+    }
+  }
+
+  List<({String id, String title, String prompt})> get _roles => _isCase03
+      ? const [
+          (id: 'fact', title: '身体反应', prompt: '先确认昏厥前后出现了哪组体征'),
+          (id: 'threshold', title: '暴露媒介', prompt: '找出症状加重前什么只作用于患者'),
+          (id: 'mechanism', title: '排除路径', prompt: '确认失踪药物是否真的进入了体内'),
+        ]
+      : _isCase02
       ? const [
           (id: 'fact', title: '现场动作', prompt: '确认物资是否真实移动，以及动作发生的先后'),
           (id: 'threshold', title: '授权窗口', prompt: '找出撤销为何没有立刻终止门禁会话'),
@@ -3741,7 +4164,46 @@ class _DeductionLayerState extends State<_DeductionLayer> {
         ];
 
   List<({String id, IconData icon, String title, String body})> get _evidence =>
-      _isCase02
+      _isCase03
+      ? const [
+          (
+            id: 'clinical_pattern',
+            icon: Icons.monitor_heart_outlined,
+            title: '眼震与定向障碍',
+            body: '呼吸未受抑制，症状随右侧定向刺激加重',
+          ),
+          (
+            id: 'directed_tone',
+            icon: Icons.headphones_outlined,
+            title: '右声道18.6kHz脉冲',
+            body: '每七秒进入星遥耳机，左声道与空气中都没有',
+          ),
+          (
+            id: 'no_sedative_delivery',
+            icon: Icons.vaccines_outlined,
+            title: '无穿刺与阴性残液',
+            body: '注射器内封未穿破，输液残液未检出镇静剂',
+          ),
+          (
+            id: 'missing_ampoule',
+            icon: Icons.medication_liquid_outlined,
+            title: '镇静剂缺失',
+            body: '药柜少一支完整安瓿，取出时间仍无法确定',
+          ),
+          (
+            id: 'dirty_filter',
+            icon: Icons.air_outlined,
+            title: '换气滤网积灰',
+            body: '风量下降但仍在安全范围，其他人没有同步症状',
+          ),
+          (
+            id: 'opened_wrapper',
+            icon: Icons.inventory_2_outlined,
+            title: '拆开的注射器外包',
+            body: '外层包装已打开，但内部无菌封仍保持完整',
+          ),
+        ]
+      : _isCase02
       ? const [
           (
             id: 'seal_reclosed',
@@ -3819,7 +4281,13 @@ class _DeductionLayerState extends State<_DeductionLayer> {
           ),
         ];
 
-  List<(String, String, String)> get _hypotheses => _isCase02
+  List<(String, String, String)> get _hypotheses => _isCase03
+      ? const [
+          ('sedative_poisoning', '镇静剂投药', '失踪药物被用在星遥身上，高频只是与昏厥同时出现。'),
+          ('air_contamination', '换气污染导致昏厥', '隔离病房的风管向室内输送了未知刺激物。'),
+          ('directed_resonance', '定向音频诱发晕厥', '特定耳机收到持续脉冲，引发前庭感觉冲突；药物失踪是独立事件。'),
+        ]
+      : _isCase02
       ? const [
           ('owner_action', '01本人自愿转移', '最终电子签名真实，因此物资一定由01本人授权移走。'),
           ('trustee_action', '受托人亲自窃取', '拥有过01权限的人利用技术能力完成了全部操作。'),
@@ -3830,6 +4298,24 @@ class _DeductionLayerState extends State<_DeductionLayer> {
           ('swap', '终端被交换', '凶手把另一台终端放在死者身边制造假距离。'),
           ('repeater', '中继器伪造定位', '凶手转发了距离握手，让项圈在规则内执行死刑。'),
         ];
+
+  Map<String, String> get _correctChain => _isCase03
+      ? const {
+          'fact': 'clinical_pattern',
+          'threshold': 'directed_tone',
+          'mechanism': 'no_sedative_delivery',
+        }
+      : _isCase02
+      ? const {
+          'fact': 'seal_reclosed',
+          'threshold': 'delegation_gap',
+          'mechanism': 'weight_mismatch',
+        }
+      : const {
+          'fact': 'distance',
+          'threshold': 'timer',
+          'mechanism': 'repeater',
+        };
 
   void _assignEvidence(String evidenceId) {
     setState(() {
@@ -3852,24 +4338,18 @@ class _DeductionLayerState extends State<_DeductionLayer> {
   }
 
   void _verifyChain() {
-    final correct = _isCase02
-        ? const {
-            'fact': 'seal_reclosed',
-            'threshold': 'delegation_gap',
-            'mechanism': 'weight_mismatch',
-          }
-        : const {
-            'fact': 'distance',
-            'threshold': 'timer',
-            'mechanism': 'repeater',
-          };
-    final verified = correct.entries.every(
+    final verified = _correctChain.entries.every(
       (entry) => _chain[entry.key] == entry.value,
     );
+    GameAudioScope.maybeOf(
+      context,
+    )?.playSfx(verified ? GameSfx.clueAcquired : GameSfx.combineFail);
     setState(() {
       _chainVerified = verified;
       _chainFeedback = verified
-          ? _isCase02
+          ? _isCase03
+                ? '证据链闭合：体征符合定向感觉冲突，脉冲只进入右声道，现场也没有镇静剂进入体内的路径。'
+                : _isCase02
                 ? '证据链闭合：物资真实移动，旧会话在撤销后仍可用，系统随后把签名归到01名下。'
                 : '证据链闭合：现实距离被伪造，异常跨过规则阈值，并由中继器送入裁定频道。'
           : '三项记录彼此真实，但目前的排列没有形成连续的时间与因果关系。换一个位置，再检查每一步究竟发生在前还是后。';
@@ -3885,7 +4365,11 @@ class _DeductionLayerState extends State<_DeductionLayer> {
         children: [
           _TopBar(
             controller: widget.controller,
-            title: _isCase02 ? '权限推演 / CASE 02' : '规则推演 / CASE 01',
+            title: _isCase03
+                ? '医学推演 / CASE 03'
+                : _isCase02
+                ? '权限推演 / CASE 02'
+                : '规则推演 / CASE 01',
           ),
           SafeArea(
             minimum: const EdgeInsets.fromLTRB(18, 76, 82, 18),
@@ -3906,7 +4390,7 @@ class _DeductionLayerState extends State<_DeductionLayer> {
                               final evidenceId = _chain[role.id];
                               final evidence = evidenceId == null
                                   ? null
-                                  : _evidence.singleWhere(
+                                  : _orderedEvidence.singleWhere(
                                       (item) => item.id == evidenceId,
                                     );
                               return _ChainSlot(
@@ -3928,7 +4412,7 @@ class _DeductionLayerState extends State<_DeductionLayer> {
                       Wrap(
                         spacing: 9,
                         runSpacing: 9,
-                        children: _evidence
+                        children: _orderedEvidence
                             .map((item) {
                               String? assignedRole;
                               for (final role in _roles) {
@@ -3980,12 +4464,14 @@ class _DeductionLayerState extends State<_DeductionLayer> {
                       if (_chainVerified) ...[
                         const SizedBox(height: 22),
                         _Eyebrow(
-                          text: _isCase02
+                          text: _isCase03
+                              ? 'CAUSE OF SYNCOPE'
+                              : _isCase02
                               ? 'OPERATION OWNERSHIP'
                               : 'CAUSE OF EXECUTION',
                         ),
                         const SizedBox(height: 9),
-                        ..._hypotheses.map(
+                        ..._orderedHypotheses.map(
                           (item) => Padding(
                             padding: const EdgeInsets.only(bottom: 8),
                             child: _HypothesisTile(
@@ -4007,11 +4493,22 @@ class _DeductionLayerState extends State<_DeductionLayer> {
                           child: FilledButton.icon(
                             onPressed: _selected == null
                                 ? null
-                                : () => widget.controller.submitDeduction(
-                                    _selected!,
-                                  ),
+                                : () {
+                                    GameAudioScope.maybeOf(
+                                      context,
+                                    )?.playSfx(GameSfx.uiConfirm);
+                                    widget.controller.submitDeduction(
+                                      _selected!,
+                                    );
+                                  },
                             icon: const Icon(Icons.gavel_outlined),
-                            label: Text(_isCase02 ? '提交操作归属' : '提交死因推演'),
+                            label: Text(
+                              _isCase03
+                                  ? '提交昏厥机制'
+                                  : _isCase02
+                                  ? '提交操作归属'
+                                  : '提交死因推演',
+                            ),
                           ),
                         ),
                       ],
@@ -4359,6 +4856,7 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (title == null) return const SizedBox.shrink();
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(10, 9, 80, 0),
@@ -4375,21 +4873,10 @@ class _TopBar extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  controller.remainingTime,
-                  style: const TextStyle(
-                    color: Color(0xFFD8A24A),
-                    fontWeight: FontWeight.w700,
-                    fontFeatures: [FontFeature.tabularFigures()],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Container(width: 1, height: 15, color: const Color(0xFF3A4945)),
-                const SizedBox(width: 10),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 220),
                   child: Text(
-                    title ?? controller.current.label,
+                    title!,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 12),
                   ),

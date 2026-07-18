@@ -23,7 +23,9 @@ Future<void> main() async {
 }
 
 class GalgameApp extends StatelessWidget {
-  const GalgameApp({super.key});
+  const GalgameApp({super.key, this.audioEnabled = true});
+
+  final bool audioEnabled;
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +70,10 @@ class GalgameApp extends StatelessWidget {
               child: Center(child: CircularProgressIndicator()),
             );
           }
-          return EchoExperience(controller: snapshot.data!);
+          return EchoExperience(
+            controller: snapshot.data!,
+            audioEnabled: audioEnabled,
+          );
         },
       ),
     );

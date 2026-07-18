@@ -1,5 +1,6 @@
 part 'story_chapter2.dart';
 part 'story_chapter3.dart';
+part 'story_chapter4.dart';
 
 enum StoryPhase {
   title,
@@ -56,6 +57,9 @@ enum SceneKey {
   storageRoom,
   transferRoom,
   archiveCorridor,
+  medicalIsolation,
+  securityRoom,
+  maintenanceRoom,
 }
 
 enum Speaker {
@@ -82,6 +86,8 @@ class ChoiceEffect {
     this.logic = 0,
     this.cooperation = 0,
     this.flag,
+    this.highRiskItemId,
+    this.highRiskHolderId,
   });
 
   final int xingyao;
@@ -90,6 +96,8 @@ class ChoiceEffect {
   final int logic;
   final int cooperation;
   final String? flag;
+  final String? highRiskItemId;
+  final String? highRiskHolderId;
 }
 
 class StoryChoice {
@@ -122,12 +130,16 @@ class StoryBeat {
     this.portraitMood = 'neutral',
     this.timelineMinute,
     this.cgId,
+    this.cgFrame = 0,
     this.endingId,
     this.auditNext,
     this.auditRequiredFlags = const {},
     this.flagsOnEnter = const {},
     this.highRiskItemsOnEnter = const {},
+    this.highRiskItemsMissingOnEnter = const {},
+    this.highRiskItemsResealedOnEnter = const {},
     this.deathEvents = const [],
+    this.nextByFlag = const {},
   });
 
   final String id;
@@ -142,12 +154,16 @@ class StoryBeat {
   final String portraitMood;
   final int? timelineMinute;
   final String? cgId;
+  final int cgFrame;
   final String? endingId;
   final String? auditNext;
   final Set<String> auditRequiredFlags;
   final Set<String> flagsOnEnter;
   final Set<String> highRiskItemsOnEnter;
+  final Set<String> highRiskItemsMissingOnEnter;
+  final Set<String> highRiskItemsResealedOnEnter;
   final List<StoryDeathEvent> deathEvents;
+  final Map<String, String> nextByFlag;
 
   List<StoryPassage> get passages {
     if (passageSpeakers.isEmpty) {
@@ -246,13 +262,15 @@ class CgEntry {
     required this.id,
     required this.title,
     required this.caption,
-    required this.asset,
+    required this.assets,
   });
 
   final String id;
   final String title;
   final String caption;
-  final String asset;
+  final List<String> assets;
+
+  String get coverAsset => assets.first;
 }
 
 class EndingEntry {
@@ -356,8 +374,10 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     label: '黑色项圈',
     speaker: Speaker.shenYan,
     scene: SceneKey.dormitory,
+    cgId: 'cg_dormitory',
+    cgFrame: 1,
     text:
-        '直到我摸向后颈，才发现那不是衣领。一圈乌黑金属紧贴着皮肤，宽度近两指，没有锁孔，也找不到铰链。指腹划过左侧接缝时，内部传来一下极轻的震动，像是某种设备在确认我还活着。',
+        '直到我摸向后颈，才发现那不是衣领。我走到房间角落的洗手台前，抬头看向蒙着水垢的镜子。一圈乌黑金属正紧贴着镜中人的脖颈，宽度近两指，没有锁孔，也找不到铰链。指腹划过左侧接缝时，内部传来一下极轻的震动，像是某种设备在确认我还活着。',
     passageSpeakers: [Speaker.narration],
     next: 'collar_panic',
   ),
@@ -449,7 +469,6 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     label: '十二人',
     speaker: Speaker.narration,
     scene: SceneKey.assemblyHall,
-    cgId: 'cg_assembly',
     text:
         '集合厅像一间早已停用的企业教室。十二把折叠椅被刻意围成一圈，每把椅背都贴着编号。算上我，走进来的只有十一人，贴着12的椅子始终空着。没人按编号坐下；大家宁愿站在离门最近的地方，仿佛先坐下就等于接受了安排。',
     next: 'hall_first_impression',
@@ -765,6 +784,7 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     label: '没有人相信',
     speaker: Speaker.hanQi,
     portraitMood: 'protective',
+    cgId: 'cg_assembly',
     text:
         '这一次不只是苏弥。韩骐从侧面扣住吴峥的肩膀，我去抢他手里的扳手，周叙在后面一迭声地说“别试了”。可我们所有人加起来的劝阻里，仍然没有一个人真正相信项圈会杀人。我们只是不愿承担它万一为真的后果。',
     passageSpeakers: [Speaker.narration],
@@ -784,6 +804,8 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     id: 'collar_detonation',
     label: '第一次出局',
     speaker: Speaker.narration,
+    cgId: 'cg_assembly',
+    cgFrame: 1,
     text:
         '扳手还没有完全落下，项圈内部就传出一声短促的爆响。不是电影里那种巨大爆炸，只像一只厚塑料袋被人贴着耳边拍破。吴峥的身体向后弹开，撞翻三把折叠椅后重重落地。扳手滚到林澄脚边，她却像没看见一样一动不动。屏幕上的12无声变成了11。',
     next: 'explosion_silence',
@@ -1402,6 +1424,8 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     label: '三项矛盾',
     speaker: Speaker.shenYan,
     scene: SceneKey.controlRoom,
+    cgId: 'cg_control_room',
+    cgFrame: 1,
     text:
         '我重新量了三次：周叙的右手与终端只相距一点四米。可项圈日志里，这个距离在三分钟前突然跳到了二十三米，并且持续了一百八十一秒。监控台下方还藏着一台本不应该通电的救生信号中继器。它的指示灯已经熄灭，外壳却还带着余温。',
     passageSpeakers: [Speaker.narration],
@@ -1996,36 +2020,23 @@ final storyBeats = Map<String, StoryBeat>.unmodifiable({
   ...chapterTwoBeats,
   ...chapterTwoExpansionBeats,
   ...chapterThreeBeats,
+  ...chapterFourBeats,
 });
 
 const _routeNodeSpecs = <({String id, int stage, double lane})>[
   (id: 'game_start', stage: 0, lane: 210),
-  (id: 'corridor_encounter', stage: 1, lane: 210),
   (id: 'enter_hall', stage: 2, lane: 210),
   (id: 'participant_twelve', stage: 3, lane: 210),
-  (id: 'screen_boot', stage: 4, lane: 210),
   (id: 'collar_detonation', stage: 5, lane: 210),
-  (id: 'rule_one', stage: 6, lane: 210),
   (id: 'clause_choice', stage: 7, lane: 210),
-  (id: 'public_pact', stage: 8, lane: 40),
-  (id: 'partial_pact', stage: 8, lane: 210),
-  (id: 'conceal_pact', stage: 8, lane: 380),
   (id: 'partner_choice', stage: 9, lane: 210),
-  (id: 'xingyao_search', stage: 10, lane: 40),
-  (id: 'sumi_infirmary', stage: 10, lane: 210),
-  (id: 'lincheng_map', stage: 10, lane: 380),
   (id: 'first_alarm', stage: 11, lane: 210),
   (id: 'investigation_gate', stage: 12, lane: 210),
   (id: 'response_choice', stage: 13, lane: 210),
-  (id: 'chase_signal', stage: 14, lane: 40),
-  (id: 'help_sumi', stage: 14, lane: 210),
-  (id: 'help_lincheng', stage: 14, lane: 380),
-  (id: 'decrypt_gate', stage: 15, lane: 210),
   (id: 'deduction_gate', stage: 16, lane: 210),
   (id: 'bad_end_result', stage: 17, lane: 20),
   (id: 'shadow_end_result', stage: 17, lane: 100),
   (id: 'ch2_chapter_title', stage: 17, lane: 300),
-  (id: 'ch2_map_update', stage: 18, lane: 300),
   (id: 'ch2_approach_choice', stage: 19, lane: 300),
   (id: 'ch2_leave_choice', stage: 20, lane: 300),
   (id: 'ch2_gym_investigation', stage: 21, lane: 300),
@@ -2033,10 +2044,7 @@ const _routeNodeSpecs = <({String id, int stage, double lane})>[
   (id: 'ch2_end', stage: 23, lane: 300),
   (id: 'ch2_audit_index', stage: 24, lane: 100),
   (id: 'ch3_chapter_title', stage: 24, lane: 300),
-  (id: 'ch3_delegation_announce', stage: 25, lane: 300),
-  (id: 'ch3_hanqi_clause_reveal', stage: 26, lane: 300),
   (id: 'ch3_delegation_gate', stage: 27, lane: 300),
-  (id: 'ch3_b03_alarm', stage: 28, lane: 300),
   (id: 'ch3_storage_investigation', stage: 29, lane: 300),
   (id: 'ch3_case02_deduction', stage: 30, lane: 300),
   (id: 'ch3_transfer_access_puzzle', stage: 31, lane: 300),
@@ -2045,6 +2053,18 @@ const _routeNodeSpecs = <({String id, int stage, double lane})>[
   (id: 'ch3_audit_manifest_puzzle', stage: 34, lane: 100),
   (id: 'ch3_protocol_choice', stage: 34, lane: 300),
   (id: 'ch3_end', stage: 35, lane: 300),
+  (id: 'ch4_daybreak', stage: 36, lane: 300),
+  (id: 'ch4_medical_investigation', stage: 38, lane: 300),
+  (id: 'ch4_case03_deduction', stage: 39, lane: 300),
+  (id: 'ch4_high_risk_announcement', stage: 40, lane: 300),
+  (id: 'ch4_audit_projection', stage: 41, lane: 80),
+  (id: 'ch4_key_custody_choice', stage: 41, lane: 300),
+  (id: 'ch4_strong_death_confirmed', stage: 42, lane: 180),
+  (id: 'ch4_alliance_death', stage: 42, lane: 300),
+  (id: 'ch4_majority_vote', stage: 42, lane: 420),
+  (id: 'ch4_audit_seal', stage: 42, lane: 60),
+  (id: 'ch4_e04_signal', stage: 44, lane: 300),
+  (id: 'ch4_end', stage: 45, lane: 300),
 ];
 
 final routeNodes = List<RouteNode>.unmodifiable(
@@ -2054,46 +2074,29 @@ final routeNodes = List<RouteNode>.unmodifiable(
 );
 
 const routeConnections = <String, List<String>>{
-  'game_start': ['corridor_encounter'],
-  'corridor_encounter': ['enter_hall'],
+  'game_start': ['enter_hall'],
   'enter_hall': ['participant_twelve'],
-  'participant_twelve': ['screen_boot'],
-  'screen_boot': ['collar_detonation'],
-  'collar_detonation': ['rule_one'],
-  'rule_one': ['clause_choice'],
-  'clause_choice': ['public_pact', 'partial_pact', 'conceal_pact'],
-  'public_pact': ['partner_choice'],
-  'partial_pact': ['partner_choice'],
-  'conceal_pact': ['partner_choice'],
-  'partner_choice': ['xingyao_search', 'sumi_infirmary', 'lincheng_map'],
-  'xingyao_search': ['first_alarm'],
-  'sumi_infirmary': ['first_alarm'],
-  'lincheng_map': ['first_alarm'],
+  'participant_twelve': ['collar_detonation'],
+  'collar_detonation': ['clause_choice'],
+  'clause_choice': ['partner_choice'],
+  'partner_choice': ['first_alarm'],
   'first_alarm': ['investigation_gate'],
   'investigation_gate': ['response_choice'],
-  'response_choice': ['help_sumi', 'chase_signal', 'help_lincheng'],
-  'help_sumi': ['decrypt_gate'],
-  'chase_signal': ['decrypt_gate'],
-  'help_lincheng': ['decrypt_gate'],
-  'decrypt_gate': ['deduction_gate'],
+  'response_choice': ['deduction_gate'],
   'deduction_gate': [
     'bad_end_result',
     'shadow_end_result',
     'ch2_chapter_title',
   ],
-  'ch2_chapter_title': ['ch2_map_update'],
-  'ch2_map_update': ['ch2_approach_choice'],
+  'ch2_chapter_title': ['ch2_approach_choice'],
   'ch2_approach_choice': ['ch2_leave_choice'],
   'ch2_leave_choice': ['ch2_gym_investigation'],
   'ch2_gym_investigation': ['ch2_seal_complete'],
   'ch2_seal_complete': ['ch2_end'],
   'ch2_end': ['ch2_audit_index', 'ch3_chapter_title'],
   'ch2_audit_index': ['ch3_chapter_title'],
-  'ch3_chapter_title': ['ch3_delegation_announce'],
-  'ch3_delegation_announce': ['ch3_hanqi_clause_reveal'],
-  'ch3_hanqi_clause_reveal': ['ch3_delegation_gate'],
-  'ch3_delegation_gate': ['ch3_b03_alarm'],
-  'ch3_b03_alarm': ['ch3_storage_investigation'],
+  'ch3_chapter_title': ['ch3_delegation_gate'],
+  'ch3_delegation_gate': ['ch3_storage_investigation'],
   'ch3_storage_investigation': ['ch3_case02_deduction'],
   'ch3_case02_deduction': ['ch3_transfer_access_puzzle'],
   'ch3_transfer_access_puzzle': ['ch3_second_seal_notice'],
@@ -2101,44 +2104,99 @@ const routeConnections = <String, List<String>>{
   'ch3_slide_puzzle': ['ch3_audit_manifest_puzzle', 'ch3_protocol_choice'],
   'ch3_audit_manifest_puzzle': ['ch3_protocol_choice'],
   'ch3_protocol_choice': ['ch3_end'],
+  'ch3_end': ['ch4_daybreak'],
+  'ch4_daybreak': ['ch4_medical_investigation'],
+  'ch4_medical_investigation': ['ch4_case03_deduction'],
+  'ch4_case03_deduction': ['ch4_high_risk_announcement'],
+  'ch4_high_risk_announcement': [
+    'ch4_audit_projection',
+    'ch4_key_custody_choice',
+  ],
+  'ch4_audit_projection': ['ch4_audit_seal', 'ch4_key_custody_choice'],
+  'ch4_key_custody_choice': [
+    'ch4_strong_death_confirmed',
+    'ch4_alliance_death',
+    'ch4_majority_vote',
+  ],
+  'ch4_strong_death_confirmed': ['ch4_e04_signal'],
+  'ch4_alliance_death': ['ch4_e04_signal'],
+  'ch4_majority_vote': ['ch4_e04_signal'],
+  'ch4_audit_seal': ['ch4_e04_signal'],
+  'ch4_e04_signal': ['ch4_end'],
 };
 
 const cgEntries = <CgEntry>[
   CgEntry(
     id: 'cg_dormitory',
-    title: '没有窗的房间',
-    caption: 'DAY 1 / 苏醒',
-    asset: 'assets/images/scenes/dormitory_room.png',
+    title: '醒在编号里',
+    caption: '苏醒 / 2 FRAME',
+    assets: [
+      'assets/images/cg/awakening/01.png',
+      'assets/images/cg/awakening/02.png',
+    ],
   ),
   CgEntry(
     id: 'cg_assembly',
-    title: '十二把折叠椅',
-    caption: 'DAY 1 / 初次集合',
-    asset: 'assets/images/scenes/assembly_hall.png',
+    title: '第三次冲击',
+    caption: '项圈处决 / 2 FRAME',
+    assets: [
+      'assets/images/cg/collar_execution/01.png',
+      'assets/images/cg/collar_execution/02.png',
+    ],
   ),
   CgEntry(
     id: 'cg_control_room',
-    title: '封闭的监控室',
-    caption: 'DAY 1 / 第二例死亡',
-    asset: 'assets/images/scenes/control_room.png',
+    title: '一百八十一秒',
+    caption: '监控室死亡现场 / 2 FRAME',
+    assets: [
+      'assets/images/cg/control_room_death/01.png',
+      'assets/images/cg/control_room_death/02.png',
+    ],
   ),
   CgEntry(
     id: 'cg_gym',
-    title: '封锁前的旧体育馆',
-    caption: 'DAY 1 / F-01救援',
-    asset: 'assets/images/scenes/old_gym.png',
+    title: '正在下降的门',
+    caption: 'F-01救援 / 2 FRAME',
+    assets: [
+      'assets/images/cg/gym_rescue/01.png',
+      'assets/images/cg/gym_rescue/02.png',
+    ],
   ),
   CgEntry(
     id: 'cg_storage',
-    title: '被重新封好的物资箱',
-    caption: 'DAY 2 / B-03调查',
-    asset: 'assets/images/scenes/storage_room.png',
+    title: '重新封好的痕迹',
+    caption: 'B-03调查 / 2 FRAME',
+    assets: [
+      'assets/images/cg/storage_investigation/01.png',
+      'assets/images/cg/storage_investigation/02.png',
+    ],
   ),
   CgEntry(
     id: 'cg_storage_seal',
-    title: '第二次永久封锁',
-    caption: 'DAY 2 / B-03封锁',
-    asset: 'assets/images/scenes/transfer_room.png',
+    title: '阈值前十二秒',
+    caption: '闸门逃生 / 2 FRAME',
+    assets: [
+      'assets/images/cg/transfer_escape/01.png',
+      'assets/images/cg/transfer_escape/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_medical_isolation',
+    title: '她先抓住了耳机',
+    caption: '定向晕厥 / 2 FRAME',
+    assets: [
+      'assets/images/cg/xingyao_collapse/01.png',
+      'assets/images/cg/xingyao_collapse/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_audit_rescue',
+    title: '没有被留下的人',
+    caption: 'C-02共同撤离 / 2 FRAME',
+    assets: [
+      'assets/images/cg/audit_rescue/01.png',
+      'assets/images/cg/audit_rescue/02.png',
+    ],
   ),
 ];
 
@@ -2204,17 +2262,21 @@ String speakerName(Speaker speaker) => switch (speaker) {
 };
 
 const portraitMoods = <Speaker, Set<String>>{
-  Speaker.liXingyao: {'neutral', 'alarm', 'relaxed'},
-  Speaker.suMi: {'neutral', 'concerned', 'relieved'},
-  Speaker.hanQi: {'neutral', 'protective', 'conflicted'},
+  Speaker.liXingyao: {'neutral', 'alarm', 'relaxed', 'vertigo'},
+  Speaker.suMi: {'neutral', 'concerned', 'relieved', 'shaken'},
+  Speaker.hanQi: {'neutral', 'protective', 'conflicted', 'armed'},
   Speaker.wuZheng: {'neutral', 'defiant'},
   Speaker.tangYi: {'neutral', 'shaken'},
   Speaker.linCheng: {'neutral', 'determined', 'anxious'},
-  Speaker.chenMo: {'neutral', 'discovery', 'guarded'},
+  Speaker.chenMo: {'neutral', 'discovery', 'guarded', 'desperate'},
   Speaker.gaoYuan: {'neutral', 'inspecting', 'injured'},
   Speaker.zhouXu: {'neutral', 'defensive'},
   Speaker.yeLan: {'neutral', 'intervening'},
 };
+
+/// Canonical appearance reference for CGs and non-first-person special shots.
+/// Regular Shen Yan dialogue intentionally stays portrait-free.
+const shenYanReferenceAsset = 'assets/images/characters/shen_yan/neutral.png';
 
 String? portraitAsset(Speaker speaker, [String mood = 'neutral']) {
   final directory = switch (speaker) {
@@ -2237,10 +2299,33 @@ String? portraitAsset(Speaker speaker, [String mood = 'neutral']) {
   return 'assets/images/characters/$directory/$resolvedMood.png';
 }
 
+String sceneImageAsset(SceneKey scene) => switch (scene) {
+  SceneKey.dormitory => 'assets/images/scenes/dormitory_room.png',
+  SceneKey.corridor => 'assets/images/scenes/facility_corridor.png',
+  SceneKey.assemblyHall => 'assets/images/scenes/assembly_hall.png',
+  SceneKey.controlRoom => 'assets/images/scenes/control_room.png',
+  SceneKey.oldGym => 'assets/images/scenes/old_gym.png',
+  SceneKey.infirmary => 'assets/images/scenes/infirmary.png',
+  SceneKey.storageRoom => 'assets/images/scenes/storage_room.png',
+  SceneKey.transferRoom => 'assets/images/scenes/transfer_room.png',
+  SceneKey.archiveCorridor => 'assets/images/scenes/archive_corridor.png',
+  SceneKey.medicalIsolation => 'assets/images/scenes/medical_isolation.png',
+  SceneKey.securityRoom => 'assets/images/scenes/security_room.png',
+  SceneKey.maintenanceRoom => 'assets/images/scenes/maintenance_room.png',
+};
+
 EndingEntry? endingById(String? id) {
   if (id == null) return null;
   for (final ending in endingEntries) {
     if (ending.id == id) return ending;
+  }
+  return null;
+}
+
+CgEntry? cgById(String? id) {
+  if (id == null) return null;
+  for (final entry in cgEntries) {
+    if (entry.id == id) return entry;
   }
   return null;
 }
