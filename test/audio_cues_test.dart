@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:galgame/audio/audio_cues.dart';
+import 'package:galgame/audio/game_audio_controller.dart';
 import 'package:galgame/story/story.dart';
 import 'package:galgame/story/story_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -238,6 +240,21 @@ void main() {
     }
     expect(GameBgm.endingAfterlight.loop, isFalse);
     expect(GameBgm.auditRevelation.loop, isTrue);
+  });
+
+  test('音效与环境音不会抢占正在播放的 BGM', () {
+    expect(
+      GameAudioController.bgmAudioContext.android.audioFocus,
+      AndroidAudioFocus.gain,
+    );
+    expect(
+      GameAudioController.layeredAudioContext.android.audioFocus,
+      AndroidAudioFocus.none,
+    );
+    expect(
+      GameAudioController.layeredAudioContext.iOS.category,
+      AVAudioSessionCategory.playback,
+    );
   });
 
   test('音量设置会限制范围并持久化', () async {

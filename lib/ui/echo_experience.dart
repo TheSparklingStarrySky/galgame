@@ -753,6 +753,7 @@ class _DialogueLayerState extends State<DialogueLayer> {
   int _pageIndex = 0;
   int _visibleCharacters = 0;
   bool _progressionScheduled = false;
+  bool _interfaceHidden = false;
 
   StoryBeat get beat => widget.controller.current;
   CgEntry? get _cgEntry => cgById(beat.cgId);
@@ -940,6 +941,21 @@ class _DialogueLayerState extends State<DialogueLayer> {
     });
   }
 
+  void _hideInterface() {
+    _advanceTimer?.cancel();
+    if (widget.controller.autoPlay) {
+      widget.controller.setAutoPlay(false);
+    }
+    if (widget.controller.skipMode) {
+      widget.controller.setSkipMode(false);
+    }
+    setState(() => _interfaceHidden = true);
+  }
+
+  void _restoreInterface() {
+    setState(() => _interfaceHidden = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.controller.skipMode || widget.controller.autoPlay) {
@@ -988,7 +1004,7 @@ class _DialogueLayerState extends State<DialogueLayer> {
                   ),
                 ),
               ),
-            _TopBar(controller: widget.controller),
+            if (!_interfaceHidden) _TopBar(controller: widget.controller),
             if (visiblePortrait case final asset?)
               Positioned.fill(
                 top: 42,
@@ -1003,7 +1019,8 @@ class _DialogueLayerState extends State<DialogueLayer> {
                   ),
                 ),
               ),
-            if (_finished &&
+            if (!_interfaceHidden &&
+                _finished &&
                 _isLastPage &&
                 widget.controller.availableChoices.isNotEmpty)
               SafeArea(
@@ -1030,32 +1047,48 @@ class _DialogueLayerState extends State<DialogueLayer> {
                   ),
                 ),
               ),
-            SafeArea(
-              minimum: EdgeInsets.fromLTRB(16, 64, railInset, 14),
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1120),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: panelHeight,
-                    child: _DialoguePanel(
-                      speaker: _currentPage.speaker,
-                      visibleText: visibleText,
-                      finished: _finished,
-                      onTap: !_finished
-                          ? _finishTyping
-                          : !_isLastPage
-                          ? _showNextPage
-                          : beat.choices.isEmpty
-                          ? _completeNode
-                          : null,
+            if (!_interfaceHidden)
+              SafeArea(
+                minimum: EdgeInsets.fromLTRB(16, 64, railInset, 14),
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1120),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: panelHeight,
+                      child: _DialoguePanel(
+                        speaker: _currentPage.speaker,
+                        visibleText: visibleText,
+                        finished: _finished,
+                        onHide: _hideInterface,
+                        onTap: !_finished
+                            ? _finishTyping
+                            : !_isLastPage
+                            ? _showNextPage
+                            : beat.choices.isEmpty
+                            ? _completeNode
+                            : null,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            _RightControlRail(controller: widget.controller),
+            if (!_interfaceHidden)
+              _RightControlRail(controller: widget.controller),
+            if (_interfaceHidden)
+              Positioned.fill(
+                child: Semantics(
+                  button: true,
+                  label: '恢复界面',
+                  child: GestureDetector(
+                    key: const ValueKey('restore-dialogue-interface'),
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _restoreInterface,
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+              ),
           ],
         );
       },
@@ -1161,12 +1194,14 @@ class _DialoguePanel extends StatelessWidget {
     required this.speaker,
     required this.visibleText,
     required this.finished,
+    required this.onHide,
     required this.onTap,
   });
 
   final Speaker speaker;
   final String visibleText;
   final bool finished;
+  final VoidCallback onHide;
   final VoidCallback? onTap;
 
   @override
@@ -1180,7 +1215,14 @@ class _DialoguePanel extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
+        key: const ValueKey('dialogue-tap-target'),
         onTap: onTap,
+        splashFactory: NoSplash.splashFactory,
+        overlayColor: const WidgetStatePropertyAll(Colors.transparent),
+        hoverColor: Colors.transparent,
+        focusColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        splashColor: Colors.transparent,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 11, 20, 9),
           child: Stack(
@@ -1211,7 +1253,7 @@ class _DialoguePanel extends StatelessWidget {
                   ],
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(right: finished ? 24 : 0),
+                      padding: const EdgeInsets.only(right: 34),
                       child: Text(
                         visibleText,
                         maxLines: speakerName(speaker).isEmpty ? 4 : 3,
@@ -1225,6 +1267,23 @@ class _DialoguePanel extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+              Positioned(
+                top: -9,
+                right: -9,
+                child: Tooltip(
+                  message: '隐藏界面',
+                  child: IconButton(
+                    key: const ValueKey('hide-dialogue-interface'),
+                    onPressed: onHide,
+                    style: IconButton.styleFrom(
+                      fixedSize: const Size.square(34),
+                      padding: EdgeInsets.zero,
+                      foregroundColor: const Color(0xFF9EA9A4),
+                    ),
+                    icon: const Icon(Icons.visibility_off_outlined, size: 18),
+                  ),
+                ),
               ),
               if (finished && onTap != null)
                 const Positioned(

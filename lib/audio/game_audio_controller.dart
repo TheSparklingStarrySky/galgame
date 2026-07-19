@@ -8,6 +8,19 @@ import '../story/story_controller.dart';
 import 'audio_cues.dart';
 
 class GameAudioController {
+  @visibleForTesting
+  static final AudioContext bgmAudioContext = AudioContext(
+    android: const AudioContextAndroid(audioFocus: AndroidAudioFocus.gain),
+    iOS: AudioContextIOS(category: AVAudioSessionCategory.playback),
+  );
+
+  // Layered channels must not take audio focus from the looping BGM player.
+  @visibleForTesting
+  static final AudioContext layeredAudioContext = AudioContext(
+    android: const AudioContextAndroid(audioFocus: AndroidAudioFocus.none),
+    iOS: AudioContextIOS(category: AVAudioSessionCategory.playback),
+  );
+
   GameAudioController({bool enabled = true})
     : _enabled = enabled,
       _bgmPlayer = enabled ? AudioPlayer() : null,
@@ -105,7 +118,11 @@ class GameAudioController {
       _guard(() async {
         await player.stop();
         await player.setReleaseMode(ReleaseMode.stop);
-        await player.play(AssetSource(sfx.asset), volume: _sfxVolume);
+        await player.play(
+          AssetSource(sfx.asset),
+          volume: _sfxVolume,
+          ctx: layeredAudioContext,
+        );
         if (sfx.maximumPlayback case final duration?) {
           _sfxStopTimers[slot] = Timer(duration, () {
             if (!_disposed) unawaited(_guard(player.stop));
@@ -167,7 +184,11 @@ class GameAudioController {
           target.loop ? ReleaseMode.loop : ReleaseMode.stop,
         );
         if (_disposed || _suspended || target != _requestedBgm) return;
-        await player.play(AssetSource(target.asset), volume: 0);
+        await player.play(
+          AssetSource(target.asset),
+          volume: 0,
+          ctx: bgmAudioContext,
+        );
         _currentBgm = target;
         if (_suspended) {
           await player.pause();
@@ -215,7 +236,11 @@ class GameAudioController {
         if (target == null) return;
         await player.setReleaseMode(ReleaseMode.loop);
         if (_disposed || _suspended || target != _requestedAmbience) return;
-        await player.play(AssetSource(target.asset), volume: _ambienceVolume);
+        await player.play(
+          AssetSource(target.asset),
+          volume: _ambienceVolume,
+          ctx: layeredAudioContext,
+        );
         _currentAmbience = target;
         if (_suspended) await player.pause();
       });

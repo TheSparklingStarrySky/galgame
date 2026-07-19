@@ -33,6 +33,14 @@ void main() {
     await tester.pump();
 
     expect(find.text('168:00:00'), findsNothing);
+    final dialogueTapTarget = tester.widget<InkWell>(
+      find.byKey(const ValueKey('dialogue-tap-target')),
+    );
+    expect(dialogueTapTarget.splashFactory, NoSplash.splashFactory);
+    expect(
+      dialogueTapTarget.overlayColor?.resolve({WidgetState.pressed}),
+      Colors.transparent,
+    );
     await tester.tap(find.byIcon(Icons.smartphone_rounded));
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -68,6 +76,51 @@ void main() {
     expect(rect.left, greaterThanOrEqualTo(0));
     expect(rect.right, lessThanOrEqualTo(844));
     expect(rect.bottom, lessThanOrEqualTo(390));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('正文界面可隐藏后点击画面恢复且不推进剧情', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(844, 390));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = await StoryController.load();
+    controller
+      ..startNew()
+      ..setAutoPlay(true);
+    final currentId = controller.currentId;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: EchoExperience(controller: controller, audioEnabled: false),
+      ),
+    );
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 800)),
+    );
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('hide-dialogue-interface')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('hide-dialogue-interface')));
+    await tester.pump();
+
+    expect(controller.autoPlay, isFalse);
+    expect(controller.currentId, currentId);
+    expect(find.byKey(const ValueKey('dialogue-panel')), findsNothing);
+    expect(find.byKey(const ValueKey('right-control-rail')), findsNothing);
+    expect(
+      find.byKey(const ValueKey('restore-dialogue-interface')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('restore-dialogue-interface')));
+    await tester.pump();
+
+    expect(controller.currentId, currentId);
+    expect(find.byKey(const ValueKey('dialogue-panel')), findsOneWidget);
+    expect(find.byKey(const ValueKey('right-control-rail')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
