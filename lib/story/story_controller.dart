@@ -745,6 +745,37 @@ class StoryController extends ChangeNotifier {
     _enterCurrent();
   }
 
+  void submitFinalTestimony(String answer) {
+    if (phase != StoryPhase.testimony ||
+        !const {
+          'human_director',
+          'zero_system',
+          'zero_protocol',
+        }.contains(answer)) {
+      return;
+    }
+
+    flags
+      ..removeWhere((flag) => flag.startsWith('ch8_testimony_answer_'))
+      ..add('ch8_testimony_answer_$answer');
+    _markCurrentRead();
+
+    if (runMode == StoryRunMode.audit) {
+      currentId = switch (answer) {
+        'human_director' => 'ch8_audit_human_answer_error',
+        'zero_system' => 'ch8_audit_zero_answer_error',
+        _ => 'ch8_audit_testimony_resolved',
+      };
+    } else if (flags.contains('ch6_tangyi_vote_killer')) {
+      currentId = 'ch8_four_seats_verdict_1';
+    } else if (flags.contains('ch6_hanqi_vote_killer')) {
+      currentId = 'ch8_custodian_verdict_1';
+    } else {
+      currentId = 'ch8_no_witness_verdict_1';
+    }
+    _enterCurrent();
+  }
+
   void setMarkedSector(String? sector) {
     markedSector = sector;
     _saveAuto();

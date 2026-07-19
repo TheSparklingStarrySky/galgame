@@ -2,16 +2,34 @@
 
 import 'package:galgame/story/story.dart';
 
-const _draftEndingIds = {
+const _chapterThreeExtraIds = {
   'pact_end',
+  'pact_end_shared_day',
+  'pact_end_revision',
+  'pact_end_consensus',
+  'pact_end_last_room',
   'pact_end_result',
+};
+
+const _chapterEightExtraIds = {
   'xingyao_end',
+  'xingyao_end_memorial',
+  'xingyao_end_hearing',
+  'xingyao_end_station',
   'xingyao_end_result',
   'sumi_end',
+  'sumi_end_record',
+  'sumi_end_treatment',
+  'sumi_end_return',
   'sumi_end_result',
   'lincheng_end',
+  'lincheng_end_memorial',
+  'lincheng_end_school',
+  'lincheng_end_graduation',
   'lincheng_end_result',
 };
+
+const _nonChapterOneIds = {..._chapterThreeExtraIds, ..._chapterEightExtraIds};
 
 int _han(String value) =>
     RegExp(r'[\u3400-\u4DBF\u4E00-\u9FFF]').allMatches(value).length;
@@ -39,6 +57,16 @@ List<String> _outgoing(StoryBeat beat) {
   }
   if (beat.id == 'ch7_case06_deduction') {
     return const ['ch7_case06_resolved'];
+  }
+  if (beat.id == 'ch8_standard_testimony') {
+    return const [
+      'ch8_four_seats_verdict_1',
+      'ch8_custodian_verdict_1',
+      'ch8_no_witness_verdict_1',
+    ];
+  }
+  if (beat.id == 'ch8_audit_testimony') {
+    return const ['ch8_audit_testimony_resolved'];
   }
   if (beat.choices.isNotEmpty) {
     return beat.choices.map((choice) => choice.next).toSet().toList();
@@ -81,13 +109,15 @@ void main() {
         !beat.id.startsWith('ch5_') &&
         !beat.id.startsWith('ch6_') &&
         !beat.id.startsWith('ch7_') &&
-        !_draftEndingIds.contains(beat.id),
+        !beat.id.startsWith('ch8_') &&
+        !_nonChapterOneIds.contains(beat.id),
   );
   final chapterTwo = storyBeats.values.where(
     (beat) => beat.id.startsWith('ch2_'),
   );
   final chapterThree = storyBeats.values.where(
-    (beat) => beat.id.startsWith('ch3_'),
+    (beat) =>
+        beat.id.startsWith('ch3_') || _chapterThreeExtraIds.contains(beat.id),
   );
   final chapterFour = storyBeats.values.where(
     (beat) => beat.id.startsWith('ch4_'),
@@ -101,8 +131,9 @@ void main() {
   final chapterSeven = storyBeats.values.where(
     (beat) => beat.id.startsWith('ch7_'),
   );
-  final draftEndings = storyBeats.values.where(
-    (beat) => _draftEndingIds.contains(beat.id),
+  final chapterEight = storyBeats.values.where(
+    (beat) =>
+        beat.id.startsWith('ch8_') || _chapterEightExtraIds.contains(beat.id),
   );
 
   _printGroup('chapter1', chapterOne);
@@ -112,7 +143,7 @@ void main() {
   _printGroup('chapter5', chapterFive);
   _printGroup('chapter6', chapterSix);
   _printGroup('chapter7', chapterSeven);
-  _printGroup('draftEndings', draftEndings);
+  _printGroup('chapter8', chapterEight);
   _printGroup('allStoryData', storyBeats.values);
 
   List<List<String>> collectPaths(String start, {String? stopAt}) {
@@ -205,5 +236,13 @@ void main() {
     'chapter7Playthrough: paths=${chapterSevenPaths.length}, '
     'visible=${chapterSevenPaths.first.visible}-${chapterSevenPaths.last.visible}, '
     'nodes=${chapterSevenPaths.first.nodes}-${chapterSevenPaths.last.nodes}',
+  );
+  final chapterEightPaths = collectPaths(
+    'ch8_final_day_open',
+  ).map(_pathMetrics).toList()..sort((a, b) => a.visible.compareTo(b.visible));
+  print(
+    'chapter8Playthrough: paths=${chapterEightPaths.length}, '
+    'visible=${chapterEightPaths.first.visible}-${chapterEightPaths.last.visible}, '
+    'nodes=${chapterEightPaths.first.nodes}-${chapterEightPaths.last.nodes}',
   );
 }

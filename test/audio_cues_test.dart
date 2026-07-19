@@ -98,6 +98,46 @@ void main() {
       ).bgm,
       GameBgm.fourSeatAftermath,
     );
+    expect(
+      resolveStoryAudioCue(
+        phase: StoryPhase.testimony,
+        scene: SceneKey.testimonyBooth,
+        nodeId: 'ch8_audit_testimony',
+      ).bgm,
+      GameBgm.finalTestimony,
+    );
+    expect(
+      resolveStoryAudioCue(
+        phase: StoryPhase.dialogue,
+        scene: SceneKey.debriefRoom,
+        nodeId: 'ch8_xingyao_epilogue_4',
+      ).bgm,
+      GameBgm.bondXingyao,
+    );
+    expect(
+      resolveStoryAudioCue(
+        phase: StoryPhase.dialogue,
+        scene: SceneKey.assemblyHall,
+        nodeId: 'ch8_audit_director_reveal_1',
+      ).bgm,
+      GameBgm.auditRevelation,
+    );
+    expect(
+      resolveStoryAudioCue(
+        phase: StoryPhase.dialogue,
+        scene: SceneKey.metroStation,
+        nodeId: 'ch8_xingyao_signal_trigger',
+      ).bgm,
+      GameBgm.bondXingyao,
+    );
+    expect(
+      resolveStoryAudioCue(
+        phase: StoryPhase.dialogue,
+        scene: SceneKey.schoolClassroom,
+        nodeId: 'ch8_lincheng_exam_day',
+      ).bgm,
+      GameBgm.bondLincheng,
+    );
   });
 
   test('室内区域使用对应环境底噪', () {
@@ -125,6 +165,22 @@ void main() {
       ).ambience,
       GameAmbience.infirmaryEquipment,
     );
+    expect(
+      resolveStoryAudioCue(
+        phase: StoryPhase.dialogue,
+        scene: SceneKey.memorialWall,
+        nodeId: 'ch8_public_epilogue_3',
+      ).ambience,
+      GameAmbience.urbanExterior,
+    );
+    expect(
+      resolveStoryAudioCue(
+        phase: StoryPhase.dialogue,
+        scene: SceneKey.riversideEvening,
+        nodeId: 'ch8_lincheng_epilogue_5',
+      ).ambience,
+      GameAmbience.riversideEvening,
+    );
   });
 
   test('关键事件绑定对应一次性音效', () {
@@ -145,6 +201,17 @@ void main() {
     expect(storyNodeSfx('ch7_hanqi_hunt_6'), GameSfx.evidenceGlassBreak);
     expect(storyNodeSfx('ch7_sumi_risk_1'), GameSfx.pressureBypass);
     expect(storyNodeSfx('ch7_audit_sync_1'), GameSfx.syncLockPulse);
+    expect(
+      storyNodeSfx('ch8_audit_testimony_resolved'),
+      GameSfx.testimonySubmit,
+    );
+    expect(
+      storyNodeSfx('ch8_audit_director_reveal_1'),
+      GameSfx.checksumVerified,
+    );
+    expect(storyNodeSfx('ch8_audit_unlock_1'), GameSfx.collarRelease);
+    expect(storyNodeSfx('ch8_custodian_debrief_1'), GameSfx.collarRelease);
+    expect(storyNodeSfx('ch8_no_witness_rescue_1'), GameSfx.rescueWallBreach);
   });
 
   test('运行时音频枚举均指向实际资源', () {

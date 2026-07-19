@@ -92,6 +92,16 @@ flutter:
     - assets/images/cg/ch7_sumi_oxygen/
     - assets/images/cg/ch7_audit_sync/
     - assets/images/cg/ch7_case06_truth/
+    - assets/images/cg/ch8_four_seats/
+    - assets/images/cg/ch8_custodian/
+    - assets/images/cg/ch8_no_witness/
+    - assets/images/cg/ch8_testimony_open/
+    - assets/images/cg/ch8_protocol_unlock/
+    - assets/images/cg/ch8_director_reveal/
+    - assets/images/cg/ch8_public_after/
+    - assets/images/cg/ch8_xingyao_after/
+    - assets/images/cg/ch8_sumi_after/
+    - assets/images/cg/ch8_lincheng_after/
     - assets/images/characters/shen_yan/
     - assets/images/characters/li_xingyao/
     - assets/images/characters/su_mi/

@@ -20,6 +20,7 @@ enum GameBgm {
   controlCoreProtocol,
   synchronizedShutdown,
   fourSeatAftermath,
+  finalTestimony,
 }
 
 extension GameBgmAsset on GameBgm {
@@ -43,6 +44,7 @@ extension GameBgmAsset on GameBgm {
     GameBgm.controlCoreProtocol => 'audio/bgm/control_core_protocol.m4a',
     GameBgm.synchronizedShutdown => 'audio/bgm/synchronized_shutdown.m4a',
     GameBgm.fourSeatAftermath => 'audio/bgm/four_seat_aftermath.m4a',
+    GameBgm.finalTestimony => 'audio/bgm/final_testimony.m4a',
   };
 
   bool get loop => this != GameBgm.endingAfterlight;
@@ -55,6 +57,8 @@ enum GameAmbience {
   assemblyPa,
   infirmaryEquipment,
   storageRefrigeration,
+  urbanExterior,
+  riversideEvening,
 }
 
 extension GameAmbienceAsset on GameAmbience {
@@ -66,8 +70,10 @@ extension GameAmbienceAsset on GameAmbience {
         GameAmbience.assemblyPa => 'amb_assembly_pa',
         GameAmbience.infirmaryEquipment => 'amb_infirmary_equipment',
         GameAmbience.storageRefrigeration => 'amb_storage_refrigeration',
+        GameAmbience.urbanExterior => 'amb_urban_exterior',
+        GameAmbience.riversideEvening => 'amb_riverside_evening',
       }}.${switch (this) {
-        GameAmbience.assemblyPa || GameAmbience.infirmaryEquipment || GameAmbience.storageRefrigeration => 'm4a',
+        GameAmbience.assemblyPa || GameAmbience.infirmaryEquipment || GameAmbience.storageRefrigeration || GameAmbience.urbanExterior || GameAmbience.riversideEvening => 'm4a',
         _ => 'mp3',
       }}';
 }
@@ -129,6 +135,9 @@ enum GameSfx {
   pressureBypass,
   evidenceGlassBreak,
   syncLockPulse,
+  testimonySubmit,
+  collarRelease,
+  rescueWallBreach,
 }
 
 extension GameSfxAsset on GameSfx {
@@ -189,6 +198,9 @@ extension GameSfxAsset on GameSfx {
     GameSfx.pressureBypass => 'pressure_bypass',
     GameSfx.evidenceGlassBreak => 'evidence_glass_break',
     GameSfx.syncLockPulse => 'sync_lock_pulse',
+    GameSfx.testimonySubmit => 'testimony_submit',
+    GameSfx.collarRelease => 'collar_release',
+    GameSfx.rescueWallBreach => 'rescue_wall_breach',
   };
 
   String get asset =>
@@ -213,6 +225,9 @@ extension GameSfxAsset on GameSfx {
     GameSfx.electricalArc => const Duration(milliseconds: 2200),
     GameSfx.pressureBypass => const Duration(milliseconds: 4800),
     GameSfx.syncLockPulse => const Duration(milliseconds: 2400),
+    GameSfx.testimonySubmit => const Duration(milliseconds: 2200),
+    GameSfx.collarRelease => const Duration(milliseconds: 3200),
+    GameSfx.rescueWallBreach => const Duration(milliseconds: 5200),
     _ => null,
   };
 }
@@ -240,6 +255,9 @@ const _originalSfx = {
   GameSfx.pressureBypass,
   GameSfx.evidenceGlassBreak,
   GameSfx.syncLockPulse,
+  GameSfx.testimonySubmit,
+  GameSfx.collarRelease,
+  GameSfx.rescueWallBreach,
 };
 
 class StoryAudioCue {
@@ -272,6 +290,7 @@ StoryAudioCue resolveStoryAudioCue({
       nodeId == 'ch7_sync_puzzle'
           ? GameBgm.synchronizedShutdown
           : GameBgm.investigationPulse,
+    StoryPhase.testimony => GameBgm.finalTestimony,
     _ => _dialogueBgm(nodeId, scene),
   };
   return StoryAudioCue(bgm: bgm, ambience: _ambienceFor(scene));
@@ -279,6 +298,35 @@ StoryAudioCue resolveStoryAudioCue({
 
 GameBgm _dialogueBgm(String nodeId, SceneKey scene) {
   if (_positiveEndingNodes.contains(nodeId)) return GameBgm.endingAfterlight;
+  if (nodeId.startsWith('ch8_audit_director_reveal_')) {
+    return GameBgm.auditRevelation;
+  }
+  if (nodeId.startsWith('ch8_xingyao_epilogue_') ||
+      nodeId == 'ch8_xingyao_signal_trigger') {
+    return GameBgm.bondXingyao;
+  }
+  if (nodeId.startsWith('ch8_sumi_epilogue_') ||
+      nodeId == 'ch8_sumi_leave_of_absence') {
+    return GameBgm.bondSumi;
+  }
+  if (nodeId.startsWith('ch8_lincheng_epilogue_') ||
+      nodeId == 'ch8_lincheng_exam_day') {
+    return GameBgm.bondLincheng;
+  }
+  if (nodeId.startsWith('ch8_public_epilogue_') ||
+      nodeId == 'ch8_public_ordinary_lives' ||
+      nodeId.startsWith('ch8_audit_debrief_') ||
+      nodeId.startsWith('ch8_audit_exit_') ||
+      nodeId.startsWith('ch8_audit_unlock_')) {
+    return GameBgm.endingAfterlight;
+  }
+  if (nodeId.startsWith('ch8_four_seats_') ||
+      nodeId.startsWith('ch8_custodian_') ||
+      nodeId.startsWith('ch8_no_witness_') ||
+      nodeId.startsWith('ch8_standard_')) {
+    return GameBgm.fourSeatAftermath;
+  }
+  if (nodeId.startsWith('ch8_')) return GameBgm.finalTestimony;
   if (_xingyaoBondNodes.contains(nodeId)) return GameBgm.bondXingyao;
   if (_sumiBondNodes.contains(nodeId)) return GameBgm.bondSumi;
   if (_linchengBondNodes.contains(nodeId)) return GameBgm.bondLincheng;
@@ -314,6 +362,15 @@ GameBgm _dialogueBgm(String nodeId, SceneKey scene) {
     SceneKey.northRelay ||
     SceneKey.evidencePort ||
     SceneKey.medicalAirlock => GameBgm.investigationPulse,
+    SceneKey.testimonyHall ||
+    SceneKey.testimonyBooth => GameBgm.auditRevelation,
+    SceneKey.debriefRoom ||
+    SceneKey.hearingRoom ||
+    SceneKey.memorialWall ||
+    SceneKey.broadcastTower ||
+    SceneKey.schoolClassroom ||
+    SceneKey.metroStation ||
+    SceneKey.riversideEvening => GameBgm.endingAfterlight,
     SceneKey.oldGym => GameBgm.countdownCrisis,
     SceneKey.corridor ||
     SceneKey.archiveCorridor ||
@@ -336,6 +393,12 @@ GameAmbience _ambienceFor(SceneKey scene) => switch (scene) {
   SceneKey.infirmary ||
   SceneKey.medicalIsolation ||
   SceneKey.medicalAirlock => GameAmbience.infirmaryEquipment,
+  SceneKey.testimonyHall || SceneKey.testimonyBooth => GameAmbience.ventilation,
+  SceneKey.debriefRoom => GameAmbience.infirmaryEquipment,
+  SceneKey.memorialWall ||
+  SceneKey.broadcastTower => GameAmbience.urbanExterior,
+  SceneKey.riversideEvening => GameAmbience.riversideEvening,
+  SceneKey.metroStation => GameAmbience.corridorRoomtone,
   SceneKey.assemblyHall => GameAmbience.assemblyPa,
   _ => GameAmbience.fluorescentHum,
 };
@@ -562,5 +625,14 @@ GameSfx? storyNodeSfx(String nodeId) => switch (nodeId) {
   'ch7_sumi_death_hanqi' => GameSfx.gasRelease,
   'ch7_audit_sync_1' => GameSfx.syncLockPulse,
   'ch7_audit_shutdown_1' => GameSfx.administratorChannelOff,
+  'ch8_audit_testimony_resolved' => GameSfx.testimonySubmit,
+  'ch8_audit_director_reveal_1' => GameSfx.checksumVerified,
+  'ch8_four_seats_verdict_1' => GameSfx.testimonySubmit,
+  'ch8_custodian_verdict_1' => GameSfx.testimonySubmit,
+  'ch8_no_witness_verdict_1' => GameSfx.testimonySubmit,
+  'ch8_audit_unlock_1' => GameSfx.collarRelease,
+  'ch8_custodian_debrief_1' => GameSfx.collarRelease,
+  'ch8_no_witness_rescue_1' => GameSfx.rescueWallBreach,
+  'ch8_four_seats_exit_1' => GameSfx.collarRelease,
   _ => null,
 };

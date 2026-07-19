@@ -2113,6 +2113,6 @@ const chapterSevenBeats = <String, StoryBeat>{
     text:
         '返回房间后，我把三层责任结论、仍在线或已经关闭的12号节点、今日死亡或全员撤回记录分别存入离线副本。没有一份文件使用“胜利”作为状态。\n走廊尽头升起四道隔离墙，墙后是明天开放的证词终端。普通路线只有四名幸存者，每个人的沉默都足以让答案失败；审计路线仍有九人，却必须在不能看见彼此输入的情况下选出四名提交者。\n七日倒计只剩最后二十四小时。我们已经知道主办者不是一个可以单独杀死的人或拔掉的机箱，接下来要证明四个人能否在不互相复制、也不让条件替自己回答时，独立说出同一个名字。',
     passageSpeakers: [Speaker.narration, Speaker.narration, Speaker.narration],
-    next: null,
+    next: 'ch8_final_day_open',
   ),
 };

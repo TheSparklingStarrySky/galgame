@@ -71,6 +71,62 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('极矮手机横屏标题页完整显示全部入口', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(568, 320));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = await StoryController.load();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: EchoExperience(controller: controller, audioEnabled: false),
+      ),
+    );
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 800)),
+    );
+    await tester.pump();
+
+    expect(find.text('开始游戏'), findsOneWidget);
+    expect(find.text('继续游戏'), findsOneWidget);
+    expect(find.text('读取存档'), findsOneWidget);
+    expect(find.text('DAY 1–2 · 已开放'), findsOneWidget);
+    expect(tester.getRect(find.text('读取存档')).bottom, lessThan(320));
+    expect(tester.getRect(find.text('DAY 1–2 · 已开放')).bottom, lessThan(320));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('手机竖屏提示旋转并在横屏后恢复当前剧情', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = await StoryController.load();
+    controller.startNew();
+    final currentId = controller.currentId;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: EchoExperience(controller: controller, audioEnabled: false),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('landscape-required')), findsOneWidget);
+    expect(find.text('请横屏游玩'), findsOneWidget);
+    expect(controller.currentId, currentId);
+
+    await tester.binding.setSurfaceSize(const Size(844, 390));
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 800)),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('landscape-required')), findsNothing);
+    expect(find.byKey(const ValueKey('dialogue-panel')), findsOneWidget);
+    expect(controller.currentId, currentId);
+    expect(tester.takeException(), isNull);
+  });
+
   test('PDA 路线规划会改变后续分支收益', () async {
     final controller = await StoryController.load();
     controller.startNew();
@@ -1288,7 +1344,7 @@ void main() {
     );
     expect(storyBeats['ch7_case06_deduction']!.phase, StoryPhase.deduction);
     expect(storyBeats['ch7_sync_puzzle']!.phase, StoryPhase.puzzle);
-    expect(storyBeats['ch7_end']!.next, isNull);
+    expect(storyBeats['ch7_end']!.next, 'ch8_final_day_open');
     expect(
       routeNodes.where((node) => node.id.startsWith('ch7_')).length,
       lessThan(chapter.length ~/ 6),
@@ -1410,6 +1466,250 @@ void main() {
       isEmpty,
     );
     expect(controller.livingParticipantIds.length, 9);
+  });
+
+  test('最终日包含完整证词、三条一周目余烬与七个二阶段结局', () {
+    const firstRunEmberIds = {
+      'xingyao_end',
+      'xingyao_end_memorial',
+      'xingyao_end_hearing',
+      'xingyao_end_station',
+      'xingyao_end_result',
+      'sumi_end',
+      'sumi_end_record',
+      'sumi_end_treatment',
+      'sumi_end_return',
+      'sumi_end_result',
+      'lincheng_end',
+      'lincheng_end_memorial',
+      'lincheng_end_school',
+      'lincheng_end_graduation',
+      'lincheng_end_result',
+    };
+    final chapter = storyBeats.values
+        .where(
+          (beat) =>
+              beat.id.startsWith('ch8_') || firstRunEmberIds.contains(beat.id),
+        )
+        .toList();
+    final visibleLength = chapter.fold<int>(
+      0,
+      (total, beat) => total + beat.label.length + beat.text.length,
+    );
+
+    expect(chapter.length, greaterThanOrEqualTo(167));
+    expect(visibleLength, greaterThanOrEqualTo(38000));
+    expect(storyBeats['ch8_final_day_open']!.timelineMinute, 8640);
+    expect(storyBeats['ch8_standard_testimony']!.phase, StoryPhase.testimony);
+    expect(storyBeats['ch8_audit_testimony']!.phase, StoryPhase.testimony);
+    expect(
+      routeNodes.where((node) => node.id.startsWith('ch8_')).length,
+      lessThan(chapter.length ~/ 5),
+    );
+    for (final path in [
+      'assets/images/scenes/testimony_hall.png',
+      'assets/images/scenes/testimony_booth.png',
+      'assets/images/scenes/debrief_room.png',
+      'assets/images/scenes/hearing_room.png',
+      'assets/images/scenes/memorial_wall.png',
+      'assets/images/scenes/broadcast_tower.png',
+      'assets/images/scenes/school_classroom.png',
+      'assets/images/scenes/metro_station.png',
+      'assets/images/scenes/riverside_evening.png',
+      'assets/images/characters/li_xingyao/epilogue.png',
+      'assets/images/characters/su_mi/epilogue.png',
+      'assets/images/characters/lin_cheng/epilogue.png',
+      'assets/images/characters/ye_lan/epilogue.png',
+      'assets/images/characters/tang_yi/epilogue.png',
+      'assets/images/characters/han_qi/epilogue.png',
+    ]) {
+      expect(File(path).existsSync(), isTrue, reason: '$path 必须存在');
+    }
+    for (final beat in chapter) {
+      final asset = portraitAsset(beat.speaker, beat.portraitMood);
+      if (asset == null) continue;
+      expect(File(asset).existsSync(), isTrue, reason: '$asset 必须存在');
+    }
+    expect(storyBeats['ch8_public_epilogue_2']!.scene, SceneKey.hearingRoom);
+    expect(storyBeats['ch8_public_epilogue_3']!.scene, SceneKey.memorialWall);
+    expect(
+      storyBeats['ch8_xingyao_signal_trigger']!.scene,
+      SceneKey.metroStation,
+    );
+    expect(
+      storyBeats['ch8_xingyao_epilogue_4']!.scene,
+      SceneKey.broadcastTower,
+    );
+    expect(
+      storyBeats['ch8_lincheng_epilogue_1']!.scene,
+      SceneKey.schoolClassroom,
+    );
+    expect(
+      storyBeats['ch8_lincheng_epilogue_5']!.scene,
+      SceneKey.riversideEvening,
+    );
+    expect(storyBeats['ch8_four_seats_debrief_4']!.speaker, Speaker.narration);
+    expect(storyBeats['ch8_custodian_debrief_4']!.speaker, Speaker.narration);
+    expect(
+      portraitAsset(Speaker.yeLan, 'epilogue'),
+      'assets/images/characters/ye_lan/epilogue.png',
+    );
+  });
+
+  test('最终日普通模式由既有行为责任导向三种不同结局', () async {
+    const routes = [
+      (
+        flag: 'ch6_tangyi_vote_killer',
+        answer: 'zero_system',
+        verdict: 'ch8_four_seats_verdict_1',
+        result: 'ch8_four_seats_result',
+        ending: 'ending_four_seats',
+      ),
+      (
+        flag: 'ch6_hanqi_vote_killer',
+        answer: 'human_director',
+        verdict: 'ch8_custodian_verdict_1',
+        result: 'ch8_custodian_result',
+        ending: 'ending_custodian',
+      ),
+      (
+        flag: 'ch6_chenmo_vote_killer',
+        answer: 'zero_protocol',
+        verdict: 'ch8_no_witness_verdict_1',
+        result: 'ch8_no_witness_result',
+        ending: 'ending_no_witness',
+      ),
+    ];
+
+    for (final route in routes) {
+      final controller = await StoryController.load();
+      controller.startNew();
+      controller.flags.add(route.flag);
+      controller
+        ..currentId = 'ch8_standard_testimony'
+        ..phase = StoryPhase.testimony;
+
+      controller.submitFinalTestimony(route.answer);
+      expect(controller.currentId, route.verdict, reason: route.flag);
+      _advanceUntil(controller, route.result, allowMechanics: true);
+      expect(controller.phase, StoryPhase.ending);
+      expect(controller.unlockedEndings, contains(route.ending));
+    }
+  });
+
+  test('最终日审计证词允许纠错并仅由零点协议完成共同见证', () async {
+    final controller = await StoryController.load();
+    controller.completeFullRunEnding('ending_four_seats');
+    controller.startNew(mode: StoryRunMode.audit);
+    controller
+      ..currentId = 'ch8_audit_testimony'
+      ..phase = StoryPhase.testimony;
+
+    controller.submitFinalTestimony('human_director');
+    expect(controller.currentId, 'ch8_audit_human_answer_error');
+    controller.advance();
+    expect(controller.currentId, 'ch8_audit_testimony');
+
+    controller.submitFinalTestimony('zero_system');
+    expect(controller.currentId, 'ch8_audit_zero_answer_error');
+    controller.advance();
+    expect(controller.currentId, 'ch8_audit_testimony');
+
+    controller.submitFinalTestimony('zero_protocol');
+    expect(controller.currentId, 'ch8_audit_testimony_resolved');
+    _advanceUntil(controller, 'ch8_public_result', allowMechanics: true);
+    expect(controller.flags, contains('ch8_common_witness_established'));
+    expect(controller.flags, contains('ch8_all_collars_released'));
+    expect(controller.unlockedEndings, contains('ending_zero_protocol'));
+  });
+
+  test('最终日审计后日谈按既有关系分流且保留公开路线', () async {
+    const routes = [
+      (flag: 'ch6_route_locked_xingyao', next: 'ch8_xingyao_epilogue_1'),
+      (flag: 'ch6_route_locked_sumi', next: 'ch8_sumi_epilogue_1'),
+      (flag: 'ch6_route_locked_lincheng', next: 'ch8_lincheng_epilogue_1'),
+      (flag: 'ch6_route_locked_public', next: 'ch8_public_epilogue_1'),
+    ];
+
+    for (final route in routes) {
+      final controller = await StoryController.load();
+      controller.startNew();
+      controller.flags.add(route.flag);
+      controller
+        ..currentId = 'ch8_audit_epilogue_gate'
+        ..phase = StoryPhase.dialogue;
+      controller.advance();
+      expect(controller.currentId, route.next, reason: route.flag);
+    }
+  });
+
+  testWidgets('最终证词在短横屏中可滚动选择并提交', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(844, 390));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final controller = await StoryController.load();
+    controller.completeFullRunEnding('ending_four_seats');
+    controller.startNew(mode: StoryRunMode.audit);
+    controller
+      ..currentId = 'ch8_audit_testimony'
+      ..phase = StoryPhase.testimony;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: EchoExperience(controller: controller, audioEnabled: false),
+      ),
+    );
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 800)),
+    );
+    await tester.pump();
+
+    final answer = find.byKey(const ValueKey('testimony-answer-zero_protocol'));
+    await tester.ensureVisible(answer);
+    await tester.tap(answer);
+    await tester.pump();
+    final submit = find.text('密封并提交本人证词');
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
+    await tester.pump();
+
+    expect(controller.currentId, 'ch8_audit_testimony_resolved');
+    expect(tester.takeException(), isNull);
+  });
+
+  test('最终日新增 CG 均已完整绑定全部正文帧', () {
+    const expectedIds = {
+      'cg_ch8_four_seats',
+      'cg_ch8_custodian',
+      'cg_ch8_no_witness',
+      'cg_ch8_testimony_open',
+      'cg_ch8_protocol_unlock',
+      'cg_ch8_director_reveal',
+      'cg_ch8_public_after',
+      'cg_ch8_xingyao_after',
+      'cg_ch8_sumi_after',
+      'cg_ch8_lincheng_after',
+    };
+    final entries = cgEntries
+        .where((entry) => entry.id.startsWith('cg_ch8_'))
+        .toList();
+
+    expect(entries.map((entry) => entry.id).toSet(), expectedIds);
+    for (final entry in entries) {
+      final frames = storyBeats.values
+          .where((beat) => beat.cgId == entry.id)
+          .map((beat) => beat.cgFrame)
+          .toSet();
+      final expectedFrames = {
+        for (var index = 0; index < entry.assets.length; index++) index,
+      };
+      expect(frames, expectedFrames, reason: entry.id);
+      for (final asset in entry.assets) {
+        expect(File(asset).existsSync(), isTrue, reason: asset);
+      }
+    }
+    expect(storyBeats['ch8_lincheng_epilogue_6']!.cgFrame, 1);
+    expect(storyBeats['ch8_lincheng_first_kiss']!.cgFrame, 2);
+    expect(storyBeats['ch8_lincheng_first_kiss']!.next, 'ch8_lincheng_result');
   });
 
   test('游戏正文和鉴赏文案不显示制作章节字样', () {
@@ -1741,23 +2041,141 @@ void main() {
     expect(controller.currentId, 'ch3_delegate_hanqi');
   });
 
-  test('六个结局均先播放完整剧情，再进入结局结算页', () {
-    const storyIds = [
-      'bad_end',
-      'shadow_end',
-      'pact_end',
-      'xingyao_end',
-      'sumi_end',
-      'lincheng_end',
+  test('五条章节坏结局均有完整因果演出后再进入结算页', () {
+    const routes = [
+      (start: 'bad_end', result: 'bad_end_result', ending: 'ending_silence'),
+      (start: 'shadow_end', result: 'shadow_end_result', ending: 'ending_four'),
+      (start: 'pact_end', result: 'pact_end_result', ending: 'ending_pact'),
+      (
+        start: 'ch5_archive_entrust_1',
+        result: 'ch5_archive_entrust_result',
+        ending: 'ending_archive_vault',
+      ),
+      (
+        start: 'ch6_optimizer_end_1',
+        result: 'ch6_optimizer_end_result',
+        ending: 'ending_casualty_optimizer',
+      ),
     ];
-    for (final id in storyIds) {
-      final story = storyBeats[id]!;
-      final result = storyBeats[story.next]!;
-      expect(story.phase, StoryPhase.dialogue);
-      expect(story.passages.length, greaterThanOrEqualTo(4));
-      expect(story.text.length, greaterThan(250));
+
+    for (final route in routes) {
+      final path = _linearStoryPath(route.start, route.result);
+      final result = storyBeats[route.result]!;
+      final visibleLength = path.fold<int>(
+        0,
+        (total, beat) => total + beat.text.replaceAll(RegExp(r'\s'), '').length,
+      );
+      expect(path.length, greaterThanOrEqualTo(6), reason: route.start);
+      expect(visibleLength, greaterThanOrEqualTo(1500), reason: route.start);
       expect(result.phase, StoryPhase.ending);
-      expect(result.endingId, isNotNull);
+      expect(result.endingId, route.ending);
+    }
+  });
+
+  test('三条一周目人物余烬解锁后继续回到公共普通结局', () async {
+    const routes = [
+      (
+        routeFlag: 'ch6_route_locked_xingyao',
+        killerFlag: 'ch6_tangyi_vote_killer',
+        start: 'xingyao_end',
+        emberResult: 'xingyao_end_result',
+        emberEnding: 'ending_xingyao',
+        publicResult: 'ch8_four_seats_result',
+        publicEnding: 'ending_four_seats',
+      ),
+      (
+        routeFlag: 'ch6_route_locked_sumi',
+        killerFlag: 'ch6_hanqi_vote_killer',
+        start: 'sumi_end',
+        emberResult: 'sumi_end_result',
+        emberEnding: 'ending_sumi',
+        publicResult: 'ch8_custodian_result',
+        publicEnding: 'ending_custodian',
+      ),
+      (
+        routeFlag: 'ch6_route_locked_lincheng',
+        killerFlag: 'ch6_chenmo_vote_killer',
+        start: 'lincheng_end',
+        emberResult: 'lincheng_end_result',
+        emberEnding: 'ending_lincheng',
+        publicResult: 'ch8_no_witness_result',
+        publicEnding: 'ending_no_witness',
+      ),
+    ];
+
+    for (final route in routes) {
+      final path = _linearStoryPath(route.start, route.emberResult);
+      final visibleLength = path.fold<int>(
+        0,
+        (total, beat) => total + beat.text.replaceAll(RegExp(r'\s'), '').length,
+      );
+      expect(path.length, greaterThanOrEqualTo(5), reason: route.start);
+      expect(visibleLength, greaterThanOrEqualTo(1500), reason: route.start);
+
+      final controller = await StoryController.load();
+      controller.startNew();
+      controller.flags.addAll([route.routeFlag, route.killerFlag]);
+      controller
+        ..currentId = 'ch8_standard_ember_gate'
+        ..phase = StoryPhase.dialogue;
+      controller.advance();
+      expect(controller.currentId, route.start);
+      _advanceUntil(controller, route.publicResult, allowMechanics: true);
+      expect(controller.unlockedEndings, contains(route.emberEnding));
+      expect(controller.unlockedEndings, contains(route.publicEnding));
+      expect(controller.auditModeUnlocked, isTrue);
+    }
+  });
+
+  test('十五个结局回顾条目都有正篇解锁节点', () {
+    expect(endingEntries.length, 15);
+    for (final ending in endingEntries) {
+      expect(storyBeats, contains(ending.nodeId), reason: ending.id);
+      expect(
+        storyBeats.values.any((beat) => beat.endingId == ending.id),
+        isTrue,
+        reason: '${ending.id} 必须由正篇节点解锁',
+      );
+    }
+  });
+
+  test('第三、第五和第六日的新失败线都能从正篇选择进入', () async {
+    const routes = [
+      (
+        choiceNode: 'ch3_protocol_choice',
+        choiceNext: 'pact_end',
+        result: 'pact_end_result',
+        ending: 'ending_pact',
+      ),
+      (
+        choiceNode: 'ch5_partner_choice',
+        choiceNext: 'ch5_archive_entrust_1',
+        result: 'ch5_archive_entrust_result',
+        ending: 'ending_archive_vault',
+      ),
+      (
+        choiceNode: 'ch6_policy_choice',
+        choiceNext: 'ch6_optimizer_end_1',
+        result: 'ch6_optimizer_end_result',
+        ending: 'ending_casualty_optimizer',
+      ),
+    ];
+
+    for (final route in routes) {
+      final controller = await StoryController.load();
+      controller.startNew();
+      controller
+        ..currentId = route.choiceNode
+        ..phase = StoryPhase.dialogue;
+      controller.choose(
+        controller.availableChoices.singleWhere(
+          (choice) => choice.next == route.choiceNext,
+        ),
+      );
+      _advanceUntil(controller, route.result);
+      expect(controller.phase, StoryPhase.ending, reason: route.choiceNode);
+      expect(controller.unlockedEndings, contains(route.ending));
+      expect(controller.auditModeUnlocked, isFalse);
     }
   });
 
@@ -2696,6 +3114,21 @@ Future<void> _longPressDrag(
   await gesture.up();
 }
 
+List<StoryBeat> _linearStoryPath(String start, String result) {
+  final path = <StoryBeat>[];
+  var id = start;
+  final visited = <String>{};
+  while (visited.add(id)) {
+    final beat = storyBeats[id]!;
+    path.add(beat);
+    if (id == result) return path;
+    final next = beat.next;
+    if (next == null) break;
+    id = next;
+  }
+  fail('无法从 $start 沿线性剧情抵达 $result');
+}
+
 void _advanceUntil(
   StoryController controller,
   String target, {
@@ -2788,6 +3221,12 @@ void _advanceUntil(
           'ch7_case06_deduction' => 'protocol_three_layer_host',
           _ => 'repeater',
         });
+      case StoryPhase.testimony when allowMechanics:
+        controller.submitFinalTestimony(
+          controller.runMode == StoryRunMode.audit
+              ? 'zero_protocol'
+              : 'zero_system',
+        );
       default:
         fail('无法从 ${controller.currentId} 前往 $target');
     }

@@ -4,6 +4,7 @@ part 'story_chapter4.dart';
 part 'story_chapter5.dart';
 part 'story_chapter6.dart';
 part 'story_chapter7.dart';
+part 'story_chapter8.dart';
 
 enum StoryPhase {
   title,
@@ -13,6 +14,7 @@ enum StoryPhase {
   puzzle,
   tuning,
   deduction,
+  testimony,
   ending,
 }
 
@@ -68,6 +70,15 @@ enum SceneKey {
   northRelay,
   evidencePort,
   medicalAirlock,
+  testimonyHall,
+  testimonyBooth,
+  debriefRoom,
+  hearingRoom,
+  memorialWall,
+  broadcastTower,
+  schoolClassroom,
+  metroStation,
+  riversideEvening,
 }
 
 enum Speaker {
@@ -1622,11 +1633,79 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     speaker: Speaker.shenYan,
     scene: SceneKey.controlRoom,
     text:
-        '我最终把周叙的死亡解释成主动离开终端。这个答案避开了最可怕的可能：我们之中有人已经学会借规则杀人。几个人明显松了口气，甚至没有再追问中继器为什么会在断电状态下发热。\n第三天凌晨，三个区域同时出现了属于同一终端的距离信号。等我们意识到那不是系统故障，医疗区的门已经锁死，里面只剩持续三分钟的警报声。\n“你已经错过一次了。”韩骐挡在证据柜前，没有再让我靠近。此后每个人只相信自己掌握的那一小块信息，搜查组被拆散，名册上的数字一天比一天少。\n第七天，出口要求四名参与者共同提交主办者代号。大厅里明明还站着五个人，却没有任何四个人愿意在同一张确认页上签名。倒计时归零时，我终于明白，无人作证本身就是主办方准备好的处决方式。',
+        '我把最后一枚证据拖进“主动离开终端”的答案栏。确认灯变成绿色，却没有出现案件解决的提示，只有一行冷静得近乎礼貌的文字：系统已记录参与者01的个人判断。\n身后先响起的是呼气声。有人靠回椅背，有人说至少不必立刻搜身。连苏弥紧绷的肩膀也松了一瞬。我们都太需要一个不必怀疑身边人的答案，以至于那口共同吐出的气，听起来像真相本身。\n星遥没有动。她把还带着余温的中继器推到我面前：“断电设备为什么在工作？十八米为什么能写成二十三米？你只解释了周叙为什么离开，没有解释这两个数字从哪来。”\n我告诉她，也许是残留缓存，也许是后台故障。每一个“也许”都说得通一点，又都不需要任何人承担责任。她看了我很久，最终把设备装回证物袋。封条合拢时，我第一次觉得自己不是结束了调查，而是替某个人关上了继续追问的门。',
     passageSpeakers: [
       Speaker.narration,
       Speaker.narration,
       Speaker.hanQi,
+      Speaker.narration,
+    ],
+    next: 'bad_end_second_case',
+  ),
+  'bad_end_second_case': StoryBeat(
+    id: 'bad_end_second_case',
+    label: '第二次伪造',
+    speaker: Speaker.suMi,
+    scene: SceneKey.infirmary,
+    portraitMood: 'shaken',
+    text:
+        '第三天凌晨，两间宿舍和医疗区同时出现了属于03号终端的距离信号。苏弥明明站在药柜前，墙上的定位图却显示她正在二十七米外移动。\n“别碰门。”星遥在频道里喊，“先确认本地信标。”\n回答她的是隔离闸落下的轰鸣。有人沿用了我给出的解释，认为定位只是偶发故障，强行启动了医疗区封锁。闸门把苏弥和两名伤员留在里面，系统随即开始计算03号与终端的异常距离。\n我们隔着玻璃看她把唯一一台终端塞进伤员怀里，自己跪在门边手动压住正在回弹的锁舌。她没有哭，也没有问为什么没人相信她，只一遍遍报出脉搏和剩余秒数，让外面的人有机会修正。\n中继器的同频噪声再次出现时，已经过去一百四十秒。星遥砸开控制箱，高原用消防斧卡住闸门，我从缝隙里把终端推回苏弥脚边。警告停在一百七十六秒。她活了下来，却在门打开后第一次拒绝让我查看记录。\n“上一次可以说是不知道。”她把颤抖的手藏进袖口，“这一次，我们是在用那个错误保护自己。”',
+    passageSpeakers: [
+      Speaker.narration,
+      Speaker.liXingyao,
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.suMi,
+    ],
+    next: 'bad_end_trust_collapse',
+  ),
+  'bad_end_trust_collapse': StoryBeat(
+    id: 'bad_end_trust_collapse',
+    label: '证据被分成私产',
+    speaker: Speaker.hanQi,
+    scene: SceneKey.assemblyHall,
+    portraitMood: 'conflicted',
+    text:
+        '医疗区事故没有让所有人重新合作，反而证明任何公开信息都可能被别人拿来关门。韩骐收走消防斧和备用终端，唐弈用食物交换门禁时段，陈默只肯在有人替他保密时解释接口。\n白板上的共同记录被撕成三份。每一组都保留自己认为最重要的半张地图、半段日志和半个嫌疑人。信息没有消失，只是再也不能在同一张桌上彼此校验。\n“你已经错过一次了。”韩骐挡在证据柜前，“我不能再把01和所有人的命交给一次多数讨论。”\n我问由谁判断他是否也会错。他把手放在柜门上，没有回答。身后的几个人却下意识站到更远的位置，仿佛问题本身已经是一次夺权。\n那晚，广播公布新的区域封锁。三组人各自算出了安全路线，又都故意隐去一段以防别人抢先。我们在同一条走廊迎面相遇时，没有人知道对方藏在衣服下的是滤芯、钥匙还是武器。第一声金属碰撞后，灯灭了。黑暗里有人喊不要动，也有人以为那是让自己先动手的信号。',
+    passageSpeakers: [
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.hanQi,
+      Speaker.narration,
+      Speaker.narration,
+    ],
+    next: 'bad_end_missing_names',
+  ),
+  'bad_end_missing_names': StoryBeat(
+    id: 'bad_end_missing_names',
+    label: '每天少一个名字',
+    speaker: Speaker.shenYan,
+    scene: SceneKey.corridor,
+    text:
+        '第四天，高原死在一扇两组人都以为对方会确认的维修门后。第五天，叶岚的证词被当成交换筹码，她拒绝删去其中一个名字后再也没有回到集合厅。第六天，韩骐为了夺回01闯入封锁区，门在他身后落下时没有求救，只隔着玻璃看了我很久。\n每一场死亡都有一段局部合理的解释：门禁延迟、撤离误判、自卫、来不及。可当我试图把它们连起来，能够证明前因的人已经死去，活着的人则只肯承认对自己有利的半分钟。\n星遥仍保留着最初那只中继器。她把两次伪造的波形并排给我看，起始脉冲完全相同。\n“第一天就有答案。”她说，“不是凶手的名字，是有人能借规则杀人。我们后来做的一切，本来都可以从承认这一点开始。”\n我想说当时证据不够指认陈默，话到嘴边才意识到她从未要求我草率指认。她只要求我们承认手法成立、保护证据、让下一次伪造不再被叫作故障。错误不在于没有猜中名字，而在于为了获得安心，连已经能够证明的危险也一并否认。',
+    passageSpeakers: [
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.liXingyao,
+      Speaker.narration,
+    ],
+    next: 'bad_end_last_testimony',
+  ),
+  'bad_end_last_testimony': StoryBeat(
+    id: 'bad_end_last_testimony',
+    label: '五个人与四个席位',
+    speaker: Speaker.administrator,
+    scene: SceneKey.assemblyHall,
+    text:
+        '第七天，出口终端从地面升起。大厅里还站着五个人，屏幕却只提供四个证词席。规则要求四名参与者提交相容的主办者代号，并互相确认材料没有被篡改。\n人数足够，证据也不是完全没有。真正缺少的是任何四个人愿意把未经自己控制的终端接入同一台比对器。唐弈担心第五个人在门开后袭击，陈默要求先删除指向自己的日志，星遥拒绝为残缺材料签字，苏弥则不肯让任何一人被留在无法撤离的大厅。\n“剩余时间十分钟。”管理员提醒。\n我们尝试逐项协商，过去六天的每一次隐瞒却都在此刻要求偿还。谁先交设备，谁先退到隔舱，谁保管武器，谁保证第五个人不会成为出口代价。没有一项保证还能找到两个独立见证者。\n倒计时归零时，四个隔舱依然空着。项圈没有立刻爆炸，出口只是熄灭，通风逐级关闭。苏弥把剩余过滤面罩放到桌面中央，没有人抢。星遥靠着墙，问我第一天如果重新选择，会不会仍把怀疑当成比凶手更危险的东西。\n我没有机会回答。空气变稀薄以后，人的声音会先失去完整句子。最后仍亮着的是终端上的五个编号，彼此距离不到两米，却再也不能构成一份共同证词。无人作证不是没有人知道真相，而是我们亲手让每个知道一部分的人都失去了被别人验证的资格。',
+    passageSpeakers: [
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.administrator,
+      Speaker.narration,
+      Speaker.narration,
       Speaker.narration,
     ],
     next: 'bad_end_result',
@@ -1645,12 +1724,104 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     speaker: Speaker.shenYan,
     scene: SceneKey.controlRoom,
     text:
-        '中继器的手法被我完整还原，可我仍拒绝公开自己的生还条款。唐弈没有反驳推理，只问了一个更简单的问题：“一个要求别人交出底牌的人，为什么可以继续藏着自己的牌？”\n第四天开始，所有合作都附带交换条件。药品按情报份数发放，地图被撕成三块，通讯频道每隔一小时更换一次。我们挡住了两次伪造信号，却没能阻止彼此把幸存者当成需要削减的数字。\n第六夜，韩骐为了抢回01号终端闯入封锁区。门在他身后落下时，他没有求救，只隔着玻璃看了我很久。那目光里没有愤怒，只有确认自己果然不该相信任何人的疲惫。\n出口在第七天准时打开，幸存人数恰好是四。唐弈走过我身边，将那枚一直没有抛出的硬币放进我掌心：“你找到了凶手，却替我的条件完成了剩下的工作。”',
+        '中继器、距离日志和脚步证言拼出了完整手法。陈默无法再把周叙的死亡解释成设备故障，所有人也第一次明白，主办方不必亲手按下项圈，只要把一件可利用的规则放在我们中间。\n可当叶岚要求把生还条款一并写进风险表，我拒绝公开01的条件。我说主角终端可能拥有额外权限，过早暴露只会让我成为目标。理由并非虚假，甚至足够谨慎。\n唐弈没有反驳推理，只问：“一个要求别人交出底牌的人，为什么可以继续藏着自己的牌？”\n我回答每个人都有保留隐私的权利。叶岚在白板上写下另一句：隐私不能成为要求别人单方面承担未知风险的凭证。那两句话都没有错，我们却没能写出它们之间的边界。会议结束时，公开栏上留下九份条件和一个被黑条遮住的01。\n人们看我的目光从依赖变成计算。他们仍愿意听推理，却会在每个建议后追问，这是否正在完成一个只有我知道的生还条件。凶手被发现了，怀疑却找到了一个永远无法核验的中心。',
+    passageSpeakers: [
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.tangYi,
+      Speaker.narration,
+      Speaker.narration,
+    ],
+    next: 'shadow_end_market',
+  ),
+  'shadow_end_market': StoryBeat(
+    id: 'shadow_end_market',
+    label: '每一次合作都有价格',
+    speaker: Speaker.tangYi,
+    scene: SceneKey.assemblyHall,
+    portraitMood: 'calculating',
+    text:
+        '第三天，唐弈提出用公开价格替代无法建立的信任。一次门禁同行换半份地图，一支抗生素换一小时终端托管，替别人保密则换取下一次投票弃权。\n最初几笔交易确实有效。没人需要相信对方善良，只要确认对价和见证。可当药品减少、封锁加快，价格开始由最缺少它的人承担。受伤者必须交出更多秘密，掌握门禁的人只需要等待。\n苏弥拒绝用急救药交换情报，唐弈便把药品从交易表删掉，却把“进入医疗区的同行权”标上价格。形式上没有人购买生命，生命需要经过的那扇门却已经属于市场。\n“至少规则是公开的。”他说。\n叶岚问，如果一个人拒绝交易就会死，这份同意还剩多少。唐弈转动硬币，没有回答，也没有取消价格。因为在我们拒绝公开全部风险之后，交易已经成为唯一被所有人承认的共同语言。\n我仍能解决一次次局部问题，却无法证明自己的每项建议没有私下收益。为了让行动继续，我也开始承诺对价：交出一部分地图、让渡一次决定、对某段证词暂不追问。秘密没有保护我，它只是让我只能用更多秘密购买暂时的可信。',
     passageSpeakers: [
       Speaker.narration,
       Speaker.narration,
       Speaker.narration,
       Speaker.tangYi,
+      Speaker.narration,
+      Speaker.narration,
+    ],
+    next: 'shadow_end_attrition',
+  ),
+  'shadow_end_attrition': StoryBeat(
+    id: 'shadow_end_attrition',
+    label: '人数开始接近答案',
+    speaker: Speaker.shenYan,
+    scene: SceneKey.corridor,
+    text:
+        '第四天，我们挡住第二次距离伪造，却没能阻止两组人争夺唯一一张门禁卡。混乱中，高原被锁在维修区。他本可以获救，只要持卡者承认自己先前复制过一份权限；那个人直到倒计时结束都没有开口。\n第五天，陈默用三份责任记录换取庇护。周叙已经死去，能够补全账目的证人又少一个，记录的价值反而上涨。唐弈开始把“还需要减少几人”写在每天的物资表旁，像记录一项正在接近的库存目标。\n我质问他是否在推动死亡。他把每一次直接动作摊开，没有一项由他完成：他只拒绝无偿交出路线，只把资源给愿意交换的人，只在别人选择关门时没有反对。\n“你也一样。”他说，“你保留01的条件，所以每个人都必须自己判断帮你会不会害死自己。我们只是把未知标了不同的价格。”\n我想否认，却发现自己无法说明01的安全与其他人的风险如何同时成立。那份没有公开的条件像一块看不见的砝码，被每个人放进对我最不利的那一端。\n第六夜，广播宣布只剩五人。唐弈第一次没有抛硬币。他看着名册说，按照现有消耗和封锁概率，四人会在明晚以前自然出现。没有人讨论如何阻止，因为“自然”已经替所有拒绝出手的人准备好了无罪的措辞。',
+    passageSpeakers: [
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.tangYi,
+      Speaker.narration,
+      Speaker.narration,
+    ],
+    next: 'shadow_end_hanqi',
+  ),
+  'shadow_end_hanqi': StoryBeat(
+    id: 'shadow_end_hanqi',
+    label: '没有被归还的01',
+    speaker: Speaker.hanQi,
+    scene: SceneKey.securityRoom,
+    portraitMood: 'conflicted',
+    text:
+        '封锁前最后一次撤离，韩骐拿到01替我开启安保侧门。门后突然出现二次认证，要求终端所有者在另一侧确认。他只要把01从铁栅下推回来，我就能解除隔离；只要继续持有，他的个人条件便接近完成。\n“还给我。”我说。\n他问：“你的条件到底是什么？”\n警告已经开始计时。我仍无法在几十秒里证明公开不会让所有人把我当作必须争夺的钥匙，只能重复要求他相信我。韩骐隔着玻璃看了很久，目光里没有胜利，只有疲惫的确认。\n“你要求我把能活下去的东西还给一个始终不肯说明会拿它做什么的人。”他说，“第一天我可能会赌。现在不会了。”\n他没有主动启动处决，只转身去开自己的撤离门。距离超过两米后，项圈进入最终警告。我用肩膀撞击铁栅，手臂从缝隙里伸过去，指尖离01只差十几厘米。\n爆炸没有发生。星遥在最后三秒切断了区域定位，我因此活下，却失去了左耳听力。韩骐则被另一道闸门截在封锁区。他临死前把01放在地上，没有再尝试完成条件。那台终端隔着两层玻璃，既不属于他，也回不到我手里。\n我们都没有相信对方，最后也没有任何一个人从保留中得到安全。',
+    passageSpeakers: [
+      Speaker.narration,
+      Speaker.shenYan,
+      Speaker.hanQi,
+      Speaker.narration,
+      Speaker.hanQi,
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.narration,
+    ],
+    next: 'shadow_end_four',
+  ),
+  'shadow_end_four': StoryBeat(
+    id: 'shadow_end_four',
+    label: '恰好四人',
+    speaker: Speaker.tangYi,
+    scene: SceneKey.testimonyHall,
+    portraitMood: 'shaken',
+    text:
+        '第七天，出口在韩骐死亡后开启。名册上只剩四个编号，恰好满足唐弈的条件。没有人庆祝，系统却把人数以绿色显示，像一项被正确完成的测试。\n四席证词不再需要决定谁被留下。真正困难的是提交相容答案：星遥掌握信号链，苏弥保存死亡记录，唐弈握有交易日志，而我知道每次推理如何被转化成下一次行动。材料可以拼合，持有者却不愿让任何一份离开自己的手。\n我们最终采用最小共同答案，只写“ZERO裁定系统”。项目负责人、承包商和参与者主动行为都被删去，因为任何多写一层，都需要相信另一个人不会在提交前修改责任比例。\n终端接受了。闸门开启，项圈解锁，四个人沿同一条通道走出去。\n唐弈经过我身边，将那枚一直没有抛出的硬币放进我掌心。“你找到了第一个凶手，”他说，“却替我的条件完成了剩下的工作。”\n“你没有动手吗？”\n“我动过，也停过。你也一样。”他看向身后已经熄灭的编号，“正因为没有哪一次死亡只属于一个人的手，大家才一直等到人数自己变对。”\n硬币仍有正反两面，结局却没有另一面可以翻回去。',
+    passageSpeakers: [
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.tangYi,
+      Speaker.shenYan,
+      Speaker.tangYi,
+      Speaker.narration,
+    ],
+    next: 'shadow_end_outside',
+  ),
+  'shadow_end_outside': StoryBeat(
+    id: 'shadow_end_outside',
+    label: '离开以后仍只有四份孤证',
+    speaker: Speaker.shenYan,
+    scene: SceneKey.debriefRoom,
+    text:
+        '外部调查将四个人分开询问。没有项圈迫使我们统一口径，我们却仍只肯交出自己控制的那部分。星遥拒绝在不知道保护措施前提供完整密钥，苏弥担心伤者隐私被利用，唐弈等待律师，而我继续隐藏01的附加权限。\n每一种保留都有合理边界。问题在于，没有任何人愿意承担把边界写成可被别人验证的程序。调查员得到四份内部自洽、彼此断开的证词，主办项目的律师轻易指出其中时间和责任差异。\n死者家属问我们，为什么明明四个人一起出来，却不能共同确认他们最后经历了什么。我没有可以交给他们的完整答案，只能一遍遍说明自己亲眼看见的部分。\n数周后，01的条件在司法封存中公开：我需要四名独立参与者共同确认主办者。它没有要求其他人死亡，也没有赋予我额外出口。那些被当作中心秘密保护的文字，原来只是一条我们第一天就可以共同设计验证方式的证词规则。\n我读着迟来的公开记录，第一次明白保密本身不会自动伤人，拒绝说明秘密将如何影响别人，才让每个人只能按最坏可能行动。我们活着走出设施，却把真相留成四座无法互相抵达的房间。',
+    passageSpeakers: [
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.narration,
+      Speaker.narration,
     ],
     next: 'shadow_end_result',
   ),
@@ -1661,103 +1832,6 @@ const _chapterOneStoryBeats = <String, StoryBeat>{
     next: null,
     phase: StoryPhase.ending,
     endingId: 'ending_four',
-  ),
-  'pact_end': StoryBeat(
-    id: 'pact_end',
-    label: '公开协议',
-    speaker: Speaker.shenYan,
-    scene: SceneKey.controlRoom,
-    text:
-        '我把隐藏日志、掌握的路线以及自己的生还条款全部投到主屏上。大厅沉默了很久。随后苏弥第一个放下终端，星遥公开频道密钥，林澄把地图原件贴上墙。秘密没有立刻消失，但独占秘密不再被视为理所当然。\n我们建立了三人交叉确认制度：任何终端离开持有者前必须由两人记录，任何新规则都要同时抄写到纸面和离线设备。第二次伪造距离发生时，十个人在四十秒内完成点名，让裁定主机无法把假信号伪装成事实。\n第六天，隐藏广播里出现了主办者撤离的杂音。没有人追出去。我们守在同一间大厅里，把十二号的空椅也留在圆圈中，因为那条被删除的记录仍然属于这场游戏。\n第七天的出口没有带来欢呼。门外是警灯、救护车和需要重复无数次的口供。叶岚说共同体不是互相信任，而是在尚未信任时，仍愿意给彼此留下验证真相的方法。我们带着这句话走进天光。',
-    passageSpeakers: [
-      Speaker.narration,
-      Speaker.narration,
-      Speaker.narration,
-      Speaker.narration,
-    ],
-    next: 'pact_end_result',
-  ),
-  'pact_end_result': StoryBeat(
-    id: 'pact_end_result',
-    label: '临时共同体',
-    text: '规则制造对立，公开而可验证的信息让幸存者第一次拥有了改写规则的力量。',
-    next: null,
-    phase: StoryPhase.ending,
-    endingId: 'ending_pact',
-  ),
-  'xingyao_end': StoryBeat(
-    id: 'xingyao_end',
-    label: '同一频道',
-    speaker: Speaker.liXingyao,
-    scene: SceneKey.corridor,
-    portraitMood: 'alarm',
-    text:
-        '第五夜，星遥在第二套网络里找到一段只持续零点七秒的回声。为了确认来源，我们背靠背坐在停电的走廊里，一个盯着项圈倒计时，一个反复校准接收器。谁也没有说困，肩膀却在不知不觉间靠在了一起。\n“以前我只相信能复现的结果。”她看着波形说，“可你每次答应回来，最后真的都会回来。这也算重复实验吧？”\n第六天，我们用那段回声反向锁定裁定主机，让所有人的距离记录恢复本地校验。主办方切断频道前，星遥将最后一份密钥同时发给了十个人。她没有再把关键答案只留在自己手里。\n出口终端在第七天确认共同证词。项圈解锁的瞬间，她先摸了摸颈侧，随后才像终于允许自己害怕一样抱住我。这个动作只持续了几秒，她却没有立刻道歉。\n走出设施后，星遥把耳机的一边塞进我手里。“外面的频道很多，但这个频率只留给你。还有，以后别再叫我02号了，沈砚。”',
-    passageSpeakers: [
-      Speaker.narration,
-      Speaker.liXingyao,
-      Speaker.narration,
-      Speaker.narration,
-      Speaker.liXingyao,
-    ],
-    next: 'xingyao_end_result',
-  ),
-  'xingyao_end_result': StoryBeat(
-    id: 'xingyao_end_result',
-    label: '同一频率',
-    text: '人群散去以后，仍有一个只属于两个人的频道保持在线。',
-    next: null,
-    phase: StoryPhase.ending,
-    endingId: 'ending_xingyao',
-  ),
-  'sumi_end': StoryBeat(
-    id: 'sumi_end',
-    label: '轮到你休息',
-    speaker: Speaker.suMi,
-    portraitMood: 'concerned',
-    text:
-        '第五天以后，临时医务点的墙上贴满了检伤记录。苏弥记得每个人服药的时间，却连续两顿忘记给自己留食物。我把她的名字补进值班表，她盯着那一行看了很久，没有像往常一样说自己没事。\n深夜换药时，她终于承认吴峥死后每次听见金属撞击都会手抖。“医生知道恐惧是什么原因，不代表身体就会听话。”\n我没有劝她坚强，只替她守完后半夜。凌晨四点，她靠在我肩上睡了二十分钟。醒来后第一句话仍是问所有人的脉搏，我便把记录板递给她，让她看见我们也记住了她的。\n第七天，苏弥最后一个离开临时医务点。出口打开时，她仍先检查我颈上的压痕。我握住她总在照顾别人的手：“这次换我陪你休息。”\n门外的晨光落在她疲惫的眼睛里。她笑了一下，没有挣开，也没有再说自己可以一个人处理。',
-    passageSpeakers: [
-      Speaker.narration,
-      Speaker.suMi,
-      Speaker.narration,
-      Speaker.shenYan,
-      Speaker.narration,
-    ],
-    next: 'sumi_end_result',
-  ),
-  'sumi_end_result': StoryBeat(
-    id: 'sumi_end_result',
-    label: '脉搏之外',
-    text: '照顾不再是她一个人的职责，活下来也不再只是医学意义上的结果。',
-    next: null,
-    phase: StoryPhase.ending,
-    endingId: 'ending_sumi',
-  ),
-  'lincheng_end': StoryBeat(
-    id: 'lincheng_end',
-    label: '地图尽头',
-    speaker: Speaker.linCheng,
-    scene: SceneKey.corridor,
-    portraitMood: 'determined',
-    text:
-        '第五天，林澄在地图背面发现了被反复擦除的铅笔压痕。那是十二号曾经走过的路线，也证明集合厅并非游戏真正的起点。她害怕自己看错，拉着我把每一个转角重新量了三遍。\n备用通道开启时，扩音器再次爆出刺耳杂音。她本能地捂住项圈，却没有蹲下。几秒后，她松开手，把地图举到众人都能看见的位置：“我害怕，但路线没有变。跟着标记走。”\n那张由一个学生画出的地图带十个人绕过最后一次封锁。出口前，主机要求提交设施结构证据时，所有人都在证言人一栏写下了她的姓名，而不是07号。\n林澄走到门外后哭了很久。她说不是因为害怕，而是突然又能继续烦恼志愿表、考试和毕业典礼。我把那条青绿色发带还给她，她却摇头，又将它系回我的终端。\n“毕业典礼那天，你会来吗？”她问。我答应她，这一次不需要用编号约定，也不需要倒计时提醒。',
-    passageSpeakers: [
-      Speaker.narration,
-      Speaker.linCheng,
-      Speaker.narration,
-      Speaker.narration,
-      Speaker.linCheng,
-    ],
-    next: 'lincheng_end_result',
-  ),
-  'lincheng_end_result': StoryBeat(
-    id: 'lincheng_end_result',
-    label: '毕业约定',
-    text: '地图的终点不是出口，而是她终于可以继续选择的未来。',
-    next: null,
-    phase: StoryPhase.ending,
-    endingId: 'ending_lincheng',
   ),
 };
 
@@ -2038,6 +2112,7 @@ final storyBeats = Map<String, StoryBeat>.unmodifiable({
   ...chapterFiveBeats,
   ...chapterSixBeats,
   ...chapterSevenBeats,
+  ...chapterEightBeats,
 });
 
 const _routeNodeSpecs = <({String id, int stage, double lane})>[
@@ -2069,6 +2144,7 @@ const _routeNodeSpecs = <({String id, int stage, double lane})>[
   (id: 'ch3_slide_puzzle', stage: 33, lane: 300),
   (id: 'ch3_audit_manifest_puzzle', stage: 34, lane: 100),
   (id: 'ch3_protocol_choice', stage: 34, lane: 300),
+  (id: 'pact_end_result', stage: 35, lane: 500),
   (id: 'ch3_end', stage: 35, lane: 300),
   (id: 'ch4_daybreak', stage: 36, lane: 300),
   (id: 'ch4_medical_investigation', stage: 38, lane: 300),
@@ -2084,6 +2160,7 @@ const _routeNodeSpecs = <({String id, int stage, double lane})>[
   (id: 'ch4_end', stage: 45, lane: 300),
   (id: 'ch5_midnight', stage: 46, lane: 300),
   (id: 'ch5_case04_resolved', stage: 51, lane: 300),
+  (id: 'ch5_archive_entrust_result', stage: 53, lane: 540),
   (id: 'ch5_standard_branch_gate', stage: 53, lane: 300),
   (id: 'ch5_hanqi_revenge_death', stage: 54, lane: 180),
   (id: 'ch5_alliance_silence_death', stage: 54, lane: 300),
@@ -2095,6 +2172,7 @@ const _routeNodeSpecs = <({String id, int stage, double lane})>[
   (id: 'ch6_vote_investigation', stage: 61, lane: 300),
   (id: 'ch6_case05_resolved', stage: 62, lane: 300),
   (id: 'ch6_policy_choice', stage: 63, lane: 300),
+  (id: 'ch6_optimizer_end_result', stage: 64, lane: 540),
   (id: 'ch6_audit_policy_design', stage: 63, lane: 60),
   (id: 'ch6_revenge_death', stage: 64, lane: 180),
   (id: 'ch6_silence_death', stage: 64, lane: 300),
@@ -2118,6 +2196,22 @@ const _routeNodeSpecs = <({String id, int stage, double lane})>[
   (id: 'ch7_audit_shutdown_2', stage: 75, lane: 60),
   (id: 'ch7_standard_four_1', stage: 76, lane: 300),
   (id: 'ch7_end', stage: 77, lane: 300),
+  (id: 'ch8_final_day_open', stage: 78, lane: 300),
+  (id: 'ch8_terminal_hall_reveal', stage: 79, lane: 300),
+  (id: 'ch8_mode_gate', stage: 80, lane: 300),
+  (id: 'ch8_standard_testimony', stage: 82, lane: 300),
+  (id: 'ch8_standard_ember_gate', stage: 84, lane: 300),
+  (id: 'ch8_four_seats_result', stage: 85, lane: 180),
+  (id: 'ch8_custodian_result', stage: 85, lane: 300),
+  (id: 'ch8_no_witness_result', stage: 85, lane: 420),
+  (id: 'ch8_audit_candidate_meeting_1', stage: 81, lane: 60),
+  (id: 'ch8_audit_testimony', stage: 82, lane: 60),
+  (id: 'ch8_audit_unlock_1', stage: 83, lane: 60),
+  (id: 'ch8_audit_epilogue_gate', stage: 84, lane: 60),
+  (id: 'ch8_public_result', stage: 86, lane: 20),
+  (id: 'ch8_xingyao_result', stage: 86, lane: 100),
+  (id: 'ch8_sumi_result', stage: 86, lane: 180),
+  (id: 'ch8_lincheng_result', stage: 86, lane: 260),
 ];
 
 final routeNodes = List<RouteNode>.unmodifiable(
@@ -2156,7 +2250,7 @@ const routeConnections = <String, List<String>>{
   'ch3_second_seal_notice': ['ch3_slide_puzzle'],
   'ch3_slide_puzzle': ['ch3_audit_manifest_puzzle', 'ch3_protocol_choice'],
   'ch3_audit_manifest_puzzle': ['ch3_protocol_choice'],
-  'ch3_protocol_choice': ['ch3_end'],
+  'ch3_protocol_choice': ['ch3_end', 'pact_end_result'],
   'ch3_end': ['ch4_daybreak'],
   'ch4_daybreak': ['ch4_medical_investigation'],
   'ch4_medical_investigation': ['ch4_case03_deduction'],
@@ -2181,6 +2275,7 @@ const routeConnections = <String, List<String>>{
   'ch5_case04_resolved': [
     'ch5_standard_branch_gate',
     'ch5_audit_slot12_challenge',
+    'ch5_archive_entrust_result',
   ],
   'ch5_standard_branch_gate': [
     'ch5_hanqi_revenge_death',
@@ -2200,6 +2295,7 @@ const routeConnections = <String, List<String>>{
     'ch6_revenge_death',
     'ch6_silence_death',
     'ch6_force_death',
+    'ch6_optimizer_end_result',
   ],
   'ch6_audit_policy_design': [
     'ch6_audit_seal',
@@ -2237,6 +2333,25 @@ const routeConnections = <String, List<String>>{
   'ch7_sync_puzzle': ['ch7_audit_shutdown_2'],
   'ch7_audit_shutdown_2': ['ch7_end'],
   'ch7_standard_four_1': ['ch7_end'],
+  'ch7_end': ['ch8_final_day_open'],
+  'ch8_final_day_open': ['ch8_terminal_hall_reveal'],
+  'ch8_terminal_hall_reveal': ['ch8_mode_gate'],
+  'ch8_mode_gate': ['ch8_standard_testimony', 'ch8_audit_candidate_meeting_1'],
+  'ch8_standard_testimony': ['ch8_standard_ember_gate'],
+  'ch8_standard_ember_gate': [
+    'ch8_four_seats_result',
+    'ch8_custodian_result',
+    'ch8_no_witness_result',
+  ],
+  'ch8_audit_candidate_meeting_1': ['ch8_audit_testimony'],
+  'ch8_audit_testimony': ['ch8_audit_unlock_1'],
+  'ch8_audit_unlock_1': ['ch8_audit_epilogue_gate'],
+  'ch8_audit_epilogue_gate': [
+    'ch8_public_result',
+    'ch8_xingyao_result',
+    'ch8_sumi_result',
+    'ch8_lincheng_result',
+  ],
 };
 
 const cgEntries = <CgEntry>[
@@ -2510,6 +2625,97 @@ const cgEntries = <CgEntry>[
       'assets/images/cg/ch7_case06_truth/02.png',
     ],
   ),
+  CgEntry(
+    id: 'cg_ch8_four_seats',
+    title: '精确四席',
+    caption: '一致答案 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch8_four_seats/01.png',
+      'assets/images/cg/ch8_four_seats/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch8_custodian',
+    title: '保护的代价',
+    caption: '托管出口 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch8_custodian/01.png',
+      'assets/images/cg/ch8_custodian/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch8_no_witness',
+    title: '墙外的救援',
+    caption: '共同证词失败 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch8_no_witness/01.png',
+      'assets/images/cg/ch8_no_witness/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch8_testimony_open',
+    title: '四扇隔离门',
+    caption: '最终证词 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch8_testimony_open/01.png',
+      'assets/images/cg/ch8_testimony_open/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch8_protocol_unlock',
+    title: '独立共同见证',
+    caption: '零点协议 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch8_protocol_unlock/01.png',
+      'assets/images/cg/ch8_protocol_unlock/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch8_director_reveal',
+    title: '被擦除的名字',
+    caption: '顾闻川签名与免责录音 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch8_director_reveal/01.png',
+      'assets/images/cg/ch8_director_reveal/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch8_public_after',
+    title: '证词之外',
+    caption: '公开结局 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch8_public_after/01.png',
+      'assets/images/cg/ch8_public_after/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch8_xingyao_after',
+    title: '允许离线的频道',
+    caption: '黎星遥后日谈 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch8_xingyao_after/01.png',
+      'assets/images/cg/ch8_xingyao_after/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch8_sumi_after',
+    title: '无需急救的拥抱',
+    caption: '苏弥后日谈 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch8_sumi_after/01.png',
+      'assets/images/cg/ch8_sumi_after/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch8_lincheng_after',
+    title: '地图之外',
+    caption: '林澄后日谈 / 3 FRAME',
+    assets: [
+      'assets/images/cg/ch8_lincheng_after/01.png',
+      'assets/images/cg/ch8_lincheng_after/02.png',
+      'assets/images/cg/ch8_lincheng_after/03.png',
+    ],
+  ),
 ];
 
 const endingEntries = <EndingEntry>[
@@ -2517,43 +2723,106 @@ const endingEntries = <EndingEntry>[
     id: 'ending_silence',
     title: '无人作证',
     subtitle: '错误的安心比怀疑更致命。',
-    rank: 'BAD END',
+    rank: 'BAD END 01',
     nodeId: 'bad_end_result',
   ),
   EndingEntry(
     id: 'ending_four',
     title: '精确四人',
     subtitle: '你找到了凶手，却没能找到同伴。',
-    rank: 'END 01',
+    rank: 'BAD END 02',
     nodeId: 'shadow_end_result',
   ),
   EndingEntry(
     id: 'ending_pact',
     title: '临时共同体',
-    subtitle: '规则制造对立，信息则能重写规则。',
-    rank: 'END 02',
+    subtitle: '没有退出权的公开，只是另一种封锁。',
+    rank: 'BAD END 03',
     nodeId: 'pact_end_result',
+  ),
+  EndingEntry(
+    id: 'ending_archive_vault',
+    title: '封存即遗失',
+    subtitle: '不会被威胁的保管者，也永远不会出庭。',
+    rank: 'BAD END 04',
+    nodeId: 'ch5_archive_entrust_result',
+  ),
+  EndingEntry(
+    id: 'ending_casualty_optimizer',
+    title: '最低损失',
+    subtitle: '公式先决定谁终将死亡，再寻找最安静的顺序。',
+    rank: 'BAD END 05',
+    nodeId: 'ch6_optimizer_end_result',
   ),
   EndingEntry(
     id: 'ending_xingyao',
     title: '同一频率',
-    subtitle: '人群散去以后，她仍会回答你的呼叫。',
-    rank: 'ROUTE 02',
-    nodeId: 'xingyao_end_result',
+    subtitle: '可以呼叫、沉默，也可以由任意一端停止。',
+    rank: 'FIRST RUN EMBER 02',
+    nodeId: 'xingyao_end',
   ),
   EndingEntry(
     id: 'ending_sumi',
     title: '脉搏之外',
-    subtitle: '照顾不是一个人的职责。',
-    rank: 'ROUTE 03',
-    nodeId: 'sumi_end_result',
+    subtitle: '照顾抵达彼此，也允许任何一方拒绝。',
+    rank: 'FIRST RUN EMBER 03',
+    nodeId: 'sumi_end',
   ),
   EndingEntry(
     id: 'ending_lincheng',
     title: '毕业约定',
-    subtitle: '下一次见面，不再使用编号。',
-    rank: 'ROUTE 07',
-    nodeId: 'lincheng_end_result',
+    subtitle: '约定在没有倒计时的日子重新确认。',
+    rank: 'FIRST RUN EMBER 07',
+    nodeId: 'lincheng_end',
+  ),
+  EndingEntry(
+    id: 'ending_four_seats',
+    title: '精确四席',
+    subtitle: '四个人离开，更多人的声音留在了门内。',
+    rank: 'FIRST RUN A',
+    nodeId: 'ch8_four_seats_result',
+  ),
+  EndingEntry(
+    id: 'ending_custodian',
+    title: '保护者',
+    subtitle: '获救不能使控制变成正当。',
+    rank: 'FIRST RUN B',
+    nodeId: 'ch8_custodian_result',
+  ),
+  EndingEntry(
+    id: 'ending_no_witness',
+    title: '无人共同作证',
+    subtitle: '诚实的证词也可能彼此孤立。',
+    rank: 'FIRST RUN C',
+    nodeId: 'ch8_no_witness_result',
+  ),
+  EndingEntry(
+    id: 'ending_zero_protocol',
+    title: '零点协议',
+    subtitle: '差异被保留，责任重新相连。',
+    rank: 'TRUE END',
+    nodeId: 'ch8_public_result',
+  ),
+  EndingEntry(
+    id: 'ending_final_xingyao',
+    title: '允许离线的频道',
+    subtitle: '安静不再意味着失去。',
+    rank: 'TRUE ROUTE 02',
+    nodeId: 'ch8_xingyao_result',
+  ),
+  EndingEntry(
+    id: 'ending_final_sumi',
+    title: '无需急救的拥抱',
+    subtitle: '关心抵达彼此，也允许停下来。',
+    rank: 'TRUE ROUTE 03',
+    nodeId: 'ch8_sumi_result',
+  ),
+  EndingEntry(
+    id: 'ending_final_lincheng',
+    title: '地图之外',
+    subtitle: '同行不再使任何路线失效。',
+    rank: 'TRUE ROUTE 07',
+    nodeId: 'ch8_lincheng_result',
   ),
 ];
 
@@ -2574,16 +2843,23 @@ String speakerName(Speaker speaker) => switch (speaker) {
 };
 
 const portraitMoods = <Speaker, Set<String>>{
-  Speaker.liXingyao: {'neutral', 'alarm', 'relaxed', 'vertigo'},
-  Speaker.suMi: {'neutral', 'concerned', 'relieved', 'shaken'},
-  Speaker.hanQi: {'neutral', 'protective', 'conflicted', 'armed', 'furious'},
+  Speaker.liXingyao: {'neutral', 'alarm', 'relaxed', 'vertigo', 'epilogue'},
+  Speaker.suMi: {'neutral', 'concerned', 'relieved', 'shaken', 'epilogue'},
+  Speaker.hanQi: {
+    'neutral',
+    'protective',
+    'conflicted',
+    'armed',
+    'furious',
+    'epilogue',
+  },
   Speaker.wuZheng: {'neutral', 'defiant'},
-  Speaker.tangYi: {'neutral', 'shaken', 'calculating'},
-  Speaker.linCheng: {'neutral', 'determined', 'anxious'},
+  Speaker.tangYi: {'neutral', 'shaken', 'calculating', 'epilogue'},
+  Speaker.linCheng: {'neutral', 'determined', 'anxious', 'epilogue'},
   Speaker.chenMo: {'neutral', 'discovery', 'guarded', 'desperate', 'cold'},
   Speaker.gaoYuan: {'neutral', 'inspecting', 'injured'},
   Speaker.zhouXu: {'neutral', 'defensive'},
-  Speaker.yeLan: {'neutral', 'intervening', 'strained'},
+  Speaker.yeLan: {'neutral', 'intervening', 'strained', 'epilogue'},
 };
 
 /// Canonical appearance reference for CGs and non-first-person special shots.
@@ -2629,6 +2905,15 @@ String sceneImageAsset(SceneKey scene) => switch (scene) {
   SceneKey.northRelay => 'assets/images/scenes/north_relay.png',
   SceneKey.evidencePort => 'assets/images/scenes/evidence_port.png',
   SceneKey.medicalAirlock => 'assets/images/scenes/medical_airlock.png',
+  SceneKey.testimonyHall => 'assets/images/scenes/testimony_hall.png',
+  SceneKey.testimonyBooth => 'assets/images/scenes/testimony_booth.png',
+  SceneKey.debriefRoom => 'assets/images/scenes/debrief_room.png',
+  SceneKey.hearingRoom => 'assets/images/scenes/hearing_room.png',
+  SceneKey.memorialWall => 'assets/images/scenes/memorial_wall.png',
+  SceneKey.broadcastTower => 'assets/images/scenes/broadcast_tower.png',
+  SceneKey.schoolClassroom => 'assets/images/scenes/school_classroom.png',
+  SceneKey.metroStation => 'assets/images/scenes/metro_station.png',
+  SceneKey.riversideEvening => 'assets/images/scenes/riverside_evening.png',
 };
 
 EndingEntry? endingById(String? id) {

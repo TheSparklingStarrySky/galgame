@@ -15,7 +15,8 @@
     "audit_revelation",
     "control_core_protocol",
     "synchronized_shutdown",
-    "four_seat_aftermath"
+    "four_seat_aftermath",
+    "final_testimony"
   ],
   "sfx": [
     "route_jump",
@@ -24,6 +25,8 @@
     "amb_assembly_pa",
     "amb_infirmary_equipment",
     "amb_storage_refrigeration",
+    "amb_urban_exterior",
+    "amb_riverside_evening",
     "footsteps_concrete",
     "rope_tension",
     "medical_monitor",
@@ -42,6 +45,9 @@
     "electrical_arc",
     "pressure_bypass",
     "evidence_glass_break",
-    "sync_lock_pulse"
+    "sync_lock_pulse",
+    "testimony_submit",
+    "collar_release",
+    "rescue_wall_breach"
   ]
 }

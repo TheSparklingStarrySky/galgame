@@ -213,6 +213,13 @@ def _bgm_samplers(duration: float) -> dict[str, Sampler]:
         length=5.2,
         duration=duration,
     )
+    final_notes = _loop_notes(
+        (220.0, 277.18, 329.63, 415.30, 329.63, 277.18),
+        interval=2.0,
+        offset=0.5,
+        length=2.6,
+        duration=duration,
+    )
 
     def night(time: float) -> StereoSample:
         pad = _pad((55.0, 65.41, 82.41), time, 0.2) * 0.19
@@ -293,6 +300,21 @@ def _bgm_samplers(duration: float) -> dict[str, Sampler]:
         air = _air(time, 117) * 0.9
         return hollow + piano + four_count + air, hollow * 0.92 + piano * 0.88 + four_count * 1.05 + air * 0.75
 
+    def final_testimony(time: float) -> StereoSample:
+        drone = _pad((55.0, 69.30, 82.41), time, 0.45) * 0.15
+        sequence = _events(time, final_notes) * 0.085
+        four_pulse = sum(
+            _bell(523.25 + step * 36.0, time, base + step * 0.62, 2.0) * 0.038
+            for base in range(0, int(duration), 12)
+            for step in range(4)
+        )
+        clock = _pulse(1.0, time, 0.025) * _osc(1320.0, time) * 0.008
+        air = _air(time, 157) * 0.7
+        return (
+            drone + sequence + four_pulse + clock + air,
+            drone * 0.94 + sequence * 0.86 + four_pulse * 1.06 - clock + air * 0.8,
+        )
+
     return {
         "night_facility": night,
         "bond_xingyao": xingyao,
@@ -304,6 +326,7 @@ def _bgm_samplers(duration: float) -> dict[str, Sampler]:
         "control_core_protocol": control_core,
         "synchronized_shutdown": synchronized_shutdown,
         "four_seat_aftermath": four_seat_aftermath,
+        "final_testimony": final_testimony,
     }
 
 
@@ -384,11 +407,49 @@ def _sfx_samplers() -> dict[str, tuple[float, Sampler]]:
         lock = impact(lock_time) * 0.55 if time >= 1.04 else 0.0
         return tones + lock
 
+    def testimony_submit(time: float) -> float:
+        seal = decay_tone(760.0, 3.6, metallic=True)(time) * 0.52
+        lock_time = max(time - 0.62, 0.0)
+        lock = impact(lock_time) * 0.62 if time >= 0.62 else 0.0
+        confirm = _bell(659.25, time, 0.92, 1.3) * 0.24
+        return seal + lock + confirm
+
+    def collar_release(time: float) -> float:
+        releases = 0.0
+        for index, offset in enumerate((0.0, 0.48, 0.96, 1.44)):
+            local = max(time - offset, 0.0)
+            if time >= offset:
+                releases += decay_tone(420.0 + index * 54.0, 5.6, metallic=True)(local) * 0.22
+                releases += impact(local) * 0.16
+        power_down = _osc(680.0 - 130.0 * min(time, 2.5), time) * math.exp(-time * 1.2) * 0.06
+        return releases + power_down
+
+    def rescue_wall_breach(time: float) -> float:
+        drill = motor(time * 0.9) * 0.72
+        strikes = sum(
+            impact(max(time - offset, 0.0)) * (0.65 if time >= offset else 0.0)
+            for offset in (0.35, 1.42, 2.55, 3.72)
+        )
+        dust = _air(time * 8.0, 171) * min(time / 0.2, 1.0) * min((5.0 - time) / 0.7, 1.0)
+        return drill + strikes + dust * 0.8
+
     def ambience(seed: int, hum: float) -> Sampler:
         return lambda time: (
             _air(time, seed) + 0.035 * _osc(hum, time),
             _air(time, seed + 1) + 0.035 * _osc(hum * 1.005, time),
         )
+
+    def urban_exterior(time: float) -> StereoSample:
+        wind = _air(time * 0.55, 181) * 0.72
+        traffic = _osc(42.0, time) * (0.02 + 0.018 * (0.5 + 0.5 * _osc(0.083, time)))
+        distant_signal = _bell(392.0, time, 4.4, 2.4) * 0.035
+        return wind + traffic + distant_signal, wind * 0.86 + traffic * 1.08 + distant_signal * 0.72
+
+    def riverside_evening(time: float) -> StereoSample:
+        breeze = _air(time * 0.42, 191) * 0.58
+        water = _air(time * 1.7, 193) * (0.42 + 0.16 * _osc(0.19, time))
+        low_current = _osc(38.0, time) * (0.018 + 0.008 * _osc(0.11, time))
+        return breeze + water + low_current, breeze * 0.82 + water * 1.08 + low_current
 
     return {
         "route_jump": (0.9, stereo(lambda t: _bell(660.0, t, 0.0, 0.9) * 0.42)),
@@ -397,6 +458,8 @@ def _sfx_samplers() -> dict[str, tuple[float, Sampler]]:
         "amb_assembly_pa": (12.0, ambience(60, 50.0)),
         "amb_infirmary_equipment": (12.0, ambience(64, 60.0)),
         "amb_storage_refrigeration": (12.0, ambience(68, 44.0)),
+        "amb_urban_exterior": (12.0, urban_exterior),
+        "amb_riverside_evening": (12.0, riverside_evening),
         "footsteps_concrete": (2.2, stereo(lambda t: sum(impact(t - s) if t >= s else 0.0 for s in (0.0, 0.55, 1.1, 1.65)) * 0.58)),
         "rope_tension": (2.0, stereo(lambda t: _triangle(78.0 + 22.0 * t, t) * math.exp(-t * 0.9) * 0.13)),
         "medical_monitor": (4.0, stereo(lambda t: decay_tone(880.0, 9.0)(t % 1.0) if t % 1.0 < 0.25 else 0.0)),
@@ -416,6 +479,9 @@ def _sfx_samplers() -> dict[str, tuple[float, Sampler]]:
         "pressure_bypass": (4.8, stereo(pressure_bypass)),
         "evidence_glass_break": (1.8, stereo(evidence_glass_break, -0.08)),
         "sync_lock_pulse": (2.4, stereo(sync_lock_pulse)),
+        "testimony_submit": (2.2, stereo(testimony_submit)),
+        "collar_release": (3.2, stereo(collar_release)),
+        "rescue_wall_breach": (5.2, stereo(rescue_wall_breach, -0.1)),
     }
 
 

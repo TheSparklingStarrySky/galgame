@@ -108,43 +108,51 @@ class _EchoExperienceState extends State<EchoExperience>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: GameAudioScope(
-        audio: _audio,
-        child: Listener(
-          behavior: HitTestBehavior.translucent,
-          onPointerDown: (_) => _audio.handleUserGesture(),
-          child: RepaintBoundary(
-            key: _saveCaptureKey,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                GameWidget<EchoSceneGame>(game: _game),
-                ValueListenableBuilder<bool>(
-                  valueListenable: _game.sceneReady,
-                  builder: (context, ready, _) {
-                    if (!ready) return const _SceneLoadingLayer();
-                    return AnimatedBuilder(
-                      animation: widget.controller,
-                      builder: (context, _) => _buildLayer(widget.controller),
-                    );
-                  },
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxHeight > constraints.maxWidth) {
+          return const _LandscapeRequiredLayer();
+        }
+        return Scaffold(
+          body: GameAudioScope(
+            audio: _audio,
+            child: Listener(
+              behavior: HitTestBehavior.translucent,
+              onPointerDown: (_) => _audio.handleUserGesture(),
+              child: RepaintBoundary(
+                key: _saveCaptureKey,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    GameWidget<EchoSceneGame>(game: _game),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: _game.sceneReady,
+                      builder: (context, ready, _) {
+                        if (!ready) return const _SceneLoadingLayer();
+                        return AnimatedBuilder(
+                          animation: widget.controller,
+                          builder: (context, _) =>
+                              _buildLayer(widget.controller),
+                        );
+                      },
+                    ),
+                    ValueListenableBuilder<String?>(
+                      valueListenable: _game.sceneLoadError,
+                      builder: (context, error, _) {
+                        if (error == null) return const SizedBox.shrink();
+                        return _SceneLoadErrorBanner(
+                          message: error,
+                          onRetry: _game.retryScene,
+                        );
+                      },
+                    ),
+                  ],
                 ),
-                ValueListenableBuilder<String?>(
-                  valueListenable: _game.sceneLoadError,
-                  builder: (context, error, _) {
-                    if (error == null) return const SizedBox.shrink();
-                    return _SceneLoadErrorBanner(
-                      message: error,
-                      onRetry: _game.retryScene,
-                    );
-                  },
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -162,8 +170,53 @@ class _EchoExperienceState extends State<EchoExperience>
     ),
     StoryPhase.tuning => _TuningLayer(controller: controller, game: _game),
     StoryPhase.deduction => _DeductionLayer(controller: controller),
+    StoryPhase.testimony => _TestimonyLayer(controller: controller),
     StoryPhase.ending => _EndingLayer(controller: controller),
   };
+}
+
+class _LandscapeRequiredLayer extends StatelessWidget {
+  const _LandscapeRequiredLayer();
+
+  @override
+  Widget build(BuildContext context) {
+    return const ColoredBox(
+      key: ValueKey('landscape-required'),
+      color: Color(0xFF080B0C),
+      child: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(28),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.screen_rotation_rounded,
+                  size: 46,
+                  color: Color(0xFFD8A24A),
+                ),
+                SizedBox(height: 18),
+                Text(
+                  '请横屏游玩',
+                  style: TextStyle(
+                    color: Color(0xFFF0EEE7),
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  '旋转设备后将自动继续',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Color(0xFF9EA9A4), fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _DelegationLayer extends StatefulWidget {
@@ -483,13 +536,28 @@ class _TitleLayer extends StatelessWidget {
             // Retina browser captures can expose only about 720 logical pixels;
             // keep that common landscape height in the one-screen title layout.
             final short = constraints.maxHeight < 760;
-            final toolsWidth = narrow ? 230.0 : 320.0;
+            final veryShort = constraints.maxHeight < 380;
+            final leftPadding = veryShort ? 24.0 : (narrow ? 40.0 : 72.0);
+            final rightPadding = veryShort ? 16.0 : (narrow ? 28.0 : 56.0);
+            final panelGap = veryShort ? 14.0 : (narrow ? 24.0 : 56.0);
+            final toolsWidth = veryShort
+                ? (constraints.maxWidth * 0.38).clamp(190.0, 220.0)
+                : (narrow ? 230.0 : 320.0);
+            final commandWidth = math.min(
+              260.0,
+              constraints.maxWidth -
+                  leftPadding -
+                  rightPadding -
+                  panelGap -
+                  toolsWidth,
+            );
+            final buttonGap = veryShort ? 6.0 : 9.0;
             return Padding(
               padding: EdgeInsets.fromLTRB(
-                narrow ? 40 : 72,
-                short ? 22 : 62,
-                narrow ? 28 : 56,
-                short ? 16 : 24,
+                leftPadding,
+                veryShort ? 8 : (short ? 22 : 62),
+                rightPadding,
+                veryShort ? 8 : (short ? 16 : 24),
               ),
               child: Row(
                 children: [
@@ -505,7 +573,9 @@ class _TitleLayer extends StatelessWidget {
                               const _Eyebrow(
                                 text: 'ZERO HOUR PROTOCOL / 168:00:00',
                               ),
-                              SizedBox(height: short ? 6 : 12),
+                              SizedBox(
+                                height: veryShort ? 3 : (short ? 6 : 12),
+                              ),
                               FittedBox(
                                 fit: BoxFit.scaleDown,
                                 alignment: Alignment.centerLeft,
@@ -515,46 +585,63 @@ class _TitleLayer extends StatelessWidget {
                                       .textTheme
                                       .displayLarge
                                       ?.copyWith(
-                                        fontSize: short ? 40 : 72,
+                                        fontSize: veryShort
+                                            ? 34
+                                            : (short ? 40 : 72),
                                         color: const Color(0xFFF0EEE7),
                                       ),
                                 ),
                               ),
-                              SizedBox(height: short ? 6 : 14),
+                              SizedBox(
+                                height: veryShort ? 2 : (short ? 6 : 14),
+                              ),
                               Text(
                                 '规则只决定谁能活，选择决定你还是不是人。',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                                 style: Theme.of(context).textTheme.bodyLarge
                                     ?.copyWith(
                                       color: const Color(0xFFB9C3BE),
-                                      fontSize: narrow ? 15 : 18,
+                                      fontSize: veryShort
+                                          ? 13
+                                          : (narrow ? 15 : 18),
+                                      height: veryShort ? 1.4 : null,
                                     ),
                               ),
-                              SizedBox(height: short ? 16 : 32),
+                              SizedBox(
+                                height: veryShort ? 6 : (short ? 16 : 32),
+                              ),
                               _CommandButton(
                                 icon: Icons.play_arrow_rounded,
                                 label: '开始游戏',
                                 onPressed: () => controller.startNew(),
                                 primary: true,
+                                width: commandWidth,
+                                height: veryShort ? 40 : 46,
                               ),
                               if (controller.auditModeUnlocked) ...[
-                                const SizedBox(height: 9),
+                                SizedBox(height: buttonGap),
                                 _CommandButton(
                                   icon: Icons.manage_search_rounded,
                                   label: '审计周目',
                                   onPressed: () => controller.startNew(
                                     mode: StoryRunMode.audit,
                                   ),
+                                  width: commandWidth,
+                                  height: veryShort ? 40 : 46,
                                 ),
                               ],
-                              const SizedBox(height: 9),
+                              SizedBox(height: buttonGap),
                               _CommandButton(
                                 icon: Icons.update_rounded,
                                 label: '继续游戏',
                                 onPressed: controller.hasAutoSave
                                     ? controller.resume
                                     : null,
+                                width: commandWidth,
+                                height: veryShort ? 40 : 46,
                               ),
-                              const SizedBox(height: 9),
+                              SizedBox(height: buttonGap),
                               _CommandButton(
                                 icon: Icons.folder_open_rounded,
                                 label: '读取存档',
@@ -563,13 +650,17 @@ class _TitleLayer extends StatelessWidget {
                                   controller,
                                   loadOnly: true,
                                 ),
+                                width: commandWidth,
+                                height: veryShort ? 40 : 46,
                               ),
-                              SizedBox(height: short ? 14 : 26),
-                              const Text(
+                              SizedBox(
+                                height: veryShort ? 6 : (short ? 14 : 26),
+                              ),
+                              Text(
                                 'DAY 1–2 · 已开放',
                                 style: TextStyle(
                                   color: Color(0xFF8D9994),
-                                  fontSize: 12,
+                                  fontSize: veryShort ? 10 : 12,
                                 ),
                               ),
                             ],
@@ -578,7 +669,7 @@ class _TitleLayer extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(width: narrow ? 24 : 56),
+                  SizedBox(width: panelGap),
                   SizedBox(
                     width: toolsWidth,
                     child: _TitleToolsPanel(
@@ -5825,6 +5916,271 @@ class _HypothesisTile extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TestimonyLayer extends StatefulWidget {
+  const _TestimonyLayer({required this.controller});
+
+  final StoryController controller;
+
+  @override
+  State<_TestimonyLayer> createState() => _TestimonyLayerState();
+}
+
+class _TestimonyLayerState extends State<_TestimonyLayer> {
+  String? _selected;
+
+  static const _answers = [
+    (
+      id: 'human_director',
+      title: 'H-7 项目负责人',
+      body: '把主办者定义为批准绑架、设施与项圈部署的人类设计者。',
+      icon: Icons.fingerprint_rounded,
+    ),
+    (
+      id: 'zero_system',
+      title: 'ZERO 裁定系统',
+      body: '把主办者定义为跨节点迁移、持续执行门锁与项圈裁定的程序。',
+      icon: Icons.hub_outlined,
+    ),
+    (
+      id: 'zero_protocol',
+      title: '零点协议',
+      body: '区分人类设计、程序裁定与参与者可执行输入，并保留三层不同责任。',
+      icon: Icons.account_tree_outlined,
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: const Color(0xF2080B0C),
+      child: Stack(
+        children: [
+          _TopBar(controller: widget.controller, title: '隔离证词 / FINAL'),
+          SafeArea(
+            minimum: const EdgeInsets.fromLTRB(18, 76, 82, 18),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final contentWidth = constraints.maxWidth > 980
+                    ? 980.0
+                    : constraints.maxWidth;
+                final compact = contentWidth < 760;
+                final seatWidth = compact
+                    ? (contentWidth - 10) / 2
+                    : (contentWidth - 30) / 4;
+                final answerWidth = compact
+                    ? contentWidth
+                    : (contentWidth - 20) / 3;
+                return SingleChildScrollView(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 980),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const _Eyebrow(text: 'FOUR INDEPENDENT WITNESSES'),
+                          const SizedBox(height: 7),
+                          Text(
+                            '提交主办者代号',
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
+                          const SizedBox(height: 7),
+                          const Text(
+                            '四席屏幕相互隔离。当前终端只记录 01 的答案，不能查看、复制或代交其他席位。',
+                            style: TextStyle(
+                              color: Color(0xFFAAB3AF),
+                              height: 1.45,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: List.generate(
+                              4,
+                              (index) => SizedBox(
+                                width: seatWidth,
+                                height: compact ? 72 : 82,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xD8111718),
+                                    border: Border.all(
+                                      color: const Color(0xFF33413D),
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(11),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          index == 0
+                                              ? Icons.person_outline_rounded
+                                              : Icons.lock_outline_rounded,
+                                          color: index == 0
+                                              ? const Color(0xFFD8A24A)
+                                              : const Color(0xFF83908B),
+                                        ),
+                                        const SizedBox(width: 9),
+                                        Expanded(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '证词席 ${index + 1}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                              Text(
+                                                index == 0
+                                                    ? '01 / 本人输入'
+                                                    : '隔离中 / 不可见',
+                                                style: const TextStyle(
+                                                  color: Color(0xFF8F9B96),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          const _Eyebrow(text: 'HOST IDENTIFIER'),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: _answers
+                                .map(
+                                  (answer) => SizedBox(
+                                    width: answerWidth,
+                                    child: _TestimonyAnswerCard(
+                                      key: ValueKey(
+                                        'testimony-answer-${answer.id}',
+                                      ),
+                                      icon: answer.icon,
+                                      title: answer.title,
+                                      body: answer.body,
+                                      selected: _selected == answer.id,
+                                      onPressed: () =>
+                                          setState(() => _selected = answer.id),
+                                    ),
+                                  ),
+                                )
+                                .toList(growable: false),
+                          ),
+                          const SizedBox(height: 14),
+                          _CommandButton(
+                            icon: Icons.lock_outline_rounded,
+                            label: '密封并提交本人证词',
+                            onPressed: _selected == null
+                                ? null
+                                : () => widget.controller.submitFinalTestimony(
+                                    _selected!,
+                                  ),
+                            primary: true,
+                            width: compact ? contentWidth : 300,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TestimonyAnswerCard extends StatelessWidget {
+  const _TestimonyAnswerCard({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String title;
+  final String body;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? const Color(0xFF25352F) : const Color(0xE6111718),
+      shape: RoundedRectangleBorder(
+        side: BorderSide(
+          color: selected ? const Color(0xFFD8A24A) : const Color(0xFF33413D),
+        ),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(4),
+        child: SizedBox(
+          height: 126,
+          child: Padding(
+            padding: const EdgeInsets.all(13),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, color: const Color(0xFFD8A24A), size: 21),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    Icon(
+                      selected
+                          ? Icons.radio_button_checked_rounded
+                          : Icons.radio_button_off_rounded,
+                      color: selected
+                          ? const Color(0xFFD8A24A)
+                          : const Color(0xFF75807C),
+                      size: 19,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  body,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFAAB3AF),
+                    height: 1.4,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

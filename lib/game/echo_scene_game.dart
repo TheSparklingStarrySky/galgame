@@ -111,6 +111,15 @@ class EchoSceneGame extends FlameGame {
     SceneKey.northRelay => 'scenes/north_relay.png',
     SceneKey.evidencePort => 'scenes/evidence_port.png',
     SceneKey.medicalAirlock => 'scenes/medical_airlock.png',
+    SceneKey.testimonyHall => 'scenes/testimony_hall.png',
+    SceneKey.testimonyBooth => 'scenes/testimony_booth.png',
+    SceneKey.debriefRoom => 'scenes/debrief_room.png',
+    SceneKey.hearingRoom => 'scenes/hearing_room.png',
+    SceneKey.memorialWall => 'scenes/memorial_wall.png',
+    SceneKey.broadcastTower => 'scenes/broadcast_tower.png',
+    SceneKey.schoolClassroom => 'scenes/school_classroom.png',
+    SceneKey.metroStation => 'scenes/metro_station.png',
+    SceneKey.riversideEvening => 'scenes/riverside_evening.png',
   };
 
   void _layoutBackdrop() {

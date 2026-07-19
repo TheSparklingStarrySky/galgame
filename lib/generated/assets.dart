@@ -30,11 +30,17 @@ class $AssetsScenesGen {
   final AssetGenImage assemblyHall = const AssetGenImage(
     'assets/images/scenes/assembly_hall.png',
   );
+  final AssetGenImage broadcastTower = const AssetGenImage(
+    'assets/images/scenes/broadcast_tower.png',
+  );
   final AssetGenImage controlCore = const AssetGenImage(
     'assets/images/scenes/control_core.png',
   );
   final AssetGenImage controlRoom = const AssetGenImage(
     'assets/images/scenes/control_room.png',
+  );
+  final AssetGenImage debriefRoom = const AssetGenImage(
+    'assets/images/scenes/debrief_room.png',
   );
   final AssetGenImage dormitoryRoom = const AssetGenImage(
     'assets/images/scenes/dormitory_room.png',
@@ -44,6 +50,9 @@ class $AssetsScenesGen {
   );
   final AssetGenImage facilityCorridor = const AssetGenImage(
     'assets/images/scenes/facility_corridor.png',
+  );
+  final AssetGenImage hearingRoom = const AssetGenImage(
+    'assets/images/scenes/hearing_room.png',
   );
   final AssetGenImage infirmary = const AssetGenImage(
     'assets/images/scenes/infirmary.png',
@@ -57,17 +66,35 @@ class $AssetsScenesGen {
   final AssetGenImage medicalIsolation = const AssetGenImage(
     'assets/images/scenes/medical_isolation.png',
   );
+  final AssetGenImage memorialWall = const AssetGenImage(
+    'assets/images/scenes/memorial_wall.png',
+  );
+  final AssetGenImage metroStation = const AssetGenImage(
+    'assets/images/scenes/metro_station.png',
+  );
   final AssetGenImage northRelay = const AssetGenImage(
     'assets/images/scenes/north_relay.png',
   );
   final AssetGenImage oldGym = const AssetGenImage(
     'assets/images/scenes/old_gym.png',
   );
+  final AssetGenImage riversideEvening = const AssetGenImage(
+    'assets/images/scenes/riverside_evening.png',
+  );
+  final AssetGenImage schoolClassroom = const AssetGenImage(
+    'assets/images/scenes/school_classroom.png',
+  );
   final AssetGenImage securityRoom = const AssetGenImage(
     'assets/images/scenes/security_room.png',
   );
   final AssetGenImage storageRoom = const AssetGenImage(
     'assets/images/scenes/storage_room.png',
+  );
+  final AssetGenImage testimonyBooth = const AssetGenImage(
+    'assets/images/scenes/testimony_booth.png',
+  );
+  final AssetGenImage testimonyHall = const AssetGenImage(
+    'assets/images/scenes/testimony_hall.png',
   );
   final AssetGenImage transferRoom = const AssetGenImage(
     'assets/images/scenes/transfer_room.png',
@@ -91,6 +118,43 @@ class $AssetsCgGen {
       const $AssetsCh5E04IdentityGen();
   final $AssetsCh5HanqiShelfGen ch5HanqiShelf = const $AssetsCh5HanqiShelfGen();
   final $AssetsCh5YelanAcidGen ch5YelanAcid = const $AssetsCh5YelanAcidGen();
+  final $AssetsCh6AuditVoteGen ch6AuditVote = const $AssetsCh6AuditVoteGen();
+  final $AssetsCh6TangyiBridgeGen ch6TangyiBridge =
+      const $AssetsCh6TangyiBridgeGen();
+  final $AssetsCh6TangyiRestraintGen ch6TangyiRestraint =
+      const $AssetsCh6TangyiRestraintGen();
+  final $AssetsCh6VoteOpeningGen ch6VoteOpening =
+      const $AssetsCh6VoteOpeningGen();
+  final $AssetsCh6YelanSealGen ch6YelanSeal = const $AssetsCh6YelanSealGen();
+  final $AssetsCh7AuditSyncGen ch7AuditSync = const $AssetsCh7AuditSyncGen();
+  final $AssetsCh7Case06TruthGen ch7Case06Truth =
+      const $AssetsCh7Case06TruthGen();
+  final $AssetsCh7ChenmoArcGen ch7ChenmoArc = const $AssetsCh7ChenmoArcGen();
+  final $AssetsCh7CoreOpeningGen ch7CoreOpening =
+      const $AssetsCh7CoreOpeningGen();
+  final $AssetsCh7HanqiControlGen ch7HanqiControl =
+      const $AssetsCh7HanqiControlGen();
+  final $AssetsCh7LinchengGateGen ch7LinchengGate =
+      const $AssetsCh7LinchengGateGen();
+  final $AssetsCh7SumiOxygenGen ch7SumiOxygen = const $AssetsCh7SumiOxygenGen();
+  final $AssetsCh7TangyiNailerGen ch7TangyiNailer =
+      const $AssetsCh7TangyiNailerGen();
+  final $AssetsCh7XingyaoSignalGen ch7XingyaoSignal =
+      const $AssetsCh7XingyaoSignalGen();
+  final $AssetsCh8CustodianGen ch8Custodian = const $AssetsCh8CustodianGen();
+  final $AssetsCh8FourSeatsGen ch8FourSeats = const $AssetsCh8FourSeatsGen();
+  final $AssetsCh8LinchengAfterGen ch8LinchengAfter =
+      const $AssetsCh8LinchengAfterGen();
+  final $AssetsCh8NoWitnessGen ch8NoWitness = const $AssetsCh8NoWitnessGen();
+  final $AssetsCh8ProtocolUnlockGen ch8ProtocolUnlock =
+      const $AssetsCh8ProtocolUnlockGen();
+  final $AssetsCh8PublicAfterGen ch8PublicAfter =
+      const $AssetsCh8PublicAfterGen();
+  final $AssetsCh8SumiAfterGen ch8SumiAfter = const $AssetsCh8SumiAfterGen();
+  final $AssetsCh8TestimonyOpenGen ch8TestimonyOpen =
+      const $AssetsCh8TestimonyOpenGen();
+  final $AssetsCh8XingyaoAfterGen ch8XingyaoAfter =
+      const $AssetsCh8XingyaoAfterGen();
   final $AssetsCollarExecutionGen collarExecution =
       const $AssetsCollarExecutionGen();
   final $AssetsControlRoomDeathGen controlRoomDeath =
@@ -280,6 +344,262 @@ class $AssetsCh5BondLinchengGen {
   );
 }
 
+class $AssetsCh6VoteOpeningGen {
+  const $AssetsCh6VoteOpeningGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch6_vote_opening/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch6_vote_opening/02.png',
+  );
+}
+
+class $AssetsCh6YelanSealGen {
+  const $AssetsCh6YelanSealGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch6_yelan_seal/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch6_yelan_seal/02.png',
+  );
+}
+
+class $AssetsCh6TangyiBridgeGen {
+  const $AssetsCh6TangyiBridgeGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch6_tangyi_bridge/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch6_tangyi_bridge/02.png',
+  );
+}
+
+class $AssetsCh6TangyiRestraintGen {
+  const $AssetsCh6TangyiRestraintGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch6_tangyi_restraint/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch6_tangyi_restraint/02.png',
+  );
+}
+
+class $AssetsCh6AuditVoteGen {
+  const $AssetsCh6AuditVoteGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch6_audit_vote/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch6_audit_vote/02.png',
+  );
+}
+
+class $AssetsCh7CoreOpeningGen {
+  const $AssetsCh7CoreOpeningGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch7_core_opening/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch7_core_opening/02.png',
+  );
+}
+
+class $AssetsCh7TangyiNailerGen {
+  const $AssetsCh7TangyiNailerGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch7_tangyi_nailer/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch7_tangyi_nailer/02.png',
+  );
+}
+
+class $AssetsCh7ChenmoArcGen {
+  const $AssetsCh7ChenmoArcGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch7_chenmo_arc/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch7_chenmo_arc/02.png',
+  );
+}
+
+class $AssetsCh7HanqiControlGen {
+  const $AssetsCh7HanqiControlGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch7_hanqi_control/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch7_hanqi_control/02.png',
+  );
+}
+
+class $AssetsCh7LinchengGateGen {
+  const $AssetsCh7LinchengGateGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch7_lincheng_gate/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch7_lincheng_gate/02.png',
+  );
+}
+
+class $AssetsCh7XingyaoSignalGen {
+  const $AssetsCh7XingyaoSignalGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch7_xingyao_signal/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch7_xingyao_signal/02.png',
+  );
+}
+
+class $AssetsCh7SumiOxygenGen {
+  const $AssetsCh7SumiOxygenGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch7_sumi_oxygen/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch7_sumi_oxygen/02.png',
+  );
+}
+
+class $AssetsCh7AuditSyncGen {
+  const $AssetsCh7AuditSyncGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch7_audit_sync/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch7_audit_sync/02.png',
+  );
+}
+
+class $AssetsCh7Case06TruthGen {
+  const $AssetsCh7Case06TruthGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch7_case06_truth/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch7_case06_truth/02.png',
+  );
+}
+
+class $AssetsCh8FourSeatsGen {
+  const $AssetsCh8FourSeatsGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch8_four_seats/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch8_four_seats/02.png',
+  );
+}
+
+class $AssetsCh8CustodianGen {
+  const $AssetsCh8CustodianGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch8_custodian/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch8_custodian/02.png',
+  );
+}
+
+class $AssetsCh8NoWitnessGen {
+  const $AssetsCh8NoWitnessGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch8_no_witness/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch8_no_witness/02.png',
+  );
+}
+
+class $AssetsCh8TestimonyOpenGen {
+  const $AssetsCh8TestimonyOpenGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch8_testimony_open/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch8_testimony_open/02.png',
+  );
+}
+
+class $AssetsCh8ProtocolUnlockGen {
+  const $AssetsCh8ProtocolUnlockGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch8_protocol_unlock/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch8_protocol_unlock/02.png',
+  );
+}
+
+class $AssetsCh8PublicAfterGen {
+  const $AssetsCh8PublicAfterGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch8_public_after/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch8_public_after/02.png',
+  );
+}
+
+class $AssetsCh8XingyaoAfterGen {
+  const $AssetsCh8XingyaoAfterGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch8_xingyao_after/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch8_xingyao_after/02.png',
+  );
+}
+
+class $AssetsCh8SumiAfterGen {
+  const $AssetsCh8SumiAfterGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch8_sumi_after/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch8_sumi_after/02.png',
+  );
+}
+
+class $AssetsCh8LinchengAfterGen {
+  const $AssetsCh8LinchengAfterGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch8_lincheng_after/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch8_lincheng_after/02.png',
+  );
+  final AssetGenImage a03 = const AssetGenImage(
+    'assets/images/cg/ch8_lincheng_after/03.png',
+  );
+}
+
 class $AssetsCharactersGen {
   const $AssetsCharactersGen();
 
@@ -310,6 +630,9 @@ class $AssetsLiXingyaoGen {
   final AssetGenImage alarm = const AssetGenImage(
     'assets/images/characters/li_xingyao/alarm.png',
   );
+  final AssetGenImage epilogue = const AssetGenImage(
+    'assets/images/characters/li_xingyao/epilogue.png',
+  );
   final AssetGenImage neutral = const AssetGenImage(
     'assets/images/characters/li_xingyao/neutral.png',
   );
@@ -326,6 +649,9 @@ class $AssetsSuMiGen {
 
   final AssetGenImage concerned = const AssetGenImage(
     'assets/images/characters/su_mi/concerned.png',
+  );
+  final AssetGenImage epilogue = const AssetGenImage(
+    'assets/images/characters/su_mi/epilogue.png',
   );
   final AssetGenImage neutral = const AssetGenImage(
     'assets/images/characters/su_mi/neutral.png',
@@ -346,6 +672,9 @@ class $AssetsHanQiGen {
   );
   final AssetGenImage conflicted = const AssetGenImage(
     'assets/images/characters/han_qi/conflicted.png',
+  );
+  final AssetGenImage epilogue = const AssetGenImage(
+    'assets/images/characters/han_qi/epilogue.png',
   );
   final AssetGenImage furious = const AssetGenImage(
     'assets/images/characters/han_qi/furious.png',
@@ -375,6 +704,9 @@ class $AssetsTangYiGen {
   final AssetGenImage calculating = const AssetGenImage(
     'assets/images/characters/tang_yi/calculating.png',
   );
+  final AssetGenImage epilogue = const AssetGenImage(
+    'assets/images/characters/tang_yi/epilogue.png',
+  );
   final AssetGenImage neutral = const AssetGenImage(
     'assets/images/characters/tang_yi/neutral.png',
   );
@@ -391,6 +723,9 @@ class $AssetsLinChengGen {
   );
   final AssetGenImage determined = const AssetGenImage(
     'assets/images/characters/lin_cheng/determined.png',
+  );
+  final AssetGenImage epilogue = const AssetGenImage(
+    'assets/images/characters/lin_cheng/epilogue.png',
   );
   final AssetGenImage neutral = const AssetGenImage(
     'assets/images/characters/lin_cheng/neutral.png',
@@ -445,6 +780,9 @@ class $AssetsZhouXuGen {
 class $AssetsYeLanGen {
   const $AssetsYeLanGen();
 
+  final AssetGenImage epilogue = const AssetGenImage(
+    'assets/images/characters/ye_lan/epilogue.png',
+  );
   final AssetGenImage intervening = const AssetGenImage(
     'assets/images/characters/ye_lan/intervening.png',
   );
@@ -461,9 +799,11 @@ class $AssetsItemsGen {
 
   final $AssetsArchiveGen archive = const $AssetsArchiveGen();
   final $AssetsControlRoomGen controlRoom = const $AssetsControlRoomGen();
+  final $AssetsCoreGen core = const $AssetsCoreGen();
   final $AssetsGymGen gym = const $AssetsGymGen();
   final $AssetsMedicalGen medical = const $AssetsMedicalGen();
   final $AssetsStorageGen storage = const $AssetsStorageGen();
+  final $AssetsVoteGen vote = const $AssetsVoteGen();
 }
 
 class $AssetsControlRoomGen {
@@ -626,6 +966,88 @@ class $AssetsArchiveGen {
   );
 }
 
+class $AssetsVoteGen {
+  const $AssetsVoteGen();
+
+  final AssetGenImage ballotObliqueLamp = const AssetGenImage(
+    'assets/images/items/vote/ballot_oblique_lamp.png',
+  );
+  final AssetGenImage ballotPacket = const AssetGenImage(
+    'assets/images/items/vote/ballot_packet.png',
+  );
+  final AssetGenImage ballotPacketVerified = const AssetGenImage(
+    'assets/images/items/vote/ballot_packet_verified.png',
+  );
+  final AssetGenImage delegationLeaseReader = const AssetGenImage(
+    'assets/images/items/vote/delegation_lease_reader.png',
+  );
+  final AssetGenImage delegationRoll = const AssetGenImage(
+    'assets/images/items/vote/delegation_roll.png',
+  );
+  final AssetGenImage delegationRollVerified = const AssetGenImage(
+    'assets/images/items/vote/delegation_roll_verified.png',
+  );
+  final AssetGenImage locationBoard = const AssetGenImage(
+    'assets/images/items/vote/location_board.png',
+  );
+  final AssetGenImage locationBoardVerified = const AssetGenImage(
+    'assets/images/items/vote/location_board_verified.png',
+  );
+  final AssetGenImage positionTimeOverlay = const AssetGenImage(
+    'assets/images/items/vote/position_time_overlay.png',
+  );
+  final AssetGenImage rackContourGauge = const AssetGenImage(
+    'assets/images/items/vote/rack_contour_gauge.png',
+  );
+  final AssetGenImage securityManifest = const AssetGenImage(
+    'assets/images/items/vote/security_manifest.png',
+  );
+  final AssetGenImage securityManifestVerified = const AssetGenImage(
+    'assets/images/items/vote/security_manifest_verified.png',
+  );
+}
+
+class $AssetsCoreGen {
+  const $AssetsCoreGen();
+
+  final AssetGenImage checksumBridge = const AssetGenImage(
+    'assets/images/items/core/checksum_bridge.png',
+  );
+  final AssetGenImage fiberTracer = const AssetGenImage(
+    'assets/images/items/core/fiber_tracer.png',
+  );
+  final AssetGenImage graphiteLiftingFilm = const AssetGenImage(
+    'assets/images/items/core/graphite_lifting_film.png',
+  );
+  final AssetGenImage participantInputBus = const AssetGenImage(
+    'assets/images/items/core/participant_input_bus.png',
+  );
+  final AssetGenImage participantInputBusDecoded = const AssetGenImage(
+    'assets/images/items/core/participant_input_bus_decoded.png',
+  );
+  final AssetGenImage projectApprovalPlate = const AssetGenImage(
+    'assets/images/items/core/project_approval_plate.png',
+  );
+  final AssetGenImage projectApprovalPlateRevealed = const AssetGenImage(
+    'assets/images/items/core/project_approval_plate_revealed.png',
+  );
+  final AssetGenImage replayTopology = const AssetGenImage(
+    'assets/images/items/core/replay_topology.png',
+  );
+  final AssetGenImage replayTopologyTraced = const AssetGenImage(
+    'assets/images/items/core/replay_topology_traced.png',
+  );
+  final AssetGenImage siliconeCastFilm = const AssetGenImage(
+    'assets/images/items/core/silicone_cast_film.png',
+  );
+  final AssetGenImage weaponCradle = const AssetGenImage(
+    'assets/images/items/core/weapon_cradle.png',
+  );
+  final AssetGenImage weaponCradleCast = const AssetGenImage(
+    'assets/images/items/core/weapon_cradle_cast.png',
+  );
+}
+
 class $AssetsAudioGen {
   const $AssetsAudioGen();
 
@@ -647,13 +1069,19 @@ class $AssetsBgmGen {
   final String bondLincheng = 'assets/audio/bgm/bond_lincheng.m4a';
   final String bondSumi = 'assets/audio/bgm/bond_sumi.m4a';
   final String bondXingyao = 'assets/audio/bgm/bond_xingyao.m4a';
+  final String controlCoreProtocol =
+      'assets/audio/bgm/control_core_protocol.m4a';
   final String countdownCrisis = 'assets/audio/bgm/countdown_crisis.mp3';
   final String deductionChain = 'assets/audio/bgm/deduction_chain.mp3';
   final String endingAfterlight = 'assets/audio/bgm/ending_afterlight.mp3';
+  final String finalTestimony = 'assets/audio/bgm/final_testimony.m4a';
+  final String fourSeatAftermath = 'assets/audio/bgm/four_seat_aftermath.m4a';
   final String investigationPulse = 'assets/audio/bgm/investigation_pulse.mp3';
   final String nightFacility = 'assets/audio/bgm/night_facility.m4a';
   final String rescueAction = 'assets/audio/bgm/rescue_action.m4a';
   final String ruleExecution = 'assets/audio/bgm/rule_execution.mp3';
+  final String synchronizedShutdown =
+      'assets/audio/bgm/synchronized_shutdown.m4a';
   final String titleProtocol = 'assets/audio/bgm/title_protocol.mp3';
 }
 
@@ -673,8 +1101,11 @@ class $AssetsSfxGen {
   final String ambFluorescentHum = 'assets/audio/sfx/amb_fluorescent_hum.mp3';
   final String ambInfirmaryEquipment =
       'assets/audio/sfx/amb_infirmary_equipment.m4a';
+  final String ambRiversideEvening =
+      'assets/audio/sfx/amb_riverside_evening.m4a';
   final String ambStorageRefrigeration =
       'assets/audio/sfx/amb_storage_refrigeration.m4a';
+  final String ambUrbanExterior = 'assets/audio/sfx/amb_urban_exterior.m4a';
   final String ambVentilation = 'assets/audio/sfx/amb_ventilation.mp3';
   final String archivePage = 'assets/audio/sfx/archive_page.m4a';
   final String archiveSeal = 'assets/audio/sfx/archive_seal.m4a';
@@ -689,11 +1120,14 @@ class $AssetsSfxGen {
   final String clueAcquired = 'assets/audio/sfx/clue_acquired.mp3';
   final String collarDetonation = 'assets/audio/sfx/collar_detonation.mp3';
   final String collarLock = 'assets/audio/sfx/collar_lock.mp3';
+  final String collarRelease = 'assets/audio/sfx/collar_release.m4a';
   final String collarWarning = 'assets/audio/sfx/collar_warning.mp3';
   final String combineFail = 'assets/audio/sfx/combine_fail.mp3';
   final String combineSuccess = 'assets/audio/sfx/combine_success.mp3';
   final String directedTone = 'assets/audio/sfx/directed_tone.mp3';
+  final String electricalArc = 'assets/audio/sfx/electrical_arc.m4a';
   final String emergencyShower = 'assets/audio/sfx/emergency_shower.m4a';
+  final String evidenceGlassBreak = 'assets/audio/sfx/evidence_glass_break.m4a';
   final String facilityAlarm = 'assets/audio/sfx/facility_alarm.mp3';
   final String footstepsConcrete = 'assets/audio/sfx/footsteps_concrete.m4a';
   final String gasRelease = 'assets/audio/sfx/gas_release.m4a';
@@ -710,6 +1144,9 @@ class $AssetsSfxGen {
   final String pdaClose = 'assets/audio/sfx/pda_close.mp3';
   final String pdaNotification = 'assets/audio/sfx/pda_notification.mp3';
   final String pdaOpen = 'assets/audio/sfx/pda_open.mp3';
+  final String pneumaticNailer = 'assets/audio/sfx/pneumatic_nailer.m4a';
+  final String pressureBypass = 'assets/audio/sfx/pressure_bypass.m4a';
+  final String rescueWallBreach = 'assets/audio/sfx/rescue_wall_breach.m4a';
   final String ropeTension = 'assets/audio/sfx/rope_tension.m4a';
   final String routeJump = 'assets/audio/sfx/route_jump.m4a';
   final String saveComplete = 'assets/audio/sfx/save_complete.mp3';
@@ -717,7 +1154,9 @@ class $AssetsSfxGen {
   final String shutterMotor = 'assets/audio/sfx/shutter_motor.mp3';
   final String stoneTileSlide = 'assets/audio/sfx/stone_tile_slide.mp3';
   final String surveillanceServo = 'assets/audio/sfx/surveillance_servo.m4a';
+  final String syncLockPulse = 'assets/audio/sfx/sync_lock_pulse.m4a';
   final String terminalBoot = 'assets/audio/sfx/terminal_boot.mp3';
+  final String testimonySubmit = 'assets/audio/sfx/testimony_submit.m4a';
   final String uiCancel = 'assets/audio/sfx/ui_cancel.mp3';
   final String uiConfirm = 'assets/audio/sfx/ui_confirm.mp3';
   final String uvLamp = 'assets/audio/sfx/uv_lamp.m4a';

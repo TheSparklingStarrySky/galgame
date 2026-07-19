@@ -1,6 +1,6 @@
 {
-  "version": 6,
-  "status": "p0_pixabay_and_p1_original_ch7_integrated",
+  "version": 7,
+  "status": "p0_pixabay_and_p1_original_finale_integrated",
   "format": {
     "master": "wav, 48kHz, 24-bit",
     "bgm": "runtime MP3 or AAC/M4A, stereo",
@@ -295,6 +295,20 @@
       "origin": "procedural_original"
     },
     {
+      "id": "final_testimony",
+      "asset": "assets/audio/bgm/final_testimony.m4a",
+      "priority": "P1",
+      "loop": true,
+      "targetSeconds": "64",
+      "usage": [
+        "final_day_preparation",
+        "isolated_testimony",
+        "zero_protocol_verdict"
+      ],
+      "brief": "四次错位确认音、低频证词脉冲与克制上行序列，强调独立答案逐一抵达",
+      "origin": "procedural_original"
+    },
+    {
       "id": "ending_afterlight",
       "asset": "assets/audio/bgm/ending_afterlight.mp3",
       "priority": "P0",
@@ -529,6 +543,22 @@
     {
       "id": "amb_storage_refrigeration",
       "asset": "assets/audio/sfx/amb_storage_refrigeration.m4a",
+      "group": "ambience",
+      "priority": "P1",
+      "loop": true,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "amb_urban_exterior",
+      "asset": "assets/audio/sfx/amb_urban_exterior.m4a",
+      "group": "ambience",
+      "priority": "P1",
+      "loop": true,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "amb_riverside_evening",
+      "asset": "assets/audio/sfx/amb_riverside_evening.m4a",
       "group": "ambience",
       "priority": "P1",
       "loop": true,
@@ -802,6 +832,30 @@
       "id": "sync_lock_pulse",
       "asset": "assets/audio/sfx/sync_lock_pulse.m4a",
       "group": "system",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "testimony_submit",
+      "asset": "assets/audio/sfx/testimony_submit.m4a",
+      "group": "system",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "collar_release",
+      "asset": "assets/audio/sfx/collar_release.m4a",
+      "group": "story",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "rescue_wall_breach",
+      "asset": "assets/audio/sfx/rescue_wall_breach.m4a",
+      "group": "story",
       "priority": "P1",
       "loop": false,
       "origin": "procedural_original"
