@@ -37,6 +37,7 @@ assets/
 - `items/storage/`：水箱、审计 PDA、货架、工具箱、紫外检验灯、弹簧测力计、离线读取器、托管会话凭条、维修门禁卡和班次交接记录。
 - `items/medical/`：床旁检验盒、镇静剂试纸、离线频谱夹、注射与输液组、分时检伤记录、患者耳机及两类组合后证物卡。
 - `items/archive/`：E-04 名册、员工合照、门禁纸卷、服务器镜像台的基础/验证状态，以及年代斜纹片、冷光透射片和只读校验钥匙。除员工合照冷光透射态暂时复用对应原图外，其余均为独立正式物品图；不得再回退到其他调查场景的物品。
+- `items/vote/`：实体票纸、委托链、位置快照、安保物资清单的基础/验证状态，以及票纸斜光灯、离线租约读取夹、分钟叠片和轮廓尺。四条结论分别验证生成次数、授权分叉、位置滞后与组合工具缺口。
 - `scenes/old_gym.png`：第二章 F-01 旧体育馆横屏背景。
 - `scenes/infirmary.png`：设施搜索、高原检伤与苏弥事后照顾。
 - `scenes/storage_room.png`：七日物资清点与第十二份配给。
@@ -51,7 +52,7 @@ assets/
 
 - 同一地点连续承担两段以上剧情，且空间结构影响证据、路线或风险时，新增独立背景，不复用泛用走廊。
 - 角色出现持续性身体变化或关键动作变化时新增差分；只改变一句台词的轻微表情可复用已有差分。
-- 当前新增持续状态差分：`gao_yuan/injured.png`、`su_mi/relieved.png`、`su_mi/shaken.png`、`han_qi/conflicted.png`、`han_qi/armed.png`、`li_xingyao/relaxed.png`、`li_xingyao/vertigo.png`、`lin_cheng/anxious.png`、`chen_mo/guarded.png`、`chen_mo/desperate.png`。
+- 当前新增持续状态差分：`gao_yuan/injured.png`、`su_mi/relieved.png`、`su_mi/shaken.png`、`han_qi/conflicted.png`、`han_qi/armed.png`、`han_qi/furious.png`、`li_xingyao/relaxed.png`、`li_xingyao/vertigo.png`、`lin_cheng/anxious.png`、`chen_mo/guarded.png`、`chen_mo/desperate.png`、`chen_mo/cold.png`、`tang_yi/calculating.png`、`ye_lan/strained.png`。
 - 背景保持 16:9 横屏、无人物、前景留出立绘空间；角色差分保持透明 PNG、完整头脚和统一人物比例。
 - 新资源接入后同时更新 `SceneKey`、场景映射、`portraitMoods`、资源清单和存在性测试。
 
@@ -60,7 +61,7 @@ assets/
 - `StoryBeat.cgId + cgFrame` 只绑定实际发生该画面的正文节点。同一节点的正文分页不会切换 CG；只有剧情进入下一帧对应的节点时才换图，并隐藏普通站立立绘。
 - 一组 CG 的末帧节点读完后才写入解锁记录。CG 鉴赏只显示玩家已在正文中看完整组的事件图。
 - 鉴赏模式不重放正文；点击大图直接切换到组内下一帧，末帧后循环到第一帧。
-- 当前接入十六组三十二帧：既有八组事件、第五章 E-04 身份复原，以及移动柜复仇、腐蚀剂灭口、服务器隔离、审计预防和三条人物关系事件。每一帧都绑定实际发生对应动作的正文节点，不在正文中自动连播。
+- 当前接入二十一组四十二帧：既有事件、第五章八组事件，以及第六章票箱启动、叶岚封锁、维修桥陷阱、安保架压制和审计制衡五组事件。每一帧都绑定实际发生对应动作的正文节点，不在正文中自动连播。
 
 ## 调查物品展示规则
 

@@ -1876,6 +1876,6 @@ const chapterFiveBeats = <String, StoryBeat>{
       Speaker.administrator,
       Speaker.narration,
     ],
-    next: null,
+    next: 'ch6_vote_opening',
   ),
 };

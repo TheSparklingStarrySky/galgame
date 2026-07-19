@@ -78,6 +78,11 @@ flutter:
     - assets/images/cg/ch5_bond_xingyao/
     - assets/images/cg/ch5_bond_sumi/
     - assets/images/cg/ch5_bond_lincheng/
+    - assets/images/cg/ch6_vote_opening/
+    - assets/images/cg/ch6_yelan_seal/
+    - assets/images/cg/ch6_tangyi_bridge/
+    - assets/images/cg/ch6_tangyi_restraint/
+    - assets/images/cg/ch6_audit_vote/
     - assets/images/characters/shen_yan/
     - assets/images/characters/li_xingyao/
     - assets/images/characters/su_mi/
@@ -94,6 +99,7 @@ flutter:
     - assets/images/items/medical/
     - assets/images/items/storage/
     - assets/images/items/archive/
+    - assets/images/items/vote/
     - assets/audio/
     - assets/audio/bgm/
     - assets/audio/sfx/

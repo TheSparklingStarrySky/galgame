@@ -34,6 +34,9 @@ List<String> _outgoing(StoryBeat beat) {
   if (beat.id == 'ch5_case04_deduction') {
     return const ['ch5_case04_resolved'];
   }
+  if (beat.id == 'ch6_case05_deduction') {
+    return const ['ch6_case05_resolved'];
+  }
   if (beat.choices.isNotEmpty) {
     return beat.choices.map((choice) => choice.next).toSet().toList();
   }
@@ -73,6 +76,7 @@ void main() {
         !beat.id.startsWith('ch3_') &&
         !beat.id.startsWith('ch4_') &&
         !beat.id.startsWith('ch5_') &&
+        !beat.id.startsWith('ch6_') &&
         !_draftEndingIds.contains(beat.id),
   );
   final chapterTwo = storyBeats.values.where(
@@ -87,6 +91,9 @@ void main() {
   final chapterFive = storyBeats.values.where(
     (beat) => beat.id.startsWith('ch5_'),
   );
+  final chapterSix = storyBeats.values.where(
+    (beat) => beat.id.startsWith('ch6_'),
+  );
   final draftEndings = storyBeats.values.where(
     (beat) => _draftEndingIds.contains(beat.id),
   );
@@ -96,6 +103,7 @@ void main() {
   _printGroup('chapter3', chapterThree);
   _printGroup('chapter4', chapterFour);
   _printGroup('chapter5', chapterFive);
+  _printGroup('chapter6', chapterSix);
   _printGroup('draftEndings', draftEndings);
   _printGroup('allStoryData', storyBeats.values);
 
@@ -171,5 +179,14 @@ void main() {
     'chapter5Playthrough: paths=${chapterFivePaths.length}, '
     'visible=${chapterFivePaths.first.visible}-${chapterFivePaths.last.visible}, '
     'nodes=${chapterFivePaths.first.nodes}-${chapterFivePaths.last.nodes}',
+  );
+  final chapterSixPaths = collectPaths(
+    'ch6_vote_opening',
+    stopAt: 'ch6_end',
+  ).map(_pathMetrics).toList()..sort((a, b) => a.visible.compareTo(b.visible));
+  print(
+    'chapter6Playthrough: paths=${chapterSixPaths.length}, '
+    'visible=${chapterSixPaths.first.visible}-${chapterSixPaths.last.visible}, '
+    'nodes=${chapterSixPaths.first.nodes}-${chapterSixPaths.last.nodes}',
   );
 }

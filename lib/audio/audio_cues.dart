@@ -256,6 +256,7 @@ GameBgm _dialogueBgm(String nodeId, SceneKey scene) {
   if (_ruleNodes.contains(nodeId)) return GameBgm.ruleExecution;
   if (_aftermathTokens.any(nodeId.contains)) return GameBgm.aftermathVoid;
   if (_crisisTokens.any(nodeId.contains)) return GameBgm.countdownCrisis;
+  if (nodeId.startsWith('ch6_')) return GameBgm.nightFacility;
   if (nodeId.startsWith('ch5_')) return GameBgm.nightFacility;
   return switch (scene) {
     SceneKey.dormitory => GameBgm.awakeningRoom,
@@ -321,6 +322,9 @@ const _betrayalTokens = {
   'ch5_majority_server',
   'ch5_majority_cooling',
   'ch5_majority_chenmo',
+  'ch6_revenge_',
+  'ch6_silence_',
+  'ch6_force_',
 };
 
 const _auditTokens = {
@@ -333,6 +337,13 @@ const _auditTokens = {
   'ch5_server_fact',
   'ch5_audit_',
   'ch5_zero_archive',
+  'ch6_case05',
+  'ch6_investigation',
+  'ch6_ballot_fact',
+  'ch6_delegation_fact',
+  'ch6_location_fact',
+  'ch6_weapon_fact',
+  'ch6_audit_',
 };
 
 const _positiveEndingNodes = {
@@ -428,5 +439,13 @@ GameSfx? storyNodeSfx(String nodeId) => switch (nodeId) {
   'ch5_majority_cooling_alarm' => GameSfx.facilityAlarm,
   'ch5_majority_silence_death' => GameSfx.gasRelease,
   'ch5_e04_sealed' => GameSfx.archiveSeal,
+  'ch6_vote_opening' || 'ch6_duplicate_ballot' => GameSfx.pdaNotification,
+  'ch6_vote_investigation' => GameSfx.archivePage,
+  'ch6_case05_resolved' => GameSfx.checksumVerified,
+  'ch6_revenge_death' ||
+  'ch6_silence_death' ||
+  'ch6_force_death' => GameSfx.bodyFall,
+  'ch6_audit_attempt' => GameSfx.accessGranted,
+  'ch6_audit_seal' => GameSfx.metalDoorLock,
   _ => null,
 };

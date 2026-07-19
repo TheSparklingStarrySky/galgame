@@ -392,8 +392,7 @@ void main() {
 
   test('线路图只保留关键节点，正文仍保留足够场景细节', () {
     expect(storyBeats.length, greaterThanOrEqualTo(110));
-    expect(routeNodes.length, lessThan(50));
-    expect(routeNodes.length, lessThan(storyBeats.length ~/ 3));
+    expect(routeNodes.length, lessThan(storyBeats.length ~/ 10));
     expect(
       routeNodes.map((node) => node.id),
       containsAll([
@@ -1050,7 +1049,7 @@ void main() {
       storyBeats['ch5_case04_resolved']!.flagsOnEnter,
       contains('slot12_maintenance_proven'),
     );
-    expect(storyBeats['ch5_end']!.next, isNull);
+    expect(storyBeats['ch5_end']!.next, 'ch6_vote_opening');
     expect(
       routeNodes.where((node) => node.id.startsWith('ch5_')).length,
       lessThan(chapter.length ~/ 4),
@@ -1151,6 +1150,127 @@ void main() {
     );
   });
 
+  test('第六章完成区域投票调查、CASE 05与制度选择', () {
+    final chapter = storyBeats.values
+        .where((beat) => beat.id.startsWith('ch6_'))
+        .toList();
+
+    expect(chapter.length, greaterThanOrEqualTo(120));
+    expect(
+      chapter.fold<int>(0, (total, beat) => total + beat.text.length),
+      greaterThanOrEqualTo(20000),
+    );
+    expect(storyBeats['ch6_vote_opening']!.timelineMinute, 5760);
+    expect(
+      storyBeats['ch6_vote_investigation']!.phase,
+      StoryPhase.investigation,
+    );
+    expect(storyBeats['ch6_case05_deduction']!.phase, StoryPhase.deduction);
+    expect(
+      storyBeats['ch6_case05_resolved']!.flagsOnEnter,
+      contains('ch6_delegate_replay_proven'),
+    );
+    expect(storyBeats['ch6_end']!.next, isNull);
+    expect(
+      routeNodes.where((node) => node.id.startsWith('ch6_')).length,
+      lessThan(chapter.length ~/ 4),
+    );
+    for (final path in [
+      'assets/images/items/vote/ballot_packet.png',
+      'assets/images/items/vote/ballot_packet_verified.png',
+      'assets/images/items/vote/ballot_oblique_lamp.png',
+      'assets/images/items/vote/delegation_roll.png',
+      'assets/images/items/vote/delegation_roll_verified.png',
+      'assets/images/items/vote/delegation_lease_reader.png',
+      'assets/images/items/vote/location_board.png',
+      'assets/images/items/vote/location_board_verified.png',
+      'assets/images/items/vote/position_time_overlay.png',
+      'assets/images/items/vote/security_manifest.png',
+      'assets/images/items/vote/security_manifest_verified.png',
+      'assets/images/items/vote/rack_contour_gauge.png',
+      'assets/images/characters/tang_yi/calculating.png',
+      'assets/images/characters/ye_lan/strained.png',
+      'assets/images/characters/chen_mo/cold.png',
+      'assets/images/characters/han_qi/furious.png',
+    ]) {
+      expect(File(path).existsSync(), isTrue, reason: '$path 必须存在');
+    }
+  });
+
+  test('第六章普通模式沿既有杀戮线产生三种制度死亡', () async {
+    const routes = [
+      (
+        next: 'ch4_strong_custody',
+        expectedDeath: '11',
+        expectedResponsible: '06',
+        expectedFlag: 'ch6_yelan_killed_by_vote',
+      ),
+      (
+        next: 'ch4_alliance_custody',
+        expectedDeath: '06',
+        expectedResponsible: '08',
+        expectedFlag: 'ch6_tangyi_killed_by_vote',
+      ),
+      (
+        next: 'ch4_majority_custody',
+        expectedDeath: '06',
+        expectedResponsible: '04',
+        expectedFlag: 'ch6_tangyi_killed_by_force',
+      ),
+    ];
+
+    for (final route in routes) {
+      final controller = await StoryController.load();
+      controller.startNew();
+      _advanceUntil(controller, 'ch4_key_custody_choice', allowMechanics: true);
+      controller.choose(
+        controller.availableChoices.singleWhere(
+          (choice) => choice.next == route.next,
+        ),
+      );
+      _advanceUntil(controller, 'ch6_end', allowMechanics: true);
+
+      final death = controller.deathRecords.singleWhere(
+        (record) => record.storyNodeId.startsWith('ch6_'),
+      );
+      expect(death.participantId, route.expectedDeath, reason: route.next);
+      expect(
+        death.responsibleParticipantIds,
+        contains(route.expectedResponsible),
+        reason: route.next,
+      );
+      expect(controller.flags, contains(route.expectedFlag));
+      expect(controller.flags, contains('case05_solved'));
+      expect(
+        controller.flags.any((flag) => flag.startsWith('ch6_route_locked_')),
+        isTrue,
+      );
+    }
+  });
+
+  test('第六章审计模式采用组合制度并阻止三条死亡链', () async {
+    final controller = await StoryController.load();
+    controller.completeFullRunEnding('ending_four_seats');
+    controller.startNew(mode: StoryRunMode.audit);
+    _advanceUntil(controller, 'ch4_audit_decision', allowMechanics: true);
+    controller.choose(
+      controller.availableChoices.singleWhere(
+        (choice) => choice.next == 'ch4_audit_public_seal',
+      ),
+    );
+    _advanceUntil(controller, 'ch6_end', allowMechanics: true);
+
+    expect(controller.flags, contains('ch6_policy_audit_hybrid'));
+    expect(controller.flags, contains('ch6_vote_killings_prevented'));
+    expect(controller.flags, contains('ch6_no_death_vote'));
+    expect(
+      controller.deathRecords.where(
+        (record) => record.storyNodeId.startsWith('ch6_'),
+      ),
+      isEmpty,
+    );
+  });
+
   test('游戏正文和鉴赏文案不显示制作章节字样', () {
     final chapterPattern = RegExp(r'第[一二三四五六七八九十0-9]+章|序章|章节(?:结束)?');
     for (final beat in storyBeats.values) {
@@ -1200,6 +1320,28 @@ void main() {
 
     expect(chapterFiveEntries.map((entry) => entry.id).toSet(), expectedIds);
     for (final entry in chapterFiveEntries) {
+      final frames = storyBeats.values
+          .where((beat) => beat.cgId == entry.id)
+          .map((beat) => beat.cgFrame)
+          .toSet();
+      expect(frames, {0, 1}, reason: entry.id);
+    }
+  });
+
+  test('第六章新增 CG 均已完整绑定两帧正文节点', () {
+    const expectedIds = {
+      'cg_ch6_vote_opening',
+      'cg_ch6_yelan_seal',
+      'cg_ch6_tangyi_bridge',
+      'cg_ch6_tangyi_restraint',
+      'cg_ch6_audit_vote',
+    };
+    final chapterSixEntries = cgEntries
+        .where((entry) => entry.id.startsWith('cg_ch6_'))
+        .toList();
+
+    expect(chapterSixEntries.map((entry) => entry.id).toSet(), expectedIds);
+    for (final entry in chapterSixEntries) {
       final frames = storyBeats.values
           .where((beat) => beat.cgId == entry.id)
           .map((beat) => beat.cgFrame)
@@ -2382,7 +2524,7 @@ void _advanceUntil(
   bool allowMechanics = false,
 }) {
   var guard = 0;
-  while (controller.currentId != target && guard < 600) {
+  while (controller.currentId != target && guard < 900) {
     guard += 1;
     switch (controller.phase) {
       case StoryPhase.dialogue:
@@ -2416,6 +2558,12 @@ void _advanceUntil(
             'slot12_impossible_travel',
             'slot12_configurable_identity',
           },
+          'ch6_vote_investigation' => {
+            'ballot_single_draft',
+            'stale_delegate_branch',
+            'location_snapshot_lag',
+            'weapon_bundle_missing',
+          },
           _ => {'distance', 'repeater', 'timer'},
         });
       case StoryPhase.puzzle when allowMechanics:
@@ -2448,6 +2596,7 @@ void _advanceUntil(
           'ch3_case02_deduction' => 'lease_replay',
           'ch4_case03_deduction' => 'directed_resonance',
           'ch5_case04_deduction' => 'maintenance_slot',
+          'ch6_case05_deduction' => 'delegation_branch_replay',
           _ => 'repeater',
         });
       default:

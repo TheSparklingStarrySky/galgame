@@ -2787,6 +2787,103 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
       asset: 'assets/images/items/archive/checksum_key.png',
       description: '只验证离线镜像签名、不具备写入能力的硬件钥匙，无法借检查动作修改配置。',
     ),
+    'ballot_packet': _InvestigationItem(
+      id: 'ballot_packet',
+      name: '实体票纸审计包',
+      asset: 'assets/images/items/vote/ballot_packet.png',
+      description: '透明封套里装着匿名槽与委托槽吐出的实体票纸。相同文字不代表它们来自同一张纸。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['ballot_take_lamp'],
+          description: '封套侧袋中的斜光检验灯已取出。票纸边缘的微孔和纸尾摘要还没有进行叠合。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['ballot_take_lamp', 'ballot_microholes'],
+          name: '一次草稿、两次提交的票纸',
+          asset: 'assets/images/items/vote/ballot_packet_verified.png',
+          description: '两张票拥有不同感应槽微孔，却共享同一枚草稿摘要和唯一生成时间。内容只输入过一次，系统却接受了两次提交。',
+        ),
+      ],
+    ),
+    'ballot_oblique_lamp': _InvestigationItem(
+      id: 'ballot_oblique_lamp',
+      name: '票纸斜光检验灯',
+      asset: 'assets/images/items/vote/ballot_oblique_lamp.png',
+      description: '低角度冷光能同时显出感应微孔、压痕和热敏摘要，不会照出匿名票的持有人。',
+    ),
+    'delegation_roll': _InvestigationItem(
+      id: 'delegation_roll',
+      name: '委托链热敏纸卷',
+      asset: 'assets/images/items/vote/delegation_roll.png',
+      description: '纸卷显示委托、再次转交与撤回均有真实签名，但界面只展示最外层的当前状态。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['delegation_take_reader'],
+          description: '离线租约读取夹已经取出。纸上的撤回印章还需要与每一层会话的失效时间对齐。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['delegation_take_reader', 'delegation_chain_trace'],
+          name: '末端租约仍有效的委托链',
+          asset: 'assets/images/items/vote/delegation_roll_verified.png',
+          description: '原持有人撤回后立即恢复票权，第二层代理却仍保留十分钟租约。同一授权根在撤回传播不完整时分成了两条有效路径。',
+        ),
+      ],
+    ),
+    'delegation_lease_reader': _InvestigationItem(
+      id: 'delegation_lease_reader',
+      name: '离线租约读取夹',
+      asset: 'assets/images/items/vote/delegation_lease_reader.png',
+      description: '只读设备可显示每层委托的授权根、建立时间和本地到期时间，不会访问匿名票内容。',
+    ),
+    'location_board': _InvestigationItem(
+      id: 'location_board',
+      name: '位置快照与点名板',
+      asset: 'assets/images/items/vote/location_board.png',
+      description: '系统地图和纸质点名使用相同编号，却分别记录自动同步位置与本人到场时间。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['location_take_overlay'],
+          description: '透明时间叠片已经取出。两份记录尚未按分钟对齐，不能只凭编号位置不同认定有人撒谎。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['location_take_overlay', 'location_superimpose'],
+          name: '滞后十分钟的位置快照',
+          asset: 'assets/images/items/vote/location_board_verified.png',
+          description:
+              '林澄已回到集合厅、系统仍把07留在仓储；高原已进入安保侧廊、地图却显示09在白板旁。快照会把撤离警告发往错误位置。',
+        ),
+      ],
+    ),
+    'position_time_overlay': _InvestigationItem(
+      id: 'position_time_overlay',
+      name: '透明分钟叠片',
+      asset: 'assets/images/items/vote/position_time_overlay.png',
+      description: '印有六十秒网格的透明片，可把系统快照、本人点名和门禁经过时间放到同一条轴上。',
+    ),
+    'security_manifest': _InvestigationItem(
+      id: 'security_manifest',
+      name: '安保架与物资清单',
+      asset: 'assets/images/items/vote/security_manifest.png',
+      description: '总重量少了1.8公斤，界面将缺口自动归为一支控制棒，但空位轮廓被遮在托盘下面。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['security_take_gauge'],
+          description: '软质轮廓尺已从架底取出。仅凭总重量仍无法判断缺少的是单件武器还是多件工具。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['security_take_gauge', 'security_rack_compare'],
+          name: '三件组合工具的安保空位',
+          asset: 'assets/images/items/vote/security_manifest_verified.png',
+          description: '空位分别对应备用电芯、束缚带和门磁旁路片。三件物品分开并不显眼，组合后足以锁门并限制被困者反抗。',
+        ),
+      ],
+    ),
+    'rack_contour_gauge': _InvestigationItem(
+      id: 'rack_contour_gauge',
+      name: '软质轮廓尺',
+      asset: 'assets/images/items/vote/rack_contour_gauge.png',
+      description: '可贴合托盘压痕复原多个物件的外形，避免把相同总重量武断归为单件武器。',
+    ),
   };
 
   static const _controlRoom = _InvestigationSpec(
@@ -3332,11 +3429,118 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
     ],
   );
 
+  static const _vote = _InvestigationSpec(
+    title: '投票设施审计 / CASE 05',
+    targets: [
+      _InvestigationTarget(
+        id: 'ballot_packet',
+        initialLabel: '实体票纸审计包',
+        clueTitle: '一次草稿被提交两次',
+        asset: 'assets/images/items/vote/ballot_packet.png',
+        prompt: '两张票的内容完全相同。先区分纸张生成与内容生成，再判断它们是复制件还是沿不同槽位独立打印。',
+        actions: [
+          _InspectionAction(
+            id: 'ballot_take_lamp',
+            label: '取出封套侧袋中的检验灯',
+            icon: Icons.flashlight_on_outlined,
+            result: '检验灯以低角度照亮热敏纸，可读取微孔和压痕，不会暴露匿名持有人。',
+            grantsItem: 'ballot_oblique_lamp',
+          ),
+          _InspectionAction(
+            id: 'ballot_microholes',
+            label: '叠合微孔与草稿摘要',
+            icon: Icons.document_scanner_outlined,
+            requiresItems: ['ballot_oblique_lamp'],
+            requiresActions: ['ballot_take_lamp'],
+            result: '两张票的槽位微孔不同，纸尾草稿摘要与生成时间却完全相同：一次输入沿两条路径各提交一次。',
+            verifiesClue: 'ballot_single_draft',
+          ),
+        ],
+      ),
+      _InvestigationTarget(
+        id: 'delegation_roll',
+        initialLabel: '委托链热敏纸卷',
+        clueTitle: '撤回未穿过第二层租约',
+        asset: 'assets/images/items/vote/delegation_roll.png',
+        prompt: '委托、转交和撤回都有真签名。不要只看界面最终状态，逐层检查每段会话何时真正失效。',
+        actions: [
+          _InspectionAction(
+            id: 'delegation_take_reader',
+            label: '拆下离线租约读取夹',
+            icon: Icons.memory_outlined,
+            result: '读取夹只显示授权根与本地失效时间，不读取匿名选择内容。',
+            grantsItem: 'delegation_lease_reader',
+          ),
+          _InspectionAction(
+            id: 'delegation_chain_trace',
+            label: '逐层读取委托租约',
+            icon: Icons.account_tree_outlined,
+            requiresItems: ['delegation_lease_reader'],
+            requiresActions: ['delegation_take_reader'],
+            result: '原持有人撤回后立即恢复票权，第二层代理仍保留十分钟租约；同一授权根暂时拥有两条有效出口。',
+            verifiesClue: 'stale_delegate_branch',
+          ),
+        ],
+      ),
+      _InvestigationTarget(
+        id: 'location_board',
+        initialLabel: '位置快照与点名板',
+        clueTitle: '地图滞后十分钟',
+        asset: 'assets/images/items/vote/location_board.png',
+        prompt: '系统位置与本人点名都是真记录，但生成时间不同。先对齐分钟，再判断封锁警告会被送给谁。',
+        actions: [
+          _InspectionAction(
+            id: 'location_take_overlay',
+            label: '取下透明分钟叠片',
+            icon: Icons.layers_outlined,
+            result: '叠片能把快照、门禁经过与本人确认对齐到同一分钟。',
+            grantsItem: 'position_time_overlay',
+          ),
+          _InspectionAction(
+            id: 'location_superimpose',
+            label: '叠合快照、门禁与点名',
+            icon: Icons.my_location_outlined,
+            requiresItems: ['position_time_overlay'],
+            requiresActions: ['location_take_overlay'],
+            result: '07与09的系统位置都落后十分钟。按旧快照执行时，一人会收到错误警告，另一人会被当作不在封锁区。',
+            verifiesClue: 'location_snapshot_lag',
+          ),
+        ],
+      ),
+      _InvestigationTarget(
+        id: 'security_manifest',
+        initialLabel: '安保架与物资清单',
+        clueTitle: '失踪的是一套组合工具',
+        asset: 'assets/images/items/vote/security_manifest.png',
+        prompt: '清单把重量缺口自动归为控制棒。先复原托盘轮廓，避免让总重量替物品形状作结论。',
+        actions: [
+          _InspectionAction(
+            id: 'security_take_gauge',
+            label: '取出架底软质轮廓尺',
+            icon: Icons.straighten_outlined,
+            result: '轮廓尺可贴合托盘压痕，分辨一个大物件与多个小物件。',
+            grantsItem: 'rack_contour_gauge',
+          ),
+          _InspectionAction(
+            id: 'security_rack_compare',
+            label: '复原托盘空位轮廓',
+            icon: Icons.inventory_2_outlined,
+            requiresItems: ['rack_contour_gauge'],
+            requiresActions: ['security_take_gauge'],
+            result: '缺口对应电芯、束缚带和门磁旁路片，并非一支控制棒。它们组合后足以让门保持锁定并限制被困者。',
+            verifiesClue: 'weapon_bundle_missing',
+          ),
+        ],
+      ),
+    ],
+  );
+
   _InvestigationSpec get _spec => switch (widget.controller.currentId) {
     'ch2_gym_investigation' => _gym,
     'ch3_storage_investigation' => _storage,
     'ch4_medical_investigation' => _medical,
     'ch5_archive_investigation' => _archive,
+    'ch6_vote_investigation' => _vote,
     _ => _controlRoom,
   };
 
@@ -3351,7 +3555,14 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
       widget.controller.investigationClues.intersection(_currentClueIds);
 
   _InvestigationTarget? _targetFor(String id) {
-    for (final spec in [_controlRoom, _gym, _storage, _medical, _archive]) {
+    for (final spec in [
+      _controlRoom,
+      _gym,
+      _storage,
+      _medical,
+      _archive,
+      _vote,
+    ]) {
       for (final target in spec.targets) {
         if (target.id == id) return target;
       }
@@ -4349,6 +4560,7 @@ class _DeductionLayerState extends State<_DeductionLayer> {
   bool get _isCase02 => widget.controller.currentId == 'ch3_case02_deduction';
   bool get _isCase03 => widget.controller.currentId == 'ch4_case03_deduction';
   bool get _isCase04 => widget.controller.currentId == 'ch5_case04_deduction';
+  bool get _isCase05 => widget.controller.currentId == 'ch6_case05_deduction';
 
   @override
   void initState() {
@@ -4374,7 +4586,13 @@ class _DeductionLayerState extends State<_DeductionLayer> {
     }
   }
 
-  List<({String id, String title, String prompt})> get _roles => _isCase04
+  List<({String id, String title, String prompt})> get _roles => _isCase05
+      ? const [
+          (id: 'fact', title: '生成事实', prompt: '确认相同内容究竟被输入了几次'),
+          (id: 'threshold', title: '权限分叉', prompt: '找出一份票权何时同时拥有两条有效路径'),
+          (id: 'mechanism', title: '致命后果', prompt: '说明系统为何会把错误票数变成封锁风险'),
+        ]
+      : _isCase04
       ? const [
           (id: 'fact', title: '初始实体', prompt: '确认绑架开始时有多少组完整的人身记录'),
           (id: 'threshold', title: '连续身体', prompt: '判断12号的区域移动是否可能由同一人完成'),
@@ -4399,7 +4617,46 @@ class _DeductionLayerState extends State<_DeductionLayer> {
         ];
 
   List<({String id, IconData icon, String title, String body})> get _evidence =>
-      _isCase04
+      _isCase05
+      ? const [
+          (
+            id: 'ballot_single_draft',
+            icon: Icons.ballot_outlined,
+            title: '一次输入、两次有效提交',
+            body: '两张实体票微孔不同，却共享唯一草稿摘要与生成时间',
+          ),
+          (
+            id: 'stale_delegate_branch',
+            icon: Icons.account_tree_outlined,
+            title: '撤回未穿过第二层租约',
+            body: '本人票权恢复时，末端代理仍保留十分钟有效会话',
+          ),
+          (
+            id: 'location_snapshot_lag',
+            icon: Icons.my_location_outlined,
+            title: '滞后十分钟的位置快照',
+            body: '封锁系统会向旧位置发送警告，并把当前在场者当作已离开',
+          ),
+          (
+            id: 'weapon_bundle_missing',
+            icon: Icons.inventory_2_outlined,
+            title: '三件组合工具失踪',
+            body: '电芯、束缚带与门磁片能放大封锁后果，但不会增加票数',
+          ),
+          (
+            id: 'matching_typo',
+            icon: Icons.spellcheck_outlined,
+            title: '两张票有相同错别字',
+            body: '能证明内容同源，不能单独证明由谁提交或为何被计作两票',
+          ),
+          (
+            id: 'different_slot_holes',
+            icon: Icons.more_horiz_rounded,
+            title: '匿名槽与委托槽微孔',
+            body: '证明两张纸分别打印，单独看仍无法解释授权根是否相同',
+          ),
+        ]
+      : _isCase04
       ? const [
           (
             id: 'initial_roster_11',
@@ -4555,7 +4812,17 @@ class _DeductionLayerState extends State<_DeductionLayer> {
           ),
         ];
 
-  List<(String, String, String)> get _hypotheses => _isCase04
+  List<(String, String, String)> get _hypotheses => _isCase05
+      ? const [
+          ('coordinated_ballots', '两名参与者串通投出同文票', '两个人预先共享了草稿，因此两张相同选票同时进入票箱。'),
+          ('stale_location_only', '位置缓存制造了额外票数', '十分钟前的位置快照让系统重复计算了移动中的参与者。'),
+          (
+            'delegation_branch_replay',
+            '撤回不完整造成委托分叉',
+            '本人路径已恢复，末端代理租约却未失效，同一授权根沿两条路径调用同一草稿。',
+          ),
+        ]
+      : _isCase04
       ? const [
           ('hidden_person', '被隐藏的第十二名参与者', '12号是被主办方删除姓名、藏在设施深处的真人。'),
           ('deleted_participant', '已死亡后继续使用的编号', '12号曾是参与者，死亡后其终端仍被系统当作在线身份。'),
@@ -4583,7 +4850,13 @@ class _DeductionLayerState extends State<_DeductionLayer> {
           ('repeater', '中继器伪造定位', '凶手转发了距离握手，让项圈在规则内执行死刑。'),
         ];
 
-  Map<String, String> get _correctChain => _isCase04
+  Map<String, String> get _correctChain => _isCase05
+      ? const {
+          'fact': 'ballot_single_draft',
+          'threshold': 'stale_delegate_branch',
+          'mechanism': 'location_snapshot_lag',
+        }
+      : _isCase04
       ? const {
           'fact': 'initial_roster_11',
           'threshold': 'slot12_impossible_travel',
@@ -4637,7 +4910,9 @@ class _DeductionLayerState extends State<_DeductionLayer> {
     setState(() {
       _chainVerified = verified;
       _chainFeedback = verified
-          ? _isCase04
+          ? _isCase05
+                ? '证据链闭合：内容只生成一次，撤回却没有终止末端代理；同一授权根因此提交两票，并由滞后位置快照把票数错误变成封锁风险。'
+                : _isCase04
                 ? '证据链闭合：初始绑架链只有十一人，12号无法对应连续身体，服务器也只保存可切换的维护身份配置。'
                 : _isCase03
                 ? '证据链闭合：体征符合定向感觉冲突，脉冲只进入右声道，现场也没有镇静剂进入体内的路径。'
@@ -4657,7 +4932,9 @@ class _DeductionLayerState extends State<_DeductionLayer> {
         children: [
           _TopBar(
             controller: widget.controller,
-            title: _isCase04
+            title: _isCase05
+                ? '投票推演 / CASE 05'
+                : _isCase04
                 ? '身份推演 / CASE 04'
                 : _isCase03
                 ? '医学推演 / CASE 03'
@@ -4758,7 +5035,9 @@ class _DeductionLayerState extends State<_DeductionLayer> {
                       if (_chainVerified) ...[
                         const SizedBox(height: 22),
                         _Eyebrow(
-                          text: _isCase04
+                          text: _isCase05
+                              ? 'WHY ONE VOTE BECAME TWO'
+                              : _isCase04
                               ? 'IDENTITY OF SLOT 12'
                               : _isCase03
                               ? 'CAUSE OF SYNCOPE'
@@ -4799,7 +5078,9 @@ class _DeductionLayerState extends State<_DeductionLayer> {
                                   },
                             icon: const Icon(Icons.gavel_outlined),
                             label: Text(
-                              _isCase04
+                              _isCase05
+                                  ? '提交重复投票机制'
+                                  : _isCase04
                                   ? '提交12号身份判断'
                                   : _isCase03
                                   ? '提交昏厥机制'

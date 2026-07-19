@@ -661,6 +661,19 @@ class StoryController extends ChangeNotifier {
 
   void submitDeduction(String hypothesis) {
     _markCurrentRead();
+    if (currentId == 'ch6_case05_deduction') {
+      if (hypothesis == 'delegation_branch_replay') {
+        flags.add('case05_solved');
+        logic += 2;
+        currentId = 'ch6_case05_resolved';
+      } else if (hypothesis == 'coordinated_ballots') {
+        currentId = 'ch6_case05_coordination_error';
+      } else {
+        currentId = 'ch6_case05_location_error';
+      }
+      _enterCurrent();
+      return;
+    }
     if (currentId == 'ch5_case04_deduction') {
       if (hypothesis == 'maintenance_slot') {
         flags.add('case04_solved');

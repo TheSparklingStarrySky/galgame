@@ -2,6 +2,7 @@ part 'story_chapter2.dart';
 part 'story_chapter3.dart';
 part 'story_chapter4.dart';
 part 'story_chapter5.dart';
+part 'story_chapter6.dart';
 
 enum StoryPhase {
   title,
@@ -2024,6 +2025,7 @@ final storyBeats = Map<String, StoryBeat>.unmodifiable({
   ...chapterThreeBeats,
   ...chapterFourBeats,
   ...chapterFiveBeats,
+  ...chapterSixBeats,
 });
 
 const _routeNodeSpecs = <({String id, int stage, double lane})>[
@@ -2076,6 +2078,18 @@ const _routeNodeSpecs = <({String id, int stage, double lane})>[
   (id: 'ch5_majority_silence_death', stage: 54, lane: 420),
   (id: 'ch5_audit_slot12_challenge', stage: 54, lane: 60),
   (id: 'ch5_end', stage: 57, lane: 300),
+  (id: 'ch6_vote_opening', stage: 58, lane: 300),
+  (id: 'ch6_yelan_clause', stage: 60, lane: 300),
+  (id: 'ch6_vote_investigation', stage: 61, lane: 300),
+  (id: 'ch6_case05_resolved', stage: 62, lane: 300),
+  (id: 'ch6_policy_choice', stage: 63, lane: 300),
+  (id: 'ch6_audit_policy_design', stage: 63, lane: 60),
+  (id: 'ch6_revenge_death', stage: 64, lane: 180),
+  (id: 'ch6_silence_death', stage: 64, lane: 300),
+  (id: 'ch6_force_death', stage: 64, lane: 420),
+  (id: 'ch6_audit_seal', stage: 64, lane: 60),
+  (id: 'ch6_route_lock_choice', stage: 65, lane: 300),
+  (id: 'ch6_end', stage: 66, lane: 300),
 ];
 
 final routeNodes = List<RouteNode>.unmodifiable(
@@ -2149,6 +2163,27 @@ const routeConnections = <String, List<String>>{
   'ch5_alliance_silence_death': ['ch5_end'],
   'ch5_majority_silence_death': ['ch5_end'],
   'ch5_audit_slot12_challenge': ['ch5_end'],
+  'ch5_end': ['ch6_vote_opening'],
+  'ch6_vote_opening': ['ch6_yelan_clause'],
+  'ch6_yelan_clause': ['ch6_vote_investigation'],
+  'ch6_vote_investigation': ['ch6_case05_resolved'],
+  'ch6_case05_resolved': ['ch6_policy_choice', 'ch6_audit_policy_design'],
+  'ch6_policy_choice': [
+    'ch6_revenge_death',
+    'ch6_silence_death',
+    'ch6_force_death',
+  ],
+  'ch6_audit_policy_design': [
+    'ch6_audit_seal',
+    'ch6_revenge_death',
+    'ch6_silence_death',
+    'ch6_force_death',
+  ],
+  'ch6_revenge_death': ['ch6_route_lock_choice'],
+  'ch6_silence_death': ['ch6_route_lock_choice'],
+  'ch6_force_death': ['ch6_route_lock_choice'],
+  'ch6_audit_seal': ['ch6_route_lock_choice'],
+  'ch6_route_lock_choice': ['ch6_end'],
 };
 
 const cgEntries = <CgEntry>[
@@ -2296,6 +2331,51 @@ const cgEntries = <CgEntry>[
       'assets/images/cg/ch5_bond_lincheng/02.png',
     ],
   ),
+  CgEntry(
+    id: 'cg_ch6_vote_opening',
+    title: '空白票箱升起',
+    caption: '多数压力测试 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch6_vote_opening/01.png',
+      'assets/images/cg/ch6_vote_opening/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch6_yelan_seal',
+    title: '事实不因资格消失',
+    caption: '安保侧廊封锁 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch6_yelan_seal/01.png',
+      'assets/images/cg/ch6_yelan_seal/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch6_tangyi_bridge',
+    title: '不同时间的三项真记录',
+    caption: '维修桥陷阱 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch6_tangyi_bridge/01.png',
+      'assets/images/cg/ch6_tangyi_bridge/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch6_tangyi_restraint',
+    title: '票权冻结以后',
+    caption: '安保架压制 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch6_tangyi_restraint/01.png',
+      'assets/images/cg/ch6_tangyi_restraint/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch6_audit_vote',
+    title: '四道条件指向同一个现在',
+    caption: '组合制衡 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch6_audit_vote/01.png',
+      'assets/images/cg/ch6_audit_vote/02.png',
+    ],
+  ),
 ];
 
 const endingEntries = <EndingEntry>[
@@ -2362,14 +2442,14 @@ String speakerName(Speaker speaker) => switch (speaker) {
 const portraitMoods = <Speaker, Set<String>>{
   Speaker.liXingyao: {'neutral', 'alarm', 'relaxed', 'vertigo'},
   Speaker.suMi: {'neutral', 'concerned', 'relieved', 'shaken'},
-  Speaker.hanQi: {'neutral', 'protective', 'conflicted', 'armed'},
+  Speaker.hanQi: {'neutral', 'protective', 'conflicted', 'armed', 'furious'},
   Speaker.wuZheng: {'neutral', 'defiant'},
-  Speaker.tangYi: {'neutral', 'shaken'},
+  Speaker.tangYi: {'neutral', 'shaken', 'calculating'},
   Speaker.linCheng: {'neutral', 'determined', 'anxious'},
-  Speaker.chenMo: {'neutral', 'discovery', 'guarded', 'desperate'},
+  Speaker.chenMo: {'neutral', 'discovery', 'guarded', 'desperate', 'cold'},
   Speaker.gaoYuan: {'neutral', 'inspecting', 'injured'},
   Speaker.zhouXu: {'neutral', 'defensive'},
-  Speaker.yeLan: {'neutral', 'intervening'},
+  Speaker.yeLan: {'neutral', 'intervening', 'strained'},
 };
 
 /// Canonical appearance reference for CGs and non-first-person special shots.

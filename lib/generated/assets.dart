@@ -67,6 +67,18 @@ class $AssetsCgGen {
 
   final $AssetsAuditRescueGen auditRescue = const $AssetsAuditRescueGen();
   final $AssetsAwakeningGen awakening = const $AssetsAwakeningGen();
+  final $AssetsCh5AuditPreventionGen ch5AuditPrevention =
+      const $AssetsCh5AuditPreventionGen();
+  final $AssetsCh5BondLinchengGen ch5BondLincheng =
+      const $AssetsCh5BondLinchengGen();
+  final $AssetsCh5BondSumiGen ch5BondSumi = const $AssetsCh5BondSumiGen();
+  final $AssetsCh5BondXingyaoGen ch5BondXingyao =
+      const $AssetsCh5BondXingyaoGen();
+  final $AssetsCh5ChenmoGasGen ch5ChenmoGas = const $AssetsCh5ChenmoGasGen();
+  final $AssetsCh5E04IdentityGen ch5E04Identity =
+      const $AssetsCh5E04IdentityGen();
+  final $AssetsCh5HanqiShelfGen ch5HanqiShelf = const $AssetsCh5HanqiShelfGen();
+  final $AssetsCh5YelanAcidGen ch5YelanAcid = const $AssetsCh5YelanAcidGen();
   final $AssetsCollarExecutionGen collarExecution =
       const $AssetsCollarExecutionGen();
   final $AssetsControlRoomDeathGen controlRoomDeath =
@@ -168,6 +180,94 @@ class $AssetsAuditRescueGen {
   );
 }
 
+class $AssetsCh5E04IdentityGen {
+  const $AssetsCh5E04IdentityGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch5_e04_identity/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch5_e04_identity/02.png',
+  );
+}
+
+class $AssetsCh5HanqiShelfGen {
+  const $AssetsCh5HanqiShelfGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch5_hanqi_shelf/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch5_hanqi_shelf/02.png',
+  );
+}
+
+class $AssetsCh5YelanAcidGen {
+  const $AssetsCh5YelanAcidGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch5_yelan_acid/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch5_yelan_acid/02.png',
+  );
+}
+
+class $AssetsCh5ChenmoGasGen {
+  const $AssetsCh5ChenmoGasGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch5_chenmo_gas/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch5_chenmo_gas/02.png',
+  );
+}
+
+class $AssetsCh5AuditPreventionGen {
+  const $AssetsCh5AuditPreventionGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch5_audit_prevention/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch5_audit_prevention/02.png',
+  );
+}
+
+class $AssetsCh5BondXingyaoGen {
+  const $AssetsCh5BondXingyaoGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch5_bond_xingyao/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch5_bond_xingyao/02.png',
+  );
+}
+
+class $AssetsCh5BondSumiGen {
+  const $AssetsCh5BondSumiGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch5_bond_sumi/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch5_bond_sumi/02.png',
+  );
+}
+
+class $AssetsCh5BondLinchengGen {
+  const $AssetsCh5BondLinchengGen();
+
+  final AssetGenImage a01 = const AssetGenImage(
+    'assets/images/cg/ch5_bond_lincheng/01.png',
+  );
+  final AssetGenImage a02 = const AssetGenImage(
+    'assets/images/cg/ch5_bond_lincheng/02.png',
+  );
+}
+
 class $AssetsCharactersGen {
   const $AssetsCharactersGen();
 
@@ -235,6 +335,9 @@ class $AssetsHanQiGen {
   final AssetGenImage conflicted = const AssetGenImage(
     'assets/images/characters/han_qi/conflicted.png',
   );
+  final AssetGenImage furious = const AssetGenImage(
+    'assets/images/characters/han_qi/furious.png',
+  );
   final AssetGenImage neutral = const AssetGenImage(
     'assets/images/characters/han_qi/neutral.png',
   );
@@ -257,6 +360,9 @@ class $AssetsWuZhengGen {
 class $AssetsTangYiGen {
   const $AssetsTangYiGen();
 
+  final AssetGenImage calculating = const AssetGenImage(
+    'assets/images/characters/tang_yi/calculating.png',
+  );
   final AssetGenImage neutral = const AssetGenImage(
     'assets/images/characters/tang_yi/neutral.png',
   );
@@ -282,6 +388,9 @@ class $AssetsLinChengGen {
 class $AssetsChenMoGen {
   const $AssetsChenMoGen();
 
+  final AssetGenImage cold = const AssetGenImage(
+    'assets/images/characters/chen_mo/cold.png',
+  );
   final AssetGenImage desperate = const AssetGenImage(
     'assets/images/characters/chen_mo/desperate.png',
   );
@@ -329,6 +438,9 @@ class $AssetsYeLanGen {
   );
   final AssetGenImage neutral = const AssetGenImage(
     'assets/images/characters/ye_lan/neutral.png',
+  );
+  final AssetGenImage strained = const AssetGenImage(
+    'assets/images/characters/ye_lan/strained.png',
   );
 }
 
