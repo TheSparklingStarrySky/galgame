@@ -1035,7 +1035,7 @@ const chapterSixBeats = <String, StoryBeat>{
     text:
         '返回房间后，我把投票结果、死亡记录或预演中断记录分别存进离线副本。选择的制度仍显示在PDA首页，无法由01单独修改。\n距离七日结束还有两天。主办方已经不再满足于让我们选择哪扇门关闭；它要我们选择哪四个人有资格定义真相，又允许其他人用控制权让证词席位空出来。\n我没有立刻睡。走廊每一次脚步停顿，都可能是在确认谁的门、谁的关系和谁的证据会在明天成为第四把椅子。',
     passageSpeakers: [Speaker.narration, Speaker.narration, Speaker.narration],
-    next: null,
+    next: 'ch7_day_six_open',
   ),
   'ch6_rule_pause_1': StoryBeat(
     id: 'ch6_rule_pause_1',

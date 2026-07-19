@@ -30,11 +30,17 @@ class $AssetsScenesGen {
   final AssetGenImage assemblyHall = const AssetGenImage(
     'assets/images/scenes/assembly_hall.png',
   );
+  final AssetGenImage controlCore = const AssetGenImage(
+    'assets/images/scenes/control_core.png',
+  );
   final AssetGenImage controlRoom = const AssetGenImage(
     'assets/images/scenes/control_room.png',
   );
   final AssetGenImage dormitoryRoom = const AssetGenImage(
     'assets/images/scenes/dormitory_room.png',
+  );
+  final AssetGenImage evidencePort = const AssetGenImage(
+    'assets/images/scenes/evidence_port.png',
   );
   final AssetGenImage facilityCorridor = const AssetGenImage(
     'assets/images/scenes/facility_corridor.png',
@@ -45,8 +51,14 @@ class $AssetsScenesGen {
   final AssetGenImage maintenanceRoom = const AssetGenImage(
     'assets/images/scenes/maintenance_room.png',
   );
+  final AssetGenImage medicalAirlock = const AssetGenImage(
+    'assets/images/scenes/medical_airlock.png',
+  );
   final AssetGenImage medicalIsolation = const AssetGenImage(
     'assets/images/scenes/medical_isolation.png',
+  );
+  final AssetGenImage northRelay = const AssetGenImage(
+    'assets/images/scenes/north_relay.png',
   );
   final AssetGenImage oldGym = const AssetGenImage(
     'assets/images/scenes/old_gym.png',

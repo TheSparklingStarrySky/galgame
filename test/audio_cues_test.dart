@@ -74,6 +74,30 @@ void main() {
       ).bgm,
       GameBgm.auditRevelation,
     );
+    expect(
+      resolveStoryAudioCue(
+        phase: StoryPhase.deduction,
+        scene: SceneKey.controlCore,
+        nodeId: 'ch7_case06_deduction',
+      ).bgm,
+      GameBgm.controlCoreProtocol,
+    );
+    expect(
+      resolveStoryAudioCue(
+        phase: StoryPhase.puzzle,
+        scene: SceneKey.controlCore,
+        nodeId: 'ch7_sync_puzzle',
+      ).bgm,
+      GameBgm.synchronizedShutdown,
+    );
+    expect(
+      resolveStoryAudioCue(
+        phase: StoryPhase.dialogue,
+        scene: SceneKey.controlCore,
+        nodeId: 'ch7_standard_four_1',
+      ).bgm,
+      GameBgm.fourSeatAftermath,
+    );
   });
 
   test('室内区域使用对应环境底噪', () {
@@ -116,6 +140,11 @@ void main() {
     expect(storyNodeSfx('ch5_alliance_yelan_intervenes'), GameSfx.acidSplash);
     expect(storyNodeSfx('ch5_majority_silence_death'), GameSfx.gasRelease);
     expect(storyNodeSfx('ch5_e04_sealed'), GameSfx.archiveSeal);
+    expect(storyNodeSfx('ch7_tangyi_hunt_7'), GameSfx.pneumaticNailer);
+    expect(storyNodeSfx('ch7_chenmo_hunt_8'), GameSfx.electricalArc);
+    expect(storyNodeSfx('ch7_hanqi_hunt_6'), GameSfx.evidenceGlassBreak);
+    expect(storyNodeSfx('ch7_sumi_risk_1'), GameSfx.pressureBypass);
+    expect(storyNodeSfx('ch7_audit_sync_1'), GameSfx.syncLockPulse);
   });
 
   test('运行时音频枚举均指向实际资源', () {

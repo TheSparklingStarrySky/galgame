@@ -83,6 +83,15 @@ flutter:
     - assets/images/cg/ch6_tangyi_bridge/
     - assets/images/cg/ch6_tangyi_restraint/
     - assets/images/cg/ch6_audit_vote/
+    - assets/images/cg/ch7_core_opening/
+    - assets/images/cg/ch7_tangyi_nailer/
+    - assets/images/cg/ch7_chenmo_arc/
+    - assets/images/cg/ch7_hanqi_control/
+    - assets/images/cg/ch7_lincheng_gate/
+    - assets/images/cg/ch7_xingyao_signal/
+    - assets/images/cg/ch7_sumi_oxygen/
+    - assets/images/cg/ch7_audit_sync/
+    - assets/images/cg/ch7_case06_truth/
     - assets/images/characters/shen_yan/
     - assets/images/characters/li_xingyao/
     - assets/images/characters/su_mi/
@@ -100,6 +109,7 @@ flutter:
     - assets/images/items/storage/
     - assets/images/items/archive/
     - assets/images/items/vote/
+    - assets/images/items/core/
     - assets/audio/
     - assets/audio/bgm/
     - assets/audio/sfx/

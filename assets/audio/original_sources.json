@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "generation_date": "2026-07-18",
+  "version": 2,
+  "generation_date": "2026-07-19",
   "origin": "project_original_procedural_audio",
   "generator": "tool/generate_original_audio.py",
   "runtime_format": "AAC in M4A, 44.1 kHz stereo",
@@ -12,7 +12,10 @@
     "bond_sumi",
     "bond_lincheng",
     "betrayal_hunt",
-    "audit_revelation"
+    "audit_revelation",
+    "control_core_protocol",
+    "synchronized_shutdown",
+    "four_seat_aftermath"
   ],
   "sfx": [
     "route_jump",
@@ -34,6 +37,11 @@
     "emergency_shower",
     "gas_release",
     "archive_seal",
-    "checksum_verified"
+    "checksum_verified",
+    "pneumatic_nailer",
+    "electrical_arc",
+    "pressure_bypass",
+    "evidence_glass_break",
+    "sync_lock_pulse"
   ]
 }

@@ -19,7 +19,15 @@ const _speechVerbs = <String>[
 ];
 
 void main() {
-  for (final chapter in ['ch1_', 'ch2_', 'ch3_', 'ch4_', 'ch5_', 'ch6_']) {
+  for (final chapter in [
+    'ch1_',
+    'ch2_',
+    'ch3_',
+    'ch4_',
+    'ch5_',
+    'ch6_',
+    'ch7_',
+  ]) {
     final beats = storyBeats.values
         .where((beat) => beat.id.startsWith(chapter))
         .toList(growable: false);

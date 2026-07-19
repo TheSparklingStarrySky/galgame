@@ -1301,6 +1301,12 @@ class _PuzzleLayerState extends State<_PuzzleLayer> {
   late List<int> _tiles = List<int>.of(_initialTiles);
   int _slideMoves = 0;
   final List<String> _auditOrder = [];
+  final Map<String, int> _syncChannels = {
+    'north': 2,
+    'archive': 5,
+    'maintenance': 3,
+  };
+  final List<String> _syncOrder = [];
 
   static const _auditFields = <String, String>{
     'slot': '身份槽 / 12',
@@ -1491,6 +1497,50 @@ class _PuzzleLayerState extends State<_PuzzleLayer> {
     setState(() => _feedback = '三组短码能够成列，但校验值没有闭合。');
   }
 
+  void _setSyncChannel(String id, double value) {
+    GameAudioScope.maybeOf(context)?.playSfx(GameSfx.keypadPress);
+    setState(() {
+      _syncChannels[id] = value.round();
+      _feedback = null;
+    });
+  }
+
+  void _selectSyncOrder(String id) {
+    GameAudioScope.maybeOf(context)?.playSfx(GameSfx.uiConfirm);
+    setState(() {
+      _feedback = null;
+      if (_syncOrder.remove(id)) return;
+      if (_syncOrder.length == 3) _syncOrder.removeAt(0);
+      _syncOrder.add(id);
+    });
+  }
+
+  void _submitSyncPlan() {
+    const expectedChannels = {'north': 4, 'archive': 1, 'maintenance': 6};
+    const expectedOrder = ['maintenance', 'archive', 'north'];
+    final channelsMatch = expectedChannels.entries.every(
+      (entry) => _syncChannels[entry.key] == entry.value,
+    );
+    final orderMatches = _syncOrder.join('_') == expectedOrder.join('_');
+    if (channelsMatch && orderMatches) {
+      GameAudioScope.maybeOf(context)?.playSfx(GameSfx.circuitPowerOn);
+      widget.controller.completePuzzle(
+        'channels_4_1_6__maintenance_archive_north',
+      );
+      return;
+    }
+    GameAudioScope.maybeOf(context)?.playSfx(GameSfx.accessDenied);
+    setState(() {
+      if (!channelsMatch && !orderMatches) {
+        _feedback = '三处回声仍互相覆盖，启动顺序也让关闭脉冲被下一节点补回。';
+      } else if (!channelsMatch) {
+        _feedback = '顺序已经形成单向传播，但至少一处频道仍与本地延迟不匹配。';
+      } else {
+        _feedback = '频道已经锁定，启动时序却让先关闭的节点被后续心跳恢复。';
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
@@ -1508,6 +1558,7 @@ class _PuzzleLayerState extends State<_PuzzleLayer> {
                     ),
                     'ch3_balance_puzzle' => _buildBalancePuzzle(constraints),
                     'ch3_audit_manifest_puzzle' => _buildAuditPuzzle(),
+                    'ch7_sync_puzzle' => _buildSyncPuzzle(constraints),
                     _ => _buildSlidePuzzle(constraints),
                   },
             ),
@@ -1525,8 +1576,177 @@ class _PuzzleLayerState extends State<_PuzzleLayer> {
     'ch3_transfer_access_puzzle' => '隔离转运间 / 门禁联锁',
     'ch3_balance_puzzle' => '承重机关 / 无刻度天平',
     'ch3_audit_manifest_puzzle' => '离线审计 / 灰色校验表',
+    'ch7_sync_puzzle' => '三节点同步 / 传播延迟',
     _ => '图案机关 / 八块石板',
   };
+
+  Widget _buildSyncPuzzle(BoxConstraints constraints) {
+    const nodeLabels = {
+      'north': '北端节点',
+      'archive': '档案节点',
+      'maintenance': '维护节点',
+    };
+    const nodeHints = {
+      'north': '回声延迟 4 拍',
+      'archive': '本地脉冲 1 拍',
+      'maintenance': '恢复窗口 6 拍',
+    };
+    final compact = constraints.maxWidth < 720;
+    final channelPanel = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _Eyebrow(text: 'LOCAL CHANNELS'),
+        const SizedBox(height: 7),
+        const Text(
+          '三处终端只显示各自的延迟记录。把每个节点锁到能抵消本地回声的频道，再决定关闭脉冲的传播顺序。',
+          style: TextStyle(color: Color(0xFFAAB5B0), fontSize: 11, height: 1.4),
+        ),
+        const SizedBox(height: 10),
+        Expanded(
+          child: Row(
+            children: nodeLabels.entries
+                .map((entry) {
+                  final value = _syncChannels[entry.key]!;
+                  return Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.fromLTRB(10, 9, 10, 7),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF111817),
+                        border: Border.all(color: const Color(0xFF35433F)),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            entry.key == 'north'
+                                ? Icons.settings_input_antenna_rounded
+                                : entry.key == 'archive'
+                                ? Icons.dns_outlined
+                                : Icons.memory_rounded,
+                            color: const Color(0xFF8FC7B8),
+                            size: 21,
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            entry.value,
+                            style: const TextStyle(
+                              color: Color(0xFFE5E8E3),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            nodeHints[entry.key]!,
+                            style: const TextStyle(
+                              color: Color(0xFF89948F),
+                              fontSize: 9.5,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            value.toString().padLeft(2, '0'),
+                            style: const TextStyle(
+                              color: Color(0xFFD8A24A),
+                              fontSize: 21,
+                              fontWeight: FontWeight.w800,
+                              fontFeatures: [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                          Slider(
+                            key: ValueKey('sync-channel-${entry.key}'),
+                            min: 1,
+                            max: 6,
+                            divisions: 5,
+                            value: value.toDouble(),
+                            label: '$value',
+                            onChanged: (next) =>
+                                _setSyncChannel(entry.key, next),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                })
+                .toList(growable: false),
+          ),
+        ),
+      ],
+    );
+    final orderPanel = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _Eyebrow(text: 'SHUTDOWN ORDER'),
+        const SizedBox(height: 7),
+        const Text(
+          '先关闭恢复窗口最长的节点，沿单向传播压缩剩余心跳。重复点击可取消选择。',
+          style: TextStyle(color: Color(0xFFAAB5B0), fontSize: 11, height: 1.4),
+        ),
+        const SizedBox(height: 10),
+        ...nodeLabels.entries.map((entry) {
+          final index = _syncOrder.indexOf(entry.key);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 7),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilterChip(
+                key: ValueKey('sync-order-${entry.key}'),
+                selected: index >= 0,
+                showCheckmark: false,
+                avatar: index < 0
+                    ? const Icon(Icons.radio_button_unchecked, size: 17)
+                    : CircleAvatar(child: Text('${index + 1}')),
+                label: Text(entry.value),
+                onSelected: (_) => _selectSyncOrder(entry.key),
+              ),
+            ),
+          );
+        }),
+        const Spacer(),
+        if (_feedback != null)
+          Text(
+            _feedback!,
+            style: const TextStyle(
+              color: Color(0xFFF0D08F),
+              fontSize: 10.5,
+              height: 1.35,
+            ),
+          ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            key: const ValueKey('submit-sync-plan'),
+            onPressed: _syncOrder.length == 3 ? _submitSyncPlan : null,
+            icon: const Icon(Icons.power_settings_new_rounded),
+            label: const Text('执行同步关闭'),
+          ),
+        ),
+      ],
+    );
+    if (compact) {
+      return SingleChildScrollView(
+        child: SizedBox(
+          height: math.max(420, constraints.maxHeight),
+          child: Column(
+            children: [
+              Expanded(flex: 3, child: channelPanel),
+              const Divider(height: 20, color: Color(0xFF35433F)),
+              Expanded(flex: 2, child: orderPanel),
+            ],
+          ),
+        ),
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(flex: 3, child: channelPanel),
+        const VerticalDivider(width: 24, color: Color(0xFF35433F)),
+        Expanded(flex: 2, child: orderPanel),
+      ],
+    );
+  }
 
   Widget _buildAuditPuzzle() {
     return Row(
@@ -2884,6 +3104,102 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
       asset: 'assets/images/items/vote/rack_contour_gauge.png',
       description: '可贴合托盘压痕复原多个物件的外形，避免把相同总重量武断归为单件武器。',
     ),
+    'project_approval_plate': _InvestigationItem(
+      id: 'project_approval_plate',
+      name: '酸洗项目审批板',
+      asset: 'assets/images/items/core/project_approval_plate.png',
+      description: '金属审批板上的姓名被溶剂擦除，斜光下只能看到断续压痕。夹槽里压着一张未使用的石墨转印膜。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['core_take_graphite'],
+          description: '石墨转印膜已经取出。审批栏仍不能凭肉眼确认是人工签署还是系统套印。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['core_take_graphite', 'core_lift_approval'],
+          name: '恢复笔压的项目审批板',
+          asset: 'assets/images/items/core/project_approval_plate_revealed.png',
+          description: '转印恢复出负责人笔压、个人印章序列与早于绑架四十七天的签署时间。H-7由人类预先授权。',
+        ),
+      ],
+    ),
+    'graphite_lifting_film': _InvestigationItem(
+      id: 'graphite_lifting_film',
+      name: '石墨转印膜',
+      asset: 'assets/images/items/core/graphite_lifting_film.png',
+      description: '一次性低黏转印膜，可显出金属表面残留笔压，不会恢复被酸洗掉的墨迹。',
+    ),
+    'replay_topology': _InvestigationItem(
+      id: 'replay_topology',
+      name: '三节点拓扑板',
+      asset: 'assets/images/items/core/replay_topology.png',
+      description: '体育馆、档案区与仓储环线之间只画了普通备份线，板后收纳着一支被动光纤示踪器。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['core_take_tracer'],
+          description: '光纤示踪器已经取出。印刷线路无法解释三组节点为何每七秒轮流出现同一裁定心跳。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['core_take_tracer', 'core_trace_topology'],
+          name: '显出迁移心跳的拓扑板',
+          asset: 'assets/images/items/core/replay_topology_traced.png',
+          description: '隐藏光路已经显现：三处不是独立备份，而是每七秒转交一次执行权的同一ZERO进程。',
+        ),
+      ],
+    ),
+    'fiber_tracer': _InvestigationItem(
+      id: 'fiber_tracer',
+      name: '被动光纤示踪器',
+      asset: 'assets/images/items/core/fiber_tracer.png',
+      description: '不向网络发送握手的低功率示踪器，只让真实连接路径短暂发光。',
+    ),
+    'participant_input_bus': _InvestigationItem(
+      id: 'participant_input_bus',
+      name: '参与者输入总线',
+      asset: 'assets/images/items/core/participant_input_bus.png',
+      description: '托管、投票、位置申诉与撤回请求在这里汇流，面板默认只显示“实验记录”。维护口卡着只读校验桥。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['core_take_bridge'],
+          description: '只读校验桥已经取出。总线仍将观察日志与现场执行输出折叠在同一行里。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['core_take_bridge', 'core_decode_input_bus'],
+          name: '分离执行输出的输入总线',
+          asset: 'assets/images/items/core/participant_input_bus_decoded.png',
+          description: '每条参与者签名都有第二路输出，直接进入门锁、项圈与区域封锁队列。选择不仅被观察，也被当作执行参数。',
+        ),
+      ],
+    ),
+    'checksum_bridge': _InvestigationItem(
+      id: 'checksum_bridge',
+      name: '只读校验桥',
+      asset: 'assets/images/items/core/checksum_bridge.png',
+      description: '双端硬件桥可把总线输出分流到离线屏幕，不具备写入和远程调用能力。',
+    ),
+    'weapon_cradle': _InvestigationItem(
+      id: 'weapon_cradle',
+      name: '未登记武器空槽',
+      asset: 'assets/images/items/core/weapon_cradle.png',
+      description: '泡棉槽中只剩短管、折叠托和气瓶卡扣的局部压痕，侧袋封着一包硅胶取形膜。',
+      variants: [
+        _InvestigationItemVariant(
+          requiresActions: ['core_take_cast'],
+          description: '硅胶取形膜已经取出。仅看局部凹痕，仍可能把工业工具误认成枪械。',
+        ),
+        _InvestigationItemVariant(
+          requiresActions: ['core_take_cast', 'core_cast_weapon_slot'],
+          name: '复原射钉器轮廓的空槽',
+          asset: 'assets/images/items/core/weapon_cradle_cast.png',
+          description: '凝固取形完整复原短管射钉器、折叠托与高压气瓶卡扣；导轨擦痕表明它在本次游戏开始后才被取走。',
+        ),
+      ],
+    ),
+    'silicone_cast_film': _InvestigationItem(
+      id: 'silicone_cast_film',
+      name: '硅胶取形膜',
+      asset: 'assets/images/items/core/silicone_cast_film.png',
+      description: '一次性低温取形材料，可复原泡棉深处的完整轮廓与导轨擦痕。',
+    ),
   };
 
   static const _controlRoom = _InvestigationSpec(
@@ -3535,12 +3851,123 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
     ],
   );
 
+  static const _core = _InvestigationSpec(
+    title: '控制核心调查 / CASE 06',
+    targets: [
+      _InvestigationTarget(
+        id: 'project_approval_plate',
+        initialLabel: '酸洗审批板',
+        clueTitle: '人类项目授权',
+        asset: 'assets/images/items/core/project_approval_plate.png',
+        prompt: '姓名已经被化学溶剂擦除。不要猜残存字形，先取得不会继续损伤表面的工具，再恢复笔压与印章顺序。',
+        actions: [
+          _InspectionAction(
+            id: 'core_take_graphite',
+            label: '检查夹槽并取出转印膜',
+            icon: Icons.layers_outlined,
+            result: '夹槽里有一张未使用的低黏石墨膜，能显出笔压，但需要和审批板组合才能产生结论。',
+            grantsItem: 'graphite_lifting_film',
+          ),
+          _InspectionAction(
+            id: 'core_lift_approval',
+            label: '转印笔压与印章序列',
+            icon: Icons.fingerprint_outlined,
+            requiresItems: ['graphite_lifting_film'],
+            requiresActions: ['core_take_graphite'],
+            consumesItems: ['graphite_lifting_film'],
+            result: '转印膜恢复出负责人手写笔压和个人印章序列，签署时间早于第一名参与者被绑架四十七天。',
+            verifiesClue: 'human_project_authorization',
+          ),
+        ],
+      ),
+      _InvestigationTarget(
+        id: 'replay_topology',
+        initialLabel: '三节点拓扑板',
+        clueTitle: '分布式ZERO心跳',
+        asset: 'assets/images/items/core/replay_topology.png',
+        prompt: '面板把三处设备画成普通备份。先找出不会触发联网握手的示踪工具，再观察真实光路的转交顺序。',
+        actions: [
+          _InspectionAction(
+            id: 'core_take_tracer',
+            label: '拆开板后维护筒',
+            icon: Icons.cable_outlined,
+            result: '维护筒里是一支被动光纤示踪器，只会让连接路径发光，不会向节点发出身份握手。',
+            grantsItem: 'fiber_tracer',
+          ),
+          _InspectionAction(
+            id: 'core_trace_topology',
+            label: '追踪三处隐藏光路',
+            icon: Icons.hub_outlined,
+            requiresItems: ['fiber_tracer'],
+            requiresActions: ['core_take_tracer'],
+            consumesItems: ['fiber_tracer'],
+            result: '体育馆、档案区和仓储环线每七秒转交同一裁定心跳；任一节点关闭，缺失片段都会由另外两处补回。',
+            verifiesClue: 'distributed_zero_runtime',
+          ),
+        ],
+      ),
+      _InvestigationTarget(
+        id: 'participant_input_bus',
+        initialLabel: '参与者输入总线',
+        clueTitle: '签名直达执行队列',
+        asset: 'assets/images/items/core/participant_input_bus.png',
+        prompt: '界面只显示实验记录，无法证明选择是否会改变现场。先取出只读桥，把观察输出和执行输出物理分开。',
+        actions: [
+          _InspectionAction(
+            id: 'core_take_bridge',
+            label: '解锁维护口的只读桥',
+            icon: Icons.settings_input_component_outlined,
+            result: '硬件桥没有写入针脚，可以把两路输出导向离线屏幕，不会替任何参与者提交新指令。',
+            grantsItem: 'checksum_bridge',
+          ),
+          _InspectionAction(
+            id: 'core_decode_input_bus',
+            label: '分离观察与执行输出',
+            icon: Icons.call_split_outlined,
+            requiresItems: ['checksum_bridge'],
+            requiresActions: ['core_take_bridge'],
+            consumesItems: ['checksum_bridge'],
+            result: '每条托管、投票与撤回签名都分成两路：一份存档，一份直接进入门锁、项圈和区域封锁队列。',
+            verifiesClue: 'participant_execution_bus',
+          ),
+        ],
+      ),
+      _InvestigationTarget(
+        id: 'weapon_cradle',
+        initialLabel: '未登记武器空槽',
+        clueTitle: '短管射钉器被取走',
+        asset: 'assets/images/items/core/weapon_cradle.png',
+        prompt: '泡棉只保留局部凹痕，不能凭外形直接叫它枪。先取得取形材料，再复原完整轮廓与最近擦痕。',
+        actions: [
+          _InspectionAction(
+            id: 'core_take_cast',
+            label: '拆开侧袋的取形材料',
+            icon: Icons.texture_outlined,
+            result: '侧袋中封着一次性低温硅胶膜，可进入泡棉深槽，凝固后完整保留外形。',
+            grantsItem: 'silicone_cast_film',
+          ),
+          _InspectionAction(
+            id: 'core_cast_weapon_slot',
+            label: '复原深槽与导轨擦痕',
+            icon: Icons.inventory_2_outlined,
+            requiresItems: ['silicone_cast_film'],
+            requiresActions: ['core_take_cast'],
+            consumesItems: ['silicone_cast_film'],
+            result: '凝固轮廓对应短管工业射钉器和高压气瓶。导轨内侧的新鲜擦痕证明它在本次游戏开始后才被取走。',
+            verifiesClue: 'unregistered_weapon_cradle',
+          ),
+        ],
+      ),
+    ],
+  );
+
   _InvestigationSpec get _spec => switch (widget.controller.currentId) {
     'ch2_gym_investigation' => _gym,
     'ch3_storage_investigation' => _storage,
     'ch4_medical_investigation' => _medical,
     'ch5_archive_investigation' => _archive,
     'ch6_vote_investigation' => _vote,
+    'ch7_core_investigation' => _core,
     _ => _controlRoom,
   };
 
@@ -3562,6 +3989,7 @@ class _InvestigationLayerState extends State<_InvestigationLayer> {
       _medical,
       _archive,
       _vote,
+      _core,
     ]) {
       for (final target in spec.targets) {
         if (target.id == id) return target;
@@ -4561,6 +4989,7 @@ class _DeductionLayerState extends State<_DeductionLayer> {
   bool get _isCase03 => widget.controller.currentId == 'ch4_case03_deduction';
   bool get _isCase04 => widget.controller.currentId == 'ch5_case04_deduction';
   bool get _isCase05 => widget.controller.currentId == 'ch6_case05_deduction';
+  bool get _isCase06 => widget.controller.currentId == 'ch7_case06_deduction';
 
   @override
   void initState() {
@@ -4586,7 +5015,13 @@ class _DeductionLayerState extends State<_DeductionLayer> {
     }
   }
 
-  List<({String id, String title, String prompt})> get _roles => _isCase05
+  List<({String id, String title, String prompt})> get _roles => _isCase06
+      ? const [
+          (id: 'fact', title: '项目起点', prompt: '确认绑架与项圈部署由谁预先授权'),
+          (id: 'threshold', title: '现场裁定', prompt: '找出负责人不在场时什么仍能持续执行'),
+          (id: 'mechanism', title: '续写输入', prompt: '说明参与者选择怎样进入门锁与项圈'),
+        ]
+      : _isCase05
       ? const [
           (id: 'fact', title: '生成事实', prompt: '确认相同内容究竟被输入了几次'),
           (id: 'threshold', title: '权限分叉', prompt: '找出一份票权何时同时拥有两条有效路径'),
@@ -4617,7 +5052,46 @@ class _DeductionLayerState extends State<_DeductionLayer> {
         ];
 
   List<({String id, IconData icon, String title, String body})> get _evidence =>
-      _isCase05
+      _isCase06
+      ? const [
+          (
+            id: 'human_project_authorization',
+            icon: Icons.approval_outlined,
+            title: '早于绑架的人类授权',
+            body: '负责人手写笔压与个人印章在绑架前四十七天批准H-7部署',
+          ),
+          (
+            id: 'distributed_zero_runtime',
+            icon: Icons.hub_outlined,
+            title: '跨三节点迁移的ZERO',
+            body: '裁定心跳每七秒转交，关闭一处会由另外两处补回缺失片段',
+          ),
+          (
+            id: 'participant_execution_bus',
+            icon: Icons.call_split_outlined,
+            title: '参与者签名直达执行队列',
+            body: '托管、投票与撤回同时写入实验记录、门锁、项圈和区域封锁',
+          ),
+          (
+            id: 'unregistered_weapon_cradle',
+            icon: Icons.inventory_2_outlined,
+            title: '被取走的短管射钉器',
+            body: '证明现场能力已经变化，却不能说明谁批准实验或ZERO如何持续运行',
+          ),
+          (
+            id: 'acid_erased_names',
+            icon: Icons.format_clear_outlined,
+            title: '七个被酸洗的姓名',
+            body: '能确认有人试图隐藏身份，残缺字形本身不足以重建完整责任链',
+          ),
+          (
+            id: 'slot12_white_signal',
+            icon: Icons.radio_button_checked,
+            title: '12号白点仍在线',
+            body: '说明维护槽还能重放，不能单独回答系统由人、程序还是参与者主持',
+          ),
+        ]
+      : _isCase05
       ? const [
           (
             id: 'ballot_single_draft',
@@ -4812,7 +5286,25 @@ class _DeductionLayerState extends State<_DeductionLayer> {
           ),
         ];
 
-  List<(String, String, String)> get _hypotheses => _isCase05
+  List<(String, String, String)> get _hypotheses => _isCase06
+      ? const [
+          (
+            'human_director_only',
+            '项目负责人是唯一主办者',
+            '人类批准绑架与部署，因此现场程序和参与者输入都只是没有独立责任的工具。',
+          ),
+          (
+            'autonomous_zero_only',
+            'ZERO程序是唯一主办者',
+            '分布式程序持续裁定一切，人类授权与参与者签名都不再影响当前责任。',
+          ),
+          (
+            'protocol_three_layer_host',
+            '三层共同维持零点协议',
+            '人类设计起点、ZERO迁移裁定、参与者可执行选择持续输入；三层责任不相等，也不能互相抹除。',
+          ),
+        ]
+      : _isCase05
       ? const [
           ('coordinated_ballots', '两名参与者串通投出同文票', '两个人预先共享了草稿，因此两张相同选票同时进入票箱。'),
           ('stale_location_only', '位置缓存制造了额外票数', '十分钟前的位置快照让系统重复计算了移动中的参与者。'),
@@ -4850,7 +5342,13 @@ class _DeductionLayerState extends State<_DeductionLayer> {
           ('repeater', '中继器伪造定位', '凶手转发了距离握手，让项圈在规则内执行死刑。'),
         ];
 
-  Map<String, String> get _correctChain => _isCase05
+  Map<String, String> get _correctChain => _isCase06
+      ? const {
+          'fact': 'human_project_authorization',
+          'threshold': 'distributed_zero_runtime',
+          'mechanism': 'participant_execution_bus',
+        }
+      : _isCase05
       ? const {
           'fact': 'ballot_single_draft',
           'threshold': 'stale_delegate_branch',
@@ -4910,7 +5408,9 @@ class _DeductionLayerState extends State<_DeductionLayer> {
     setState(() {
       _chainVerified = verified;
       _chainFeedback = verified
-          ? _isCase05
+          ? _isCase06
+                ? '证据链闭合：人类授权创造实验，ZERO跨节点维持裁定，参与者签名又作为执行参数持续进入系统；三层共同让游戏继续运作。'
+                : _isCase05
                 ? '证据链闭合：内容只生成一次，撤回却没有终止末端代理；同一授权根因此提交两票，并由滞后位置快照把票数错误变成封锁风险。'
                 : _isCase04
                 ? '证据链闭合：初始绑架链只有十一人，12号无法对应连续身体，服务器也只保存可切换的维护身份配置。'
@@ -4932,7 +5432,9 @@ class _DeductionLayerState extends State<_DeductionLayer> {
         children: [
           _TopBar(
             controller: widget.controller,
-            title: _isCase05
+            title: _isCase06
+                ? '主办者结构 / CASE 06'
+                : _isCase05
                 ? '投票推演 / CASE 05'
                 : _isCase04
                 ? '身份推演 / CASE 04'
@@ -5035,7 +5537,9 @@ class _DeductionLayerState extends State<_DeductionLayer> {
                       if (_chainVerified) ...[
                         const SizedBox(height: 22),
                         _Eyebrow(
-                          text: _isCase05
+                          text: _isCase06
+                              ? 'WHO KEEPS THE PROTOCOL RUNNING'
+                              : _isCase05
                               ? 'WHY ONE VOTE BECAME TWO'
                               : _isCase04
                               ? 'IDENTITY OF SLOT 12'
@@ -5078,7 +5582,9 @@ class _DeductionLayerState extends State<_DeductionLayer> {
                                   },
                             icon: const Icon(Icons.gavel_outlined),
                             label: Text(
-                              _isCase05
+                              _isCase06
+                                  ? '提交主办者结构'
+                                  : _isCase05
                                   ? '提交重复投票机制'
                                   : _isCase04
                                   ? '提交12号身份判断'

@@ -17,6 +17,9 @@ enum GameBgm {
   betrayalHunt,
   auditRevelation,
   rescueAction,
+  controlCoreProtocol,
+  synchronizedShutdown,
+  fourSeatAftermath,
 }
 
 extension GameBgmAsset on GameBgm {
@@ -37,6 +40,9 @@ extension GameBgmAsset on GameBgm {
     GameBgm.betrayalHunt => 'audio/bgm/betrayal_hunt.m4a',
     GameBgm.auditRevelation => 'audio/bgm/audit_revelation.m4a',
     GameBgm.rescueAction => 'audio/bgm/rescue_action.m4a',
+    GameBgm.controlCoreProtocol => 'audio/bgm/control_core_protocol.m4a',
+    GameBgm.synchronizedShutdown => 'audio/bgm/synchronized_shutdown.m4a',
+    GameBgm.fourSeatAftermath => 'audio/bgm/four_seat_aftermath.m4a',
   };
 
   bool get loop => this != GameBgm.endingAfterlight;
@@ -118,6 +124,11 @@ enum GameSfx {
   gasRelease,
   archiveSeal,
   checksumVerified,
+  pneumaticNailer,
+  electricalArc,
+  pressureBypass,
+  evidenceGlassBreak,
+  syncLockPulse,
 }
 
 extension GameSfxAsset on GameSfx {
@@ -173,6 +184,11 @@ extension GameSfxAsset on GameSfx {
     GameSfx.gasRelease => 'gas_release',
     GameSfx.archiveSeal => 'archive_seal',
     GameSfx.checksumVerified => 'checksum_verified',
+    GameSfx.pneumaticNailer => 'pneumatic_nailer',
+    GameSfx.electricalArc => 'electrical_arc',
+    GameSfx.pressureBypass => 'pressure_bypass',
+    GameSfx.evidenceGlassBreak => 'evidence_glass_break',
+    GameSfx.syncLockPulse => 'sync_lock_pulse',
   };
 
   String get asset =>
@@ -194,6 +210,9 @@ extension GameSfxAsset on GameSfx {
     GameSfx.emergencyShower => const Duration(milliseconds: 5200),
     GameSfx.gasRelease => const Duration(milliseconds: 6200),
     GameSfx.archiveSeal => const Duration(seconds: 6),
+    GameSfx.electricalArc => const Duration(milliseconds: 2200),
+    GameSfx.pressureBypass => const Duration(milliseconds: 4800),
+    GameSfx.syncLockPulse => const Duration(milliseconds: 2400),
     _ => null,
   };
 }
@@ -216,6 +235,11 @@ const _originalSfx = {
   GameSfx.gasRelease,
   GameSfx.archiveSeal,
   GameSfx.checksumVerified,
+  GameSfx.pneumaticNailer,
+  GameSfx.electricalArc,
+  GameSfx.pressureBypass,
+  GameSfx.evidenceGlassBreak,
+  GameSfx.syncLockPulse,
 };
 
 class StoryAudioCue {
@@ -236,10 +260,18 @@ StoryAudioCue resolveStoryAudioCue({
 
   final bgm = switch (phase) {
     StoryPhase.ending => GameBgm.endingAfterlight,
-    StoryPhase.deduction => GameBgm.deductionChain,
-    StoryPhase.investigation ||
-    StoryPhase.puzzle ||
-    StoryPhase.tuning => GameBgm.investigationPulse,
+    StoryPhase.deduction =>
+      nodeId.startsWith('ch7_case06')
+          ? GameBgm.controlCoreProtocol
+          : GameBgm.deductionChain,
+    StoryPhase.investigation || StoryPhase.tuning =>
+      nodeId.startsWith('ch7_core_')
+          ? GameBgm.controlCoreProtocol
+          : GameBgm.investigationPulse,
+    StoryPhase.puzzle =>
+      nodeId == 'ch7_sync_puzzle'
+          ? GameBgm.synchronizedShutdown
+          : GameBgm.investigationPulse,
     _ => _dialogueBgm(nodeId, scene),
   };
   return StoryAudioCue(bgm: bgm, ambience: _ambienceFor(scene));
@@ -250,12 +282,22 @@ GameBgm _dialogueBgm(String nodeId, SceneKey scene) {
   if (_xingyaoBondNodes.contains(nodeId)) return GameBgm.bondXingyao;
   if (_sumiBondNodes.contains(nodeId)) return GameBgm.bondSumi;
   if (_linchengBondNodes.contains(nodeId)) return GameBgm.bondLincheng;
+  if (_fourSeatAftermathTokens.any(nodeId.contains)) {
+    return GameBgm.fourSeatAftermath;
+  }
+  if (_shutdownTokens.any(nodeId.contains)) {
+    return GameBgm.synchronizedShutdown;
+  }
+  if (_controlCoreTokens.any(nodeId.contains)) {
+    return GameBgm.controlCoreProtocol;
+  }
   if (_rescueNodes.contains(nodeId)) return GameBgm.rescueAction;
   if (_betrayalTokens.any(nodeId.contains)) return GameBgm.betrayalHunt;
   if (_auditTokens.any(nodeId.contains)) return GameBgm.auditRevelation;
   if (_ruleNodes.contains(nodeId)) return GameBgm.ruleExecution;
   if (_aftermathTokens.any(nodeId.contains)) return GameBgm.aftermathVoid;
   if (_crisisTokens.any(nodeId.contains)) return GameBgm.countdownCrisis;
+  if (nodeId.startsWith('ch7_')) return GameBgm.nightFacility;
   if (nodeId.startsWith('ch6_')) return GameBgm.nightFacility;
   if (nodeId.startsWith('ch5_')) return GameBgm.nightFacility;
   return switch (scene) {
@@ -267,7 +309,11 @@ GameBgm _dialogueBgm(String nodeId, SceneKey scene) {
     SceneKey.archiveRoom ||
     SceneKey.medicalIsolation ||
     SceneKey.securityRoom ||
-    SceneKey.maintenanceRoom => GameBgm.investigationPulse,
+    SceneKey.maintenanceRoom ||
+    SceneKey.controlCore ||
+    SceneKey.northRelay ||
+    SceneKey.evidencePort ||
+    SceneKey.medicalAirlock => GameBgm.investigationPulse,
     SceneKey.oldGym => GameBgm.countdownCrisis,
     SceneKey.corridor ||
     SceneKey.archiveCorridor ||
@@ -282,10 +328,14 @@ GameAmbience _ambienceFor(SceneKey scene) => switch (scene) {
   SceneKey.oldGym ||
   SceneKey.transferRoom ||
   SceneKey.archiveRoom ||
-  SceneKey.maintenanceRoom => GameAmbience.ventilation,
+  SceneKey.maintenanceRoom ||
+  SceneKey.controlCore ||
+  SceneKey.northRelay ||
+  SceneKey.evidencePort => GameAmbience.ventilation,
   SceneKey.storageRoom => GameAmbience.storageRefrigeration,
   SceneKey.infirmary ||
-  SceneKey.medicalIsolation => GameAmbience.infirmaryEquipment,
+  SceneKey.medicalIsolation ||
+  SceneKey.medicalAirlock => GameAmbience.infirmaryEquipment,
   SceneKey.assemblyHall => GameAmbience.assemblyPa,
   _ => GameAmbience.fluorescentHum,
 };
@@ -325,6 +375,12 @@ const _betrayalTokens = {
   'ch6_revenge_',
   'ch6_silence_',
   'ch6_force_',
+  'ch7_tangyi_hunt_',
+  'ch7_chenmo_hunt_',
+  'ch7_hanqi_hunt_',
+  'ch7_lincheng_death_',
+  'ch7_xingyao_death_',
+  'ch7_sumi_death_',
 };
 
 const _auditTokens = {
@@ -344,6 +400,45 @@ const _auditTokens = {
   'ch6_location_fact',
   'ch6_weapon_fact',
   'ch6_audit_',
+  'ch7_core_',
+  'ch7_ledger_fact',
+  'ch7_topology_fact',
+  'ch7_input_bus_fact',
+  'ch7_weapon_fact',
+  'ch7_case06',
+  'ch7_audit_',
+  'ch7_sync_',
+};
+
+const _controlCoreTokens = {
+  'ch7_core_',
+  'ch7_ledger_fact',
+  'ch7_topology_fact',
+  'ch7_input_bus_fact',
+  'ch7_weapon_fact',
+  'ch7_case06',
+  'ch7_responsibility_after_',
+};
+
+const _shutdownTokens = {
+  'ch7_sync_',
+  'ch7_audit_sync_',
+  'ch7_audit_maintenance_',
+  'ch7_audit_archive_',
+  'ch7_audit_north_',
+  'ch7_audit_window_',
+  'ch7_audit_shutdown_',
+};
+
+const _fourSeatAftermathTokens = {
+  'ch7_standard_four_',
+  'ch7_four_',
+  'ch7_standard_relationship_',
+  'ch7_standard_xingyao_',
+  'ch7_standard_sumi_',
+  'ch7_standard_lincheng_',
+  'ch7_standard_public_',
+  'ch7_standard_end',
 };
 
 const _positiveEndingNodes = {
@@ -447,5 +542,25 @@ GameSfx? storyNodeSfx(String nodeId) => switch (nodeId) {
   'ch6_force_death' => GameSfx.bodyFall,
   'ch6_audit_attempt' => GameSfx.accessGranted,
   'ch6_audit_seal' => GameSfx.metalDoorLock,
+  'ch7_core_entry' => GameSfx.metalDoorOpen,
+  'ch7_core_investigation' => GameSfx.microfilmScanner,
+  'ch7_case06_resolved' => GameSfx.checksumVerified,
+  'ch7_responsibility_after_3' => GameSfx.facilityAlarm,
+  'ch7_tangyi_hunt_7' => GameSfx.pneumaticNailer,
+  'ch7_chenmo_hunt_8' => GameSfx.electricalArc,
+  'ch7_hanqi_hunt_6' => GameSfx.evidenceGlassBreak,
+  'ch7_hanqi_hunt_7' => GameSfx.bodyFall,
+  'ch7_sumi_risk_1' => GameSfx.pressureBypass,
+  'ch7_lincheng_death_tangyi' ||
+  'ch7_lincheng_death_chenmo' ||
+  'ch7_lincheng_death_hanqi' => GameSfx.metalDoorLock,
+  'ch7_xingyao_death_tangyi' ||
+  'ch7_xingyao_death_chenmo' ||
+  'ch7_xingyao_death_hanqi' => GameSfx.directedTone,
+  'ch7_sumi_death_tangyi' ||
+  'ch7_sumi_death_chenmo' ||
+  'ch7_sumi_death_hanqi' => GameSfx.gasRelease,
+  'ch7_audit_sync_1' => GameSfx.syncLockPulse,
+  'ch7_audit_shutdown_1' => GameSfx.administratorChannelOff,
   _ => null,
 };

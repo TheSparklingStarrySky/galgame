@@ -626,6 +626,14 @@ class StoryController extends ChangeNotifier {
               'case02_solved',
               'puzzle_ch3_slide_puzzle_solved',
             }),
+      'ch7_sync_puzzle' =>
+        solution == 'channels_4_1_6__maintenance_archive_north' &&
+            runMode == StoryRunMode.audit &&
+            flags.containsAll({
+              'case06_solved',
+              'ch6_policy_audit_hybrid',
+              'ch6_vote_killings_prevented',
+            }),
       _ => false,
     };
     if (!valid || current.next == null) return;
@@ -661,6 +669,19 @@ class StoryController extends ChangeNotifier {
 
   void submitDeduction(String hypothesis) {
     _markCurrentRead();
+    if (currentId == 'ch7_case06_deduction') {
+      if (hypothesis == 'protocol_three_layer_host') {
+        flags.add('case06_solved');
+        logic += 2;
+        currentId = 'ch7_case06_resolved';
+      } else if (hypothesis == 'human_director_only') {
+        currentId = 'ch7_case06_human_error';
+      } else {
+        currentId = 'ch7_case06_ai_error';
+      }
+      _enterCurrent();
+      return;
+    }
     if (currentId == 'ch6_case05_deduction') {
       if (hypothesis == 'delegation_branch_replay') {
         flags.add('case05_solved');

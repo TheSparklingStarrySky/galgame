@@ -1170,7 +1170,7 @@ void main() {
       storyBeats['ch6_case05_resolved']!.flagsOnEnter,
       contains('ch6_delegate_replay_proven'),
     );
-    expect(storyBeats['ch6_end']!.next, isNull);
+    expect(storyBeats['ch6_end']!.next, 'ch7_day_six_open');
     expect(
       routeNodes.where((node) => node.id.startsWith('ch6_')).length,
       lessThan(chapter.length ~/ 4),
@@ -1271,6 +1271,147 @@ void main() {
     );
   });
 
+  test('第七章完成控制核心调查、CASE 06与三节点同步关闭', () {
+    final chapter = storyBeats.values
+        .where((beat) => beat.id.startsWith('ch7_'))
+        .toList();
+
+    expect(chapter.length, greaterThanOrEqualTo(150));
+    expect(
+      chapter.fold<int>(0, (total, beat) => total + beat.text.length),
+      greaterThanOrEqualTo(24000),
+    );
+    expect(storyBeats['ch7_day_six_open']!.timelineMinute, 7200);
+    expect(
+      storyBeats['ch7_core_investigation']!.phase,
+      StoryPhase.investigation,
+    );
+    expect(storyBeats['ch7_case06_deduction']!.phase, StoryPhase.deduction);
+    expect(storyBeats['ch7_sync_puzzle']!.phase, StoryPhase.puzzle);
+    expect(storyBeats['ch7_end']!.next, isNull);
+    expect(
+      routeNodes.where((node) => node.id.startsWith('ch7_')).length,
+      lessThan(chapter.length ~/ 6),
+    );
+    for (final path in [
+      'assets/images/scenes/control_core.png',
+      'assets/images/scenes/north_relay.png',
+      'assets/images/scenes/evidence_port.png',
+      'assets/images/scenes/medical_airlock.png',
+      'assets/images/items/core/project_approval_plate.png',
+      'assets/images/items/core/project_approval_plate_revealed.png',
+      'assets/images/items/core/graphite_lifting_film.png',
+      'assets/images/items/core/replay_topology.png',
+      'assets/images/items/core/replay_topology_traced.png',
+      'assets/images/items/core/fiber_tracer.png',
+      'assets/images/items/core/participant_input_bus.png',
+      'assets/images/items/core/participant_input_bus_decoded.png',
+      'assets/images/items/core/checksum_bridge.png',
+      'assets/images/items/core/weapon_cradle.png',
+      'assets/images/items/core/weapon_cradle_cast.png',
+      'assets/images/items/core/silicone_cast_film.png',
+    ]) {
+      expect(File(path).existsSync(), isTrue, reason: '$path 必须存在');
+    }
+    expect(storyBeats['ch7_xingyao_risk_1']!.scene, SceneKey.northRelay);
+    expect(storyBeats['ch7_lincheng_risk_1']!.scene, SceneKey.evidencePort);
+    expect(storyBeats['ch7_sumi_risk_1']!.scene, SceneKey.medicalAirlock);
+    for (final beat in chapter) {
+      final asset = portraitAsset(beat.speaker, beat.portraitMood);
+      if (asset == null) continue;
+      expect(
+        asset.endsWith('/${beat.portraitMood}.png'),
+        isTrue,
+        reason: '${beat.id} 不应回退到中立立绘',
+      );
+      expect(File(asset).existsSync(), isTrue, reason: '$asset 必须存在');
+    }
+  });
+
+  test('第七章普通模式沿三名直接责任者收束为四名幸存者', () async {
+    const routes = [
+      (
+        next: 'ch4_strong_custody',
+        firstDeath: '09',
+        responsible: '06',
+        firstFlag: 'ch7_gao_killed_by_tangyi',
+        weaponState: HighRiskItemState.used,
+      ),
+      (
+        next: 'ch4_alliance_custody',
+        firstDeath: '09',
+        responsible: '08',
+        firstFlag: 'ch7_gao_killed_by_chenmo',
+        weaponState: HighRiskItemState.used,
+      ),
+      (
+        next: 'ch4_majority_custody',
+        firstDeath: '11',
+        responsible: '04',
+        firstFlag: 'ch7_yelan_killed_by_hanqi',
+        weaponState: HighRiskItemState.missing,
+      ),
+    ];
+
+    for (final route in routes) {
+      final controller = await StoryController.load();
+      controller.startNew();
+      _advanceUntil(controller, 'ch4_key_custody_choice', allowMechanics: true);
+      controller.choose(
+        controller.availableChoices.singleWhere(
+          (choice) => choice.next == route.next,
+        ),
+      );
+      _advanceUntil(controller, 'ch7_end', allowMechanics: true);
+
+      final chapterDeaths = controller.deathRecords
+          .where((record) => record.storyNodeId.startsWith('ch7_'))
+          .toList();
+      expect(chapterDeaths.length, 2, reason: route.next);
+      expect(chapterDeaths.first.participantId, route.firstDeath);
+      expect(
+        chapterDeaths.first.responsibleParticipantIds,
+        contains(route.responsible),
+      );
+      expect(controller.flags, contains(route.firstFlag));
+      expect(controller.flags, contains('case06_solved'));
+      expect(controller.flags, contains('ch7_four_survivors'));
+      expect(controller.flags, contains('ch7_standard_complete'));
+      expect(controller.livingParticipantIds.length, 4, reason: route.next);
+      expect(
+        controller.highRiskItems['pneumatic_nailer']!.state,
+        route.weaponState,
+        reason: route.next,
+      );
+    }
+  });
+
+  test('第七章审计模式完成同步关闭并保留九名存活者', () async {
+    final controller = await StoryController.load();
+    controller.completeFullRunEnding('ending_four_seats');
+    controller.startNew(mode: StoryRunMode.audit);
+    _advanceUntil(controller, 'ch4_audit_decision', allowMechanics: true);
+    controller.choose(
+      controller.availableChoices.singleWhere(
+        (choice) => choice.next == 'ch4_audit_public_seal',
+      ),
+    );
+    _advanceUntil(controller, 'ch7_end', allowMechanics: true);
+
+    expect(controller.flags, contains('case06_solved'));
+    expect(controller.flags, contains('ch7_sync_solution_proven'));
+    expect(controller.flags, contains('ch7_zero_execution_stopped'));
+    expect(controller.flags, contains('ch7_all_survivors_preserved'));
+    expect(controller.flags, contains('ch7_audit_complete'));
+    expect(
+      controller.deathRecords.where(
+        (record) => record.storyNodeId.startsWith('ch7_'),
+      ),
+      isEmpty,
+    );
+    expect(controller.livingParticipantIds.length, 9);
+  });
+
   test('游戏正文和鉴赏文案不显示制作章节字样', () {
     final chapterPattern = RegExp(r'第[一二三四五六七八九十0-9]+章|序章|章节(?:结束)?');
     for (final beat in storyBeats.values) {
@@ -1347,6 +1488,35 @@ void main() {
           .map((beat) => beat.cgFrame)
           .toSet();
       expect(frames, {0, 1}, reason: entry.id);
+    }
+  });
+
+  test('第七章新增 CG 均已完整绑定两帧正文节点', () {
+    const expectedIds = {
+      'cg_ch7_core_opening',
+      'cg_ch7_tangyi_nailer',
+      'cg_ch7_chenmo_arc',
+      'cg_ch7_hanqi_control',
+      'cg_ch7_lincheng_gate',
+      'cg_ch7_xingyao_signal',
+      'cg_ch7_sumi_oxygen',
+      'cg_ch7_audit_sync',
+      'cg_ch7_case06_truth',
+    };
+    final chapterSevenEntries = cgEntries
+        .where((entry) => entry.id.startsWith('cg_ch7_'))
+        .toList();
+
+    expect(chapterSevenEntries.map((entry) => entry.id).toSet(), expectedIds);
+    for (final entry in chapterSevenEntries) {
+      final frames = storyBeats.values
+          .where((beat) => beat.cgId == entry.id)
+          .map((beat) => beat.cgFrame)
+          .toSet();
+      expect(frames, {0, 1}, reason: entry.id);
+      for (final asset in entry.assets) {
+        expect(File(asset).existsSync(), isTrue, reason: asset);
+      }
     }
   });
 
@@ -1448,7 +1618,15 @@ void main() {
     expect(controller.flags, contains('audit_weapon_manifest_found'));
     expect(
       controller.visibleHighRiskItems.map((record) => record.id),
-      containsAll(highRiskItemDefinitions.map((item) => item.id)),
+      containsAll(
+        highRiskItemDefinitions
+            .where((item) => item.id != 'pneumatic_nailer')
+            .map((item) => item.id),
+      ),
+    );
+    expect(
+      controller.visibleHighRiskItems.map((record) => record.id),
+      isNot(contains('pneumatic_nailer')),
     );
     expect(
       controller.visibleHighRiskItems.every(
@@ -2564,6 +2742,12 @@ void _advanceUntil(
             'location_snapshot_lag',
             'weapon_bundle_missing',
           },
+          'ch7_core_investigation' => {
+            'human_project_authorization',
+            'distributed_zero_runtime',
+            'participant_execution_bus',
+            'unregistered_weapon_cradle',
+          },
           _ => {'distance', 'repeater', 'timer'},
         });
       case StoryPhase.puzzle when allowMechanics:
@@ -2588,6 +2772,10 @@ void _advanceUntil(
             controller.completePuzzle('circuit_complete');
           case 'ch3_audit_manifest_puzzle':
             controller.completePuzzle('slot_lease_interval');
+          case 'ch7_sync_puzzle':
+            controller.completePuzzle(
+              'channels_4_1_6__maintenance_archive_north',
+            );
         }
       case StoryPhase.tuning when allowMechanics:
         controller.completeTuning();
@@ -2597,6 +2785,7 @@ void _advanceUntil(
           'ch4_case03_deduction' => 'directed_resonance',
           'ch5_case04_deduction' => 'maintenance_slot',
           'ch6_case05_deduction' => 'delegation_branch_replay',
+          'ch7_case06_deduction' => 'protocol_three_layer_host',
           _ => 'repeater',
         });
       default:

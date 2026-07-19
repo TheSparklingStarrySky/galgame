@@ -1,6 +1,6 @@
 {
-  "version": 5,
-  "status": "p0_pixabay_and_p1_original_integrated",
+  "version": 6,
+  "status": "p0_pixabay_and_p1_original_ch7_integrated",
   "format": {
     "master": "wav, 48kHz, 24-bit",
     "bgm": "runtime MP3 or AAC/M4A, stereo",
@@ -253,6 +253,45 @@
         "hidden_system"
       ],
       "brief": "标题三音动机的完整形态，从冷硬逐渐转为可理解的和声",
+      "origin": "procedural_original"
+    },
+    {
+      "id": "control_core_protocol",
+      "asset": "assets/audio/bgm/control_core_protocol.m4a",
+      "priority": "P1",
+      "loop": true,
+      "targetSeconds": "64",
+      "usage": [
+        "chapter7_control_core",
+        "case06_reconstruction"
+      ],
+      "brief": "低频服务器脉冲、扫描节拍与克制证据动机，承载控制核心调查和三层责任闭合",
+      "origin": "procedural_original"
+    },
+    {
+      "id": "synchronized_shutdown",
+      "asset": "assets/audio/bgm/synchronized_shutdown.m4a",
+      "priority": "P1",
+      "loop": true,
+      "targetSeconds": "64",
+      "usage": [
+        "chapter7_sync_puzzle",
+        "audit_three_node_shutdown"
+      ],
+      "brief": "四拍继电器脉冲与逐级上行序列，强调三处信号必须在同一秒抵达",
+      "origin": "procedural_original"
+    },
+    {
+      "id": "four_seat_aftermath",
+      "asset": "assets/audio/bgm/four_seat_aftermath.m4a",
+      "priority": "P1",
+      "loop": true,
+      "targetSeconds": "64",
+      "usage": [
+        "chapter7_final_four",
+        "standard_route_aftermath"
+      ],
+      "brief": "四次空洞钟音、稀疏钢琴与低频空气，避免把精确四人生还写成胜利",
       "origin": "procedural_original"
     },
     {
@@ -722,6 +761,46 @@
     {
       "id": "checksum_verified",
       "asset": "assets/audio/sfx/checksum_verified.m4a",
+      "group": "system",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "pneumatic_nailer",
+      "asset": "assets/audio/sfx/pneumatic_nailer.m4a",
+      "group": "story",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "electrical_arc",
+      "asset": "assets/audio/sfx/electrical_arc.m4a",
+      "group": "story",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "pressure_bypass",
+      "asset": "assets/audio/sfx/pressure_bypass.m4a",
+      "group": "story",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "evidence_glass_break",
+      "asset": "assets/audio/sfx/evidence_glass_break.m4a",
+      "group": "story",
+      "priority": "P1",
+      "loop": false,
+      "origin": "procedural_original"
+    },
+    {
+      "id": "sync_lock_pulse",
+      "asset": "assets/audio/sfx/sync_lock_pulse.m4a",
       "group": "system",
       "priority": "P1",
       "loop": false,

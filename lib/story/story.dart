@@ -3,6 +3,7 @@ part 'story_chapter3.dart';
 part 'story_chapter4.dart';
 part 'story_chapter5.dart';
 part 'story_chapter6.dart';
+part 'story_chapter7.dart';
 
 enum StoryPhase {
   title,
@@ -63,6 +64,10 @@ enum SceneKey {
   medicalIsolation,
   securityRoom,
   maintenanceRoom,
+  controlCore,
+  northRelay,
+  evidencePort,
+  medicalAirlock,
 }
 
 enum Speaker {
@@ -242,6 +247,12 @@ const highRiskItemDefinitions = <HighRiskItemDefinition>[
     name: '门禁强制控制器',
     category: '控制设备',
     area: 'E-04 档案库',
+  ),
+  HighRiskItemDefinition(
+    id: 'pneumatic_nailer',
+    name: '未登记气动射钉器',
+    category: '工业武器',
+    area: '控制核心前室',
   ),
 ];
 
@@ -2026,6 +2037,7 @@ final storyBeats = Map<String, StoryBeat>.unmodifiable({
   ...chapterFourBeats,
   ...chapterFiveBeats,
   ...chapterSixBeats,
+  ...chapterSevenBeats,
 });
 
 const _routeNodeSpecs = <({String id, int stage, double lane})>[
@@ -2090,6 +2102,22 @@ const _routeNodeSpecs = <({String id, int stage, double lane})>[
   (id: 'ch6_audit_seal', stage: 64, lane: 60),
   (id: 'ch6_route_lock_choice', stage: 65, lane: 300),
   (id: 'ch6_end', stage: 66, lane: 300),
+  (id: 'ch7_day_six_open', stage: 67, lane: 300),
+  (id: 'ch7_core_entry', stage: 69, lane: 300),
+  (id: 'ch7_core_investigation', stage: 70, lane: 300),
+  (id: 'ch7_case06_resolved', stage: 71, lane: 300),
+  (id: 'ch7_operation_gate', stage: 72, lane: 300),
+  (id: 'ch7_tangyi_hunt_7', stage: 73, lane: 180),
+  (id: 'ch7_chenmo_hunt_8', stage: 73, lane: 300),
+  (id: 'ch7_hanqi_hunt_7', stage: 73, lane: 420),
+  (id: 'ch7_sync_puzzle', stage: 73, lane: 60),
+  (id: 'ch7_return_key_choice', stage: 74, lane: 300),
+  (id: 'ch7_lincheng_death_gate', stage: 75, lane: 180),
+  (id: 'ch7_xingyao_death_gate', stage: 75, lane: 300),
+  (id: 'ch7_sumi_death_gate', stage: 75, lane: 420),
+  (id: 'ch7_audit_shutdown_2', stage: 75, lane: 60),
+  (id: 'ch7_standard_four_1', stage: 76, lane: 300),
+  (id: 'ch7_end', stage: 77, lane: 300),
 ];
 
 final routeNodes = List<RouteNode>.unmodifiable(
@@ -2184,6 +2212,31 @@ const routeConnections = <String, List<String>>{
   'ch6_force_death': ['ch6_route_lock_choice'],
   'ch6_audit_seal': ['ch6_route_lock_choice'],
   'ch6_route_lock_choice': ['ch6_end'],
+  'ch6_end': ['ch7_day_six_open'],
+  'ch7_day_six_open': ['ch7_core_entry'],
+  'ch7_core_entry': ['ch7_core_investigation'],
+  'ch7_core_investigation': ['ch7_case06_resolved'],
+  'ch7_case06_resolved': ['ch7_operation_gate'],
+  'ch7_operation_gate': [
+    'ch7_tangyi_hunt_7',
+    'ch7_chenmo_hunt_8',
+    'ch7_hanqi_hunt_7',
+    'ch7_sync_puzzle',
+  ],
+  'ch7_tangyi_hunt_7': ['ch7_return_key_choice'],
+  'ch7_chenmo_hunt_8': ['ch7_return_key_choice'],
+  'ch7_hanqi_hunt_7': ['ch7_return_key_choice'],
+  'ch7_return_key_choice': [
+    'ch7_lincheng_death_gate',
+    'ch7_xingyao_death_gate',
+    'ch7_sumi_death_gate',
+  ],
+  'ch7_lincheng_death_gate': ['ch7_standard_four_1'],
+  'ch7_xingyao_death_gate': ['ch7_standard_four_1'],
+  'ch7_sumi_death_gate': ['ch7_standard_four_1'],
+  'ch7_sync_puzzle': ['ch7_audit_shutdown_2'],
+  'ch7_audit_shutdown_2': ['ch7_end'],
+  'ch7_standard_four_1': ['ch7_end'],
 };
 
 const cgEntries = <CgEntry>[
@@ -2376,6 +2429,87 @@ const cgEntries = <CgEntry>[
       'assets/images/cg/ch6_audit_vote/02.png',
     ],
   ),
+  CgEntry(
+    id: 'cg_ch7_core_opening',
+    title: '只剩一条走廊',
+    caption: '控制核心开放 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch7_core_opening/01.png',
+      'assets/images/cg/ch7_core_opening/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch7_tangyi_nailer',
+    title: '假维护任务',
+    caption: '气动射钉器陷阱 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch7_tangyi_nailer/01.png',
+      'assets/images/cg/ch7_tangyi_nailer/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch7_chenmo_arc',
+    title: '证据完整性保护中',
+    caption: '配电反向电弧 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch7_chenmo_arc/01.png',
+      'assets/images/cg/ch7_chenmo_arc/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch7_hanqi_control',
+    title: '谁定义紧急',
+    caption: '控制核心接管 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch7_hanqi_control/01.png',
+      'assets/images/cg/ch7_hanqi_control/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch7_lincheng_gate',
+    title: '不要写成自愿留下',
+    caption: '证据端口封锁 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch7_lincheng_gate/01.png',
+      'assets/images/cg/ch7_lincheng_gate/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch7_xingyao_signal',
+    title: '断线不等于放弃',
+    caption: '北端维护闭环 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch7_xingyao_signal/01.png',
+      'assets/images/cg/ch7_xingyao_signal/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch7_sumi_oxygen',
+    title: '不要用旧值回答',
+    caption: '医疗前室缺氧 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch7_sumi_oxygen/01.png',
+      'assets/images/cg/ch7_sumi_oxygen/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch7_audit_sync',
+    title: '同一秒抵达',
+    caption: '三节点同步关闭 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch7_audit_sync/01.png',
+      'assets/images/cg/ch7_audit_sync/02.png',
+    ],
+  ),
+  CgEntry(
+    id: 'cg_ch7_case06_truth',
+    title: '不是一个人的主办者',
+    caption: 'CASE 06责任链 / 2 FRAME',
+    assets: [
+      'assets/images/cg/ch7_case06_truth/01.png',
+      'assets/images/cg/ch7_case06_truth/02.png',
+    ],
+  ),
 ];
 
 const endingEntries = <EndingEntry>[
@@ -2491,6 +2625,10 @@ String sceneImageAsset(SceneKey scene) => switch (scene) {
   SceneKey.medicalIsolation => 'assets/images/scenes/medical_isolation.png',
   SceneKey.securityRoom => 'assets/images/scenes/security_room.png',
   SceneKey.maintenanceRoom => 'assets/images/scenes/maintenance_room.png',
+  SceneKey.controlCore => 'assets/images/scenes/control_core.png',
+  SceneKey.northRelay => 'assets/images/scenes/north_relay.png',
+  SceneKey.evidencePort => 'assets/images/scenes/evidence_port.png',
+  SceneKey.medicalAirlock => 'assets/images/scenes/medical_airlock.png',
 };
 
 EndingEntry? endingById(String? id) {

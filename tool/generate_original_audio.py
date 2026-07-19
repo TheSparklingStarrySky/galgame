@@ -192,6 +192,27 @@ def _bgm_samplers(duration: float) -> dict[str, Sampler]:
         length=2.6,
         duration=duration,
     )
+    core_notes = _loop_notes(
+        (146.83, 155.56, 220.0, 207.65, 146.83, 174.61),
+        interval=3.0,
+        offset=1.0,
+        length=2.8,
+        duration=duration,
+    )
+    shutdown_notes = _loop_notes(
+        (293.66, 369.99, 440.0, 587.33, 440.0, 369.99),
+        interval=1.0,
+        offset=0.0,
+        length=1.3,
+        duration=duration,
+    )
+    aftermath_notes = _loop_notes(
+        (220.0, 196.0, 164.81, 146.83),
+        interval=6.0,
+        offset=1.5,
+        length=5.2,
+        duration=duration,
+    )
 
     def night(time: float) -> StereoSample:
         pad = _pad((55.0, 65.41, 82.41), time, 0.2) * 0.19
@@ -246,6 +267,32 @@ def _bgm_samplers(duration: float) -> dict[str, Sampler]:
         ticks = _pulse(4.0, time, 0.06) * _osc(1600.0, time) * 0.013
         return pad + pulse + notes + ticks, pad * 0.95 + pulse + notes * 0.87 - ticks
 
+    def control_core(time: float) -> StereoSample:
+        drone = _pad((49.0, 61.74, 73.42), time, 0.45) * 0.18
+        motif = _events(time, core_notes) * 0.10
+        clock = _pulse(2.0, time, 0.045) * _osc(1240.0, time) * 0.014
+        scan = _osc(0.125, time) * _osc(92.50, time) * 0.035
+        return drone + motif + clock + scan, drone * 0.94 + motif * 0.86 - clock - scan * 0.7
+
+    def synchronized_shutdown(time: float) -> StereoSample:
+        beat = time % 1.0
+        pulse = _osc(65.41, time) * math.exp(-beat * 8.0) * 0.13
+        sequence = _events(time, shutdown_notes) * 0.075
+        pad = _pad((65.41, 82.41, 98.0), time, 0.35) * 0.13
+        relay = _pulse(4.0, time, 0.035) * _osc(1760.0, time) * 0.012
+        return pad + pulse + sequence + relay, pad * 0.95 + pulse + sequence * 0.84 - relay
+
+    def four_seat_aftermath(time: float) -> StereoSample:
+        hollow = _pad((55.0, 65.41, 82.41), time, 0.9) * 0.16
+        piano = _events(time, aftermath_notes) * 0.14
+        four_count = sum(
+            _bell(329.63, time, base + step * 0.55, 2.1) * 0.045
+            for base in range(0, int(duration), 16)
+            for step in range(4)
+        )
+        air = _air(time, 117) * 0.9
+        return hollow + piano + four_count + air, hollow * 0.92 + piano * 0.88 + four_count * 1.05 + air * 0.75
+
     return {
         "night_facility": night,
         "bond_xingyao": xingyao,
@@ -254,6 +301,9 @@ def _bgm_samplers(duration: float) -> dict[str, Sampler]:
         "betrayal_hunt": betrayal,
         "audit_revelation": audit,
         "rescue_action": rescue,
+        "control_core_protocol": control_core,
+        "synchronized_shutdown": synchronized_shutdown,
+        "four_seat_aftermath": four_seat_aftermath,
     }
 
 
@@ -291,6 +341,49 @@ def _sfx_samplers() -> dict[str, tuple[float, Sampler]]:
         ramp = min(time / 0.25, 1.0) * min((6.0 - time) / 0.8, 1.0)
         return ramp * (_air(time * 9.0, 51) + 0.055 * _osc(63.0, time))
 
+    def pneumatic_nailer(time: float) -> float:
+        charge = _air(time * 12.0, 121) * min(time / 0.06, 1.0) * math.exp(-time * 5.0)
+        strike_time = max(time - 0.16, 0.0)
+        strike = impact(strike_time) * (1.0 if time >= 0.16 else 0.0)
+        metal = decay_tone(1480.0, 7.5, metallic=True)(strike_time) if time >= 0.16 else 0.0
+        return charge * 1.4 + strike * 1.2 + metal * 0.55
+
+    def electrical_arc(time: float) -> float:
+        crackle = _pulse(31.0 + 7.0 * _osc(1.7, time), time, 0.13)
+        high = _osc(1380.0 + 520.0 * _osc(13.0, time), time)
+        surge = min(time / 0.04, 1.0) * min((2.1 - time) / 0.35, 1.0)
+        return surge * (0.13 * crackle * high + 0.10 * _triangle(93.0, time) + _air(time * 13.0, 131))
+
+    def pressure_bypass(time: float) -> float:
+        valve = decay_tone(280.0, 4.5, metallic=True)(time) * 0.75
+        flow = gas(time) * 0.82
+        latch_time = max(time - 3.65, 0.0)
+        latch = impact(latch_time) * 0.55 if time >= 3.65 else 0.0
+        return valve + flow + latch
+
+    def evidence_glass_break(time: float) -> float:
+        base = impact(time) * 0.9
+        shards = sum(
+            decay_tone(freq, 6.0 + index, metallic=True)(max(time - offset, 0.0))
+            * (0.34 / (index + 1))
+            * (1.0 if time >= offset else 0.0)
+            for index, (offset, freq) in enumerate(
+                ((0.03, 1260.0), (0.11, 1780.0), (0.19, 2320.0), (0.31, 1540.0))
+            )
+        )
+        scatter = _air(time * 18.0, 141) * math.exp(-time * 3.1)
+        return base + shards + scatter
+
+    def sync_lock_pulse(time: float) -> float:
+        tones = (
+            _bell(392.0, time, 0.0, 1.2)
+            + _bell(523.25, time, 0.34, 1.2)
+            + _bell(783.99, time, 0.68, 1.5)
+        ) * 0.23
+        lock_time = max(time - 1.04, 0.0)
+        lock = impact(lock_time) * 0.55 if time >= 1.04 else 0.0
+        return tones + lock
+
     def ambience(seed: int, hum: float) -> Sampler:
         return lambda time: (
             _air(time, seed) + 0.035 * _osc(hum, time),
@@ -318,6 +411,11 @@ def _sfx_samplers() -> dict[str, tuple[float, Sampler]]:
         "gas_release": (6.2, stereo(gas)),
         "archive_seal": (6.0, stereo(lambda t: motor(t * 0.82) * 0.8 + (impact(t - 4.6) if t >= 4.6 else 0.0))),
         "checksum_verified": (1.8, stereo(lambda t: _bell(523.25, t, 0.0, 1.8) * 0.28 + _bell(783.99, t, 0.28, 1.4) * 0.22)),
+        "pneumatic_nailer": (1.3, stereo(pneumatic_nailer, -0.12)),
+        "electrical_arc": (2.2, stereo(electrical_arc, 0.15)),
+        "pressure_bypass": (4.8, stereo(pressure_bypass)),
+        "evidence_glass_break": (1.8, stereo(evidence_glass_break, -0.08)),
+        "sync_lock_pulse": (2.4, stereo(sync_lock_pulse)),
     }
 
 
@@ -325,6 +423,7 @@ def _encode_runtime(wav_path: Path, output_path: Path) -> None:
     afconvert = shutil.which("afconvert")
     if afconvert is None:
         raise RuntimeError("afconvert is required for --encode-runtime")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(
         [
             afconvert,
@@ -346,17 +445,33 @@ def main() -> None:
     parser.add_argument("--output-root", type=Path, default=Path("assets/audio"))
     parser.add_argument("--bgm-seconds", type=float, default=64.0)
     parser.add_argument("--encode-runtime", action="store_true")
+    parser.add_argument(
+        "--only",
+        action="append",
+        default=[],
+        help="Generate only these comma-separated cue ids.",
+    )
     args = parser.parse_args()
+    selected = {
+        name.strip()
+        for group in args.only
+        for name in group.split(",")
+        if name.strip()
+    }
 
     with tempfile.TemporaryDirectory(prefix="zero-hour-audio-") as temp_dir:
         temp_root = Path(temp_dir)
         for name, sampler in _bgm_samplers(args.bgm_seconds).items():
+            if selected and name not in selected:
+                continue
             wav_path = temp_root / f"{name}.wav" if args.encode_runtime else args.output_root / "bgm" / f"{name}.wav"
             _write_wav(wav_path, args.bgm_seconds, sampler)
             if args.encode_runtime:
                 _encode_runtime(wav_path, args.output_root / "bgm" / f"{name}.m4a")
 
         for name, (duration, sampler) in _sfx_samplers().items():
+            if selected and name not in selected:
+                continue
             wav_path = temp_root / f"{name}.wav" if args.encode_runtime else args.output_root / "sfx" / f"{name}.wav"
             _write_wav(wav_path, duration, sampler)
             if args.encode_runtime:
